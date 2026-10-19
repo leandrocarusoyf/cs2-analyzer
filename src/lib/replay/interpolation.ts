@@ -1,301 +1,272 @@
-import type {
-  CS2Map,
-  CompactPlayerTuple,
-  RawFrame,
-  RawPlayerFrame,
-  TacticalSnapshotFrame,
-} from '../../types/replay.ts';
-import type { InterpolatedPlayerState, PlayerFloor } from '../../types/replayer-engine.ts';
-import { resolveFloorLayer, worldToRadarUV } from './coordinates.ts';
-import { RADAR_SIZE } from './constants.ts';
+import { Frame, PlayerMetadata, PlayerState, RawPlayerFrame } from '../../types/replay';
+import { decompressFrame } from './decompress';
+import { worldToRadarPercent } from './coordinates';
 
 export const NUKE_VERTICAL_THRESHOLD_Z = -495;
 
-export function classifyPlayerFloor(worldZ: number, map: CS2Map | string): PlayerFloor {
-  if (map === 'de_nuke') {
-    return worldZ < NUKE_VERTICAL_THRESHOLD_Z ? 'lower' : 'upper';
-  }
-  return 'default';
-}
-
-export interface TacticalInterpolatedPlayer extends InterpolatedPlayerState {
-  id: number;
-  playerId: number;
-  x: number;
-  y: number;
-  z: number;
-  u: number;
-  v: number;
-  xWorld: number;
-  yWorld: number;
-  zWorld: number;
-  pitch: number;
-  isFlashed: boolean;
-  activeWeapon: string;
-  hasC4: boolean;
-  hasDefuser: boolean;
-  money: number;
-}
-
-function cleanZero(val: number): number {
-  return Object.is(val, -0) || Math.abs(val) < 1e-10 ? 0 : val;
+export function lerp(a: number, b: number, t: number): number {
+  const clampedT = Math.max(0, Math.min(1, t));
+  return a + (b - a) * clampedT;
 }
 
 export function computeInterpolationAlpha(
   currentTick: number,
-  tickK: number,
-  tickKNext: number,
+  startTick: number,
+  endTick: number
 ): number {
-  const span = tickKNext - tickK;
-  if (span <= 0) return 0;
-  const raw = (currentTick - tickK) / span;
-  return cleanZero(Math.max(0, Math.min(1, raw)));
+  if (endTick === startTick) return 0;
+  return Math.max(0, Math.min(1, (currentTick - startTick) / (endTick - startTick)));
 }
 
-export function lerp(xK: number, xKNext: number, alpha: number): number {
-  const clamped = Math.max(0, Math.min(1, alpha));
-  return cleanZero(xK + clamped * (xKNext - xK));
+export function lerpAngleDegrees(angleA: number, angleB: number, t: number): number {
+  const clampedT = Math.max(0, Math.min(1, t));
+  let diff = (angleB - angleA) % 360;
+  if (diff > 180) diff -= 360;
+  if (diff < -180) diff += 360;
+  let res = (angleA + diff * clampedT) % 360;
+  if (res < 0) res += 360;
+  return res;
 }
 
-export function slerpYaw(
-  thetaK: number,
-  thetaKNext: number,
-  alpha: number,
-): number {
-  const clamped = Math.max(0, Math.min(1, alpha));
-  const normK = ((thetaK % 360) + 360) % 360;
-  const normNext = ((thetaKNext % 360) + 360) % 360;
-  const deltaTheta = ((((normNext - normK + 540) % 360) + 360) % 360) - 180;
-  const theta = (((normK + clamped * deltaTheta) % 360) + 360) % 360;
-  return cleanZero(theta);
+export const slerpYaw = lerpAngleDegrees;
+export const lerpDegrees = lerpAngleDegrees;
+
+export function lerpPitch(pitchA: number, pitchB: number, t: number): number {
+  const p = lerp(pitchA, pitchB, t);
+  return Math.max(-89, Math.min(89, p));
 }
 
-export const lerpAngleDegrees = slerpYaw;
-
-export function normalizePlayerState(p: any): {
-  id: number;
-  x: number;
-  y: number;
-  z: number;
-  yaw: number;
-  pitch: number;
-  hp: number;
-  armor: number;
-  hasHelmet: boolean;
-  isAlive: boolean;
-  isDefusing: boolean;
-  isPlanting: boolean;
-  activeWeapon: string;
-  activeWeaponId: number;
-  hasC4: boolean;
-  hasDefuser: boolean;
-  money: number;
-  flashDuration: number;
-} {
-  if (Array.isArray(p)) {
-    if (p.length >= 17) {
-      return {
-        id: Number(p[0] ?? 0),
-        x: Number(p[1] ?? 0),
-        y: Number(p[2] ?? 0),
-        z: Number(p[3] ?? 0),
-        yaw: Number(p[4] ?? 0),
-        pitch: Number(p[5] ?? 0),
-        hp: Number(p[6] ?? 100),
-        armor: Number(p[7] ?? 100),
-        hasHelmet: Boolean(p[8]),
-        isAlive: Boolean(p[9]),
-        isDefusing: Boolean(p[11]),
-        isPlanting: Boolean(p[12]),
-        activeWeapon: String(p[13] || 'weapon_ak47'),
-        activeWeaponId: 7,
-        hasC4: Boolean(p[14]),
-        hasDefuser: Boolean(p[15]),
-        money: Number(p[16] ?? 800),
-        flashDuration: p[10] ? 2.0 : 0,
-      };
-    }
-    // Tupla de 14 itens: [0:id, 1:x, 2:y, 3:z, 4:yaw, 5:hp, 6:armor, 7:helmet, 8:alive, 9:defusing, 10:planting, 11:weaponId, 12:flash, 13:ping]
-    return {
-      id: Number(p[0] || 0),
-      x: Number(p[1] ?? 0),
-      y: Number(p[2] ?? 0),
-      z: Number(p[3] ?? 0),
-      yaw: Number(p[4] ?? 0),
-      pitch: 0,
-      hp: Number(p[5] ?? 100),
-      armor: Number(p[6] ?? 100),
-      hasHelmet: Boolean(p[7]),
-      isAlive: Boolean(p[8]),
-      isDefusing: Boolean(p[9]),
-      isPlanting: Boolean(p[10]),
-      activeWeapon: `weapon_${p[11] || 7}`,
-      activeWeaponId: Number(p[11] || 7),
-      hasC4: Boolean(p[10]),
-      hasDefuser: Number(p[0]) <= 5,
-      money: 800,
-      flashDuration: Number(p[12] || 0),
-    };
+export function classifyPlayerFloor(
+  z: number,
+  map: string
+): 'upper' | 'lower' | 'default' {
+  if (map === 'de_nuke') {
+    return z >= NUKE_VERTICAL_THRESHOLD_Z ? 'upper' : 'lower';
   }
-
-  // Objeto estruturado
-  const id = Number(p.id ?? p.playerId ?? 0);
-  const hp = Number(p.hp ?? p.health ?? (p.isAlive === false || p.is_alive === false ? 0 : 100));
-  const isAlive =
-    p.isAlive !== undefined
-      ? Boolean(p.isAlive)
-      : p.is_alive !== undefined
-      ? Boolean(p.is_alive)
-      : hp > 0;
-
-  return {
-    id,
-    x: Number(p.x ?? p.X ?? 0),
-    y: Number(p.y ?? p.Y ?? 0),
-    z: Number(p.z ?? p.Z ?? -200),
-    yaw: Number(p.yaw ?? p.ang_yaw ?? 0),
-    pitch: Number(p.pitch ?? p.ang_pitch ?? 0),
-    hp,
-    armor: Number(p.armor ?? p.armor_value ?? 100),
-    hasHelmet: Boolean(p.hasHelmet ?? p.has_helmet),
-    isAlive,
-    isDefusing: Boolean(p.isDefusing ?? p.is_defusing),
-    isPlanting: Boolean(p.isPlanting ?? p.is_planting),
-    activeWeapon: String(p.activeWeapon ?? p.active_weapon_name ?? 'weapon_ak47'),
-    activeWeaponId: Number(p.activeWeaponId ?? p.weaponId ?? 7),
-    hasC4: Boolean(p.hasC4 ?? p.isPlanting),
-    hasDefuser: Boolean(p.hasDefuser ?? (id <= 5)),
-    money: Number(p.money ?? 800),
-    flashDuration: Number(p.flashDuration ?? p.flash_duration ?? 0),
-  };
-}
-
-export function interpolateTacticalPlayer(
-  prevRaw: any,
-  nextRaw: any,
-  alpha: number,
-  mapName: string = 'de_inferno',
-): TacticalInterpolatedPlayer {
-  const pA = normalizePlayerState(prevRaw);
-  const pB = normalizePlayerState(nextRaw);
-  const t = Math.max(0, Math.min(1, alpha));
-
-  const x = lerp(pA.x, pB.x, t);
-  const y = lerp(pA.y, pB.y, t);
-  const z = lerp(pA.z, pB.z, t);
-  const yaw = slerpYaw(pA.yaw, pB.yaw, t);
-  const pitch = lerp(pA.pitch, pB.pitch, t);
-
-  const { u, v } = worldToRadarUV(x, y, mapName);
-  const percentX = cleanZero((u / RADAR_SIZE) * 100);
-  const percentY = cleanZero((v / RADAR_SIZE) * 100);
-  const currentFloor = resolveFloorLayer(z, mapName);
-
-  const current = t < 0.5 ? pA : pB;
-
-  return {
-    id: current.id,
-    playerId: current.id,
-    x,
-    y,
-    z,
-    xWorld: x,
-    yWorld: y,
-    zWorld: z,
-    worldZ: z,
-    u,
-    v,
-    percentX,
-    percentY,
-    yaw,
-    pitch,
-    hp: current.hp,
-    armor: current.armor,
-    hasHelmet: current.hasHelmet,
-    isAlive: current.isAlive,
-    isDefusing: current.isDefusing,
-    isPlanting: current.isPlanting,
-    activeWeapon: current.activeWeapon,
-    activeWeaponId: current.activeWeaponId,
-    hasC4: current.hasC4,
-    hasDefuser: current.hasDefuser,
-    money: current.money,
-    flashDuration: lerp(pA.flashDuration, pB.flashDuration, t),
-    isFlashed: current.flashDuration > 0.1,
-    currentFloor,
-    ping: 15,
-  };
+  return 'default';
 }
 
 export function interpolatePlayerFrames(
-  prevPlayer: RawPlayerFrame | Record<string, any>,
-  nextPlayer: RawPlayerFrame | Record<string, any>,
+  prev: RawPlayerFrame,
+  next: RawPlayerFrame,
   t: number,
-  map: CS2Map | string = 'de_mirage',
-): TacticalInterpolatedPlayer {
-  return interpolateTacticalPlayer(prevPlayer, nextPlayer, t, String(map));
+  map: string
+) {
+  const clampedT = Math.max(0, Math.min(1, t));
+  const worldX = lerp(prev[1], next[1], clampedT);
+  const worldY = lerp(prev[2], next[2], clampedT);
+  const worldZ = lerp(prev[3], next[3], clampedT);
+  const yaw = lerpAngleDegrees(prev[4], next[4], clampedT);
+
+  const { percentX, percentY } = worldToRadarPercent(worldX, worldY, map);
+  const currentFloor = classifyPlayerFloor(worldZ, map);
+
+  const chooseNext = clampedT >= 0.5;
+  const hp = chooseNext ? next[5] : prev[5];
+  const armor = chooseNext ? next[6] : prev[6];
+  const isAlive = Boolean(chooseNext ? next[8] : prev[8]);
+  const isDefusing = Boolean(chooseNext ? next[9] : prev[9]);
+  const isPlanting = Boolean(chooseNext ? next[10] : prev[10]);
+  const activeWeaponId = chooseNext ? next[11] : prev[11];
+  const flashDuration = lerp(prev[12] ?? 0, next[12] ?? 0, clampedT);
+  const ping = chooseNext ? next[13] : prev[13];
+
+  return {
+    playerId: prev[0],
+    worldX,
+    worldY,
+    worldZ,
+    percentX,
+    percentY,
+    yaw,
+    currentFloor,
+    hp,
+    armor,
+    isAlive,
+    isDefusing,
+    isPlanting,
+    activeWeaponId,
+    flashDuration,
+    ping,
+  };
 }
 
-export function interpolateSnapshotFrames(
-  frames: ReadonlyArray<RawFrame | TacticalSnapshotFrame> | undefined | null,
-  currentTick: number,
-  mapName: CS2Map | string,
-): TacticalInterpolatedPlayer[] {
-  if (!frames || frames.length === 0) return [];
+export function findSurroundingFrames(
+  frames: any[],
+  targetTick: number
+): { prev: any | null; next: any | null; index: number } {
+  const len = frames.length;
+  if (len === 0) return { prev: null, next: null, index: -1 };
 
-  const getTick = (f: any): number => Number(Array.isArray(f) ? f[0] : f.tick ?? 0);
-  const getPlayers = (f: any): any[] =>
-    Array.isArray(f) ? (Array.isArray(f[1]) ? f[1] : []) : f.players || [];
+  const getTick = (f: any): number => {
+    if (!f) return 0;
+    return Array.isArray(f) ? Number(f[0]) : Number(f.tick);
+  };
 
-  const firstTick = getTick(frames[0]);
-  if (frames.length === 1 || currentTick <= firstTick) {
-    return getPlayers(frames[0]).map((p) =>
-      interpolateTacticalPlayer(p, p, 0, String(mapName)),
-    );
+  if (targetTick <= getTick(frames[0])) {
+    return { prev: frames[0], next: frames[0], index: 0 };
   }
 
-  const lastIdx = frames.length - 1;
-  const lastTick = getTick(frames[lastIdx]);
-  if (currentTick >= lastTick) {
-    return getPlayers(frames[lastIdx]).map((p) =>
-      interpolateTacticalPlayer(p, p, 1, String(mapName)),
-    );
+  if (targetTick >= getTick(frames[len - 1])) {
+    return { prev: frames[len - 1], next: frames[len - 1], index: len - 1 };
   }
 
   let low = 0;
-  let high = lastIdx - 1;
-  let kIdx = 0;
+  let high = len - 1;
 
   while (low <= high) {
-    const mid = (low + high) >> 1;
-    const tMid = getTick(frames[mid]);
-    const tNext = getTick(frames[mid + 1]);
+    const mid = Math.floor((low + high) / 2);
+    const midTick = getTick(frames[mid]);
 
-    if (currentTick >= tMid && currentTick <= tNext) {
-      kIdx = mid;
-      break;
-    } else if (currentTick < tMid) {
-      high = mid - 1;
-    } else {
-      kIdx = mid;
+    if (midTick === targetTick) {
+      return { prev: frames[mid], next: frames[mid], index: mid };
+    }
+
+    if (midTick < targetTick) {
       low = mid + 1;
+    } else {
+      high = mid - 1;
     }
   }
 
-  const frameK = frames[kIdx];
-  const frameNext = frames[Math.min(lastIdx, kIdx + 1)];
-  const alpha = computeInterpolationAlpha(currentTick, getTick(frameK), getTick(frameNext));
+  const prevIdx = Math.max(0, high);
+  const nextIdx = Math.min(len - 1, low);
 
-  const nextPlayers = getPlayers(frameNext);
-  const nextById = new Map<number, any>();
-  for (const np of nextPlayers) {
-    const pid = Number(Array.isArray(np) ? np[0] : np.id ?? np.playerId ?? 0);
-    if (pid > 0) nextById.set(pid, np);
+  return {
+    prev: frames[prevIdx],
+    next: frames[nextIdx],
+    index: prevIdx,
+  };
+}
+
+export function getInterpolatedPlayers(
+  rawFrames: any[],
+  targetTick: number,
+  playerMetaMap?: Record<string, PlayerMetadata>
+): PlayerState[] {
+  if (!rawFrames || rawFrames.length === 0) {
+    return [];
   }
 
-  return getPlayers(frameK).map((prevP) => {
-    const pid = Number(Array.isArray(prevP) ? prevP[0] : prevP.id ?? prevP.playerId ?? 0);
-    const nextP = nextById.get(pid) ?? prevP;
-    return interpolateTacticalPlayer(prevP, nextP, alpha, String(mapName));
-  });
+  const { prev: rawPrev, next: rawNext } = findSurroundingFrames(rawFrames, targetTick);
+  if (!rawPrev) return [];
+
+  const prevFrame: Frame = decompressFrame(rawPrev, playerMetaMap);
+
+  if (!rawNext || rawPrev === rawNext) {
+    return prevFrame.players;
+  }
+
+  const nextFrame: Frame = decompressFrame(rawNext, playerMetaMap);
+
+  const prevTick = prevFrame.tick;
+  const nextTick = nextFrame.tick;
+
+  if (nextTick === prevTick || prevFrame.players.length === 0) {
+    return prevFrame.players.length > 0 ? prevFrame.players : nextFrame.players;
+  }
+
+  const t = Math.max(0, Math.min(1, (targetTick - prevTick) / (nextTick - prevTick)));
+
+  const nextPlayerMap = new Map<string, PlayerState>();
+  for (const np of nextFrame.players) {
+    nextPlayerMap.set(String(np.id), np);
+  }
+
+  const result: PlayerState[] = [];
+  const processedIds = new Set<string>();
+
+  for (const pA of prevFrame.players) {
+    const pId = String(pA.id);
+    processedIds.add(pId);
+    const pB = nextPlayerMap.get(pId);
+
+    if (!pB) {
+      result.push(pA);
+      continue;
+    }
+
+    // Interpolação vetorial de velocidade
+    const vx = lerp(pA.velocity?.x ?? 0, pB.velocity?.x ?? 0, t);
+    const vy = lerp(pA.velocity?.y ?? 0, pB.velocity?.y ?? 0, t);
+    const vz = lerp(pA.velocity?.z ?? 0, pB.velocity?.z ?? 0, t);
+    const speed2D = Math.hypot(vx, vy);
+
+    // Decaimento linear proporcional ao delta de ticks decorridos
+    const flashDuration = Math.max(0, lerp(pA.flashDuration ?? 0, pB.flashDuration ?? 0, t));
+
+    // Flags discretas: mantidas pelo frame mais recente (t >= 0.5 ? next : prev)
+    const isScoped = t >= 0.5 ? pB.isScoped : pA.isScoped;
+    const isCrouching = t >= 0.5 ? pB.isCrouching : pA.isCrouching;
+    const isAirborne = t >= 0.5 ? pB.isAirborne : pA.isAirborne;
+    const isDefusing = t >= 0.5 ? pB.isDefusing : pA.isDefusing;
+
+    if (pA.isAlive && pB.isAlive) {
+      result.push({
+        ...pA,
+        x: lerp(pA.x, pB.x, t),
+        y: lerp(pA.y, pB.y, t),
+        z: lerp(pA.z, pB.z, t),
+        yaw: lerpAngleDegrees(pA.yaw, pB.yaw, t),
+        pitch: lerpPitch(pA.pitch ?? 0, pB.pitch ?? 0, t),
+        velocity: { x: vx, y: vy, z: vz, speed2D },
+        hp: t < 0.5 ? pA.hp : pB.hp,
+        armor: t < 0.5 ? pA.armor : pB.armor,
+        hasHelmet: t < 0.5 ? pA.hasHelmet : pB.hasHelmet,
+        hasDefuser: t < 0.5 ? pA.hasDefuser : pB.hasDefuser,
+        isAlive: true,
+        activeWeapon: t < 0.5 ? pA.activeWeapon : pB.activeWeapon,
+        money: t < 0.5 ? pA.money : pB.money,
+        isScoped,
+        isCrouching,
+        isAirborne,
+        isDefusing,
+        flashDuration,
+      });
+    } else if (pA.isAlive && !pB.isAlive) {
+      const died = t >= 0.5;
+      result.push({
+        ...(died ? pB : pA),
+        x: lerp(pA.x, pB.x, t),
+        y: lerp(pA.y, pB.y, t),
+        z: lerp(pA.z, pB.z, t),
+        yaw: lerpAngleDegrees(pA.yaw, pB.yaw, t),
+        pitch: lerpPitch(pA.pitch ?? 0, pB.pitch ?? 0, t),
+        velocity: { x: vx, y: vy, z: vz, speed2D },
+        isAlive: !died,
+        hp: died ? 0 : pA.hp,
+        isScoped: died ? false : isScoped,
+        isCrouching,
+        isAirborne,
+        isDefusing: died ? false : isDefusing,
+        flashDuration: died ? 0 : flashDuration,
+      });
+    } else {
+      result.push({
+        ...pB,
+        velocity: { x: vx, y: vy, z: vz, speed2D },
+        flashDuration,
+      });
+    }
+  }
+
+  for (const pB of nextFrame.players) {
+    const pId = String(pB.id);
+    if (!processedIds.has(pId)) {
+      result.push(pB);
+    }
+  }
+
+  return result;
 }
+
+export function interpolateSnapshotFrames(
+  frames: any[] | undefined | null,
+  currentTick: number,
+  mapName?: string,
+  playerMetaMap?: Record<string, PlayerMetadata>
+): PlayerState[] {
+  if (!frames || frames.length === 0) return [];
+  return getInterpolatedPlayers(frames, currentTick, playerMetaMap);
+}
+

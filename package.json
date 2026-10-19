@@ -12,6 +12,7 @@
   "dependencies": {
     "@laihoe/demoparser2": "^0.42.0",
     "@types/pako": "^2.0.4",
+    "demoparser2": "^0.15.0",
     "next": "^15.2.0",
     "pako": "^3.0.2",
     "pg": "^8.23.1",

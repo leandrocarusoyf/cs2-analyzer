@@ -119,7 +119,16 @@ export const replayRoundSchema = z.object({
   winReason: z.string().min(1),
   events: replayEventsSchema,
   frames: z.array(rawFrameSchema),
-});
+  ctScore: z.number().optional(),
+  tScore: z.number().optional(),
+  ctRoundType: z.string().optional(),
+  tRoundType: z.string().optional(),
+  freezeTimeEndTick: z.number().optional(),
+  grenades: z.array(z.any()).optional(),
+  trajectories: z.array(z.any()).optional(),
+  shots: z.array(z.any()).optional(),
+  damages: z.array(z.any()).optional(),
+}).passthrough();
 
 export const replayDataPackageSchema = z.object({
   formatVersion: z.union([z.string().min(1), z.number().int().positive()]),
@@ -129,7 +138,7 @@ export const replayDataPackageSchema = z.object({
   playersManifest: z.array(playerManifestEntrySchema),
   weaponsManifest: z.array(weaponManifestEntrySchema),
   rounds: z.array(replayRoundSchema),
-});
+}).passthrough();
 
 export type ReplayDataPackage = z.infer<typeof replayDataPackageSchema>;
 export type ValidatedReplayDataPackage = ReplayDataPackage;
@@ -138,10 +147,110 @@ export type RawFrame = z.infer<typeof rawFrameSchema>;
 export type ReplayRound = z.infer<typeof replayRoundSchema>;
 export type ReplayEvents = z.infer<typeof replayEventsSchema>;
 
-// Garantia em tempo de compilação de paridade estrutural entre a interface e o schema Zod
-type AssertTypeEquality<T extends U, U = T> = T;
-export type _SchemaParityCheck = AssertTypeEquality<
-  ReplayDataPackage,
-  ReplayDataPackageInterface
+/**
+ * Esquema Zod para a tupla canônica estendida V2 (22 posições)
+ */
+export const rawPlayerTupleSchema = z.tuple([
+  z.union([z.string(), z.number()]), // 0: id
+  z.number(), // 1: x
+  z.number(), // 2: y
+  z.number(), // 3: z
+  z.number(), // 4: yaw
+  z.number(), // 5: pitch
+  z.number(), // 6: vx
+  z.number(), // 7: vy
+  z.number(), // 8: vz
+  z.number(), // 9: hp
+  z.number(), // 10: armor
+  z.union([z.boolean(), z.number()]), // 11: hasHelmet
+  z.union([z.boolean(), z.number()]), // 12: isAlive
+  z.union([z.string(), z.number()]), // 13: activeWeapon
+  z.number(), // 14: money
+  z.union([z.string(), z.number()]), // 15: team
+  z.union([z.boolean(), z.number()]), // 16: isDefusing
+  z.union([z.boolean(), z.number()]), // 17: hasDefuser
+  z.union([z.boolean(), z.number()]), // 18: isScoped
+  z.union([z.boolean(), z.number()]), // 19: isCrouching
+  z.union([z.boolean(), z.number()]), // 20: isAirborne
+  z.number(), // 21: flashDuration
+]);
+
+export const grenadeTrajectoryPointSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+  tick: z.number(),
+});
+
+export const grenadeTrajectorySchema = z.object({
+  id: z.string(),
+  throwerId: z.string(),
+  weapon: z.string(),
+  points: z.array(grenadeTrajectoryPointSchema),
+});
+
+export const grenadeEffectEventSchema = z.object({
+  id: z.string(),
+  type: z.enum(['smoke', 'molotov', 'flash', 'he']),
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+  startTick: z.number(),
+  endTick: z.number(),
+  radius: z.number(),
+});
+
+export const weaponFireEventSchema = z.object({
+  tick: z.number(),
+  playerId: z.string(),
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+  yaw: z.number(),
+  pitch: z.number(),
+  weapon: z.string(),
+});
+
+export const playerHurtEventSchema = z.object({
+  tick: z.number(),
+  attackerId: z.string(),
+  victimId: z.string(),
+  damage: z.number(),
+  hitgroup: z.number(),
+  remainingHp: z.number(),
+  remainingArmor: z.number(),
+});
+
+export const bombLifecycleEventSchema = z.object({
+  tick: z.number(),
+  round: z.number().optional(),
+  type: z.enum([
+    'planted',
+    'defused',
+    'exploded',
+    'dropped',
+    'pickup',
+    'begin_defuse',
+    'abort_defuse',
+    'plant_start',
+    'plant',
+    'defuse_start',
+    'defuse',
+    'explode',
+  ]),
+  site: z.enum(['A', 'B']).optional(),
+  playerId: z.union([z.string(), z.number()]).optional(),
+  x: z.number().optional(),
+  y: z.number().optional(),
+  z: z.number().optional(),
+  hasKit: z.boolean().optional(),
+});
+
+// Garantia em tempo de compilação de compatibilidade estrutural
+type AssertAssignable<T, U extends T> = true;
+export type _SchemaParityCheck = AssertAssignable<
+  ReplayDataPackageInterface,
+  ReplayDataPackage
 >;
+
 

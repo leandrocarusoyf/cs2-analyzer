@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { createReadStream, existsSync } from 'node:fs';
+import { createReadStream, existsSync, readdirSync } from 'node:fs';
 import { Readable } from 'node:stream';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -31,15 +31,30 @@ export async function GET(
       console.warn('[replays route] Database query error, trying fallback:', dbErr);
     }
 
-    // 2. Fallback de busca no disco caso o ID seja um caminho relativo ou partida canônica
+    // 2. Fallback de busca no disco caso o ID seja um caminho relativo, partida canônica ou pasta de replay
     if (!replayPath) {
+      const matchDir = path.resolve(process.cwd(), 'data', 'replays', id);
+      if (existsSync(matchDir)) {
+        try {
+          const files = readdirSync(matchDir);
+          const gzFile = files.find((f) => f.endsWith('.bin.gz'));
+          const jsonFile = files.find((f) => f.endsWith('.json'));
+          if (gzFile) {
+            replayPath = path.join(matchDir, gzFile);
+          } else if (jsonFile) {
+            replayPath = path.join(matchDir, jsonFile);
+          }
+        } catch {}
+      }
+
       const directPath = path.resolve(process.cwd(), id);
-      if (existsSync(directPath)) {
+      if (!replayPath && existsSync(directPath)) {
         replayPath = directPath;
       } else if (
-        id === '54e43847-2490-4751-9981-831bf7cf367c' ||
-        id === '916fac287383f0fb' ||
-        id.includes('furia-vs-aurora')
+        !replayPath &&
+        (id === '54e43847-2490-4751-9981-831bf7cf367c' ||
+          id === '916fac287383f0fb' ||
+          id.includes('furia-vs-aurora'))
       ) {
         const canonicalPath = path.resolve(
           process.cwd(),
@@ -55,6 +70,7 @@ export async function GET(
         }
       }
     }
+
 
     if (!replayPath) {
       return Response.json(

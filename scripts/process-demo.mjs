@@ -33,6 +33,64 @@ const VALID_MAPS = new Set([
   'de_cache',
 ]);
 
+export const CANONICAL_MATCH_ID = '54e43847-2490-4751-9981-831bf7cf367c';
+
+export const CONSOLIDATED_EVENTS = Object.freeze([
+  'round_start',
+  'round_end',
+  'player_death',
+  'weapon_fire',
+  'player_hurt',
+  'bomb_planted',
+  'bomb_defused',
+  'bomb_exploded',
+  'bomb_dropped',
+  'bomb_pickup',
+  'bomb_begindefuse',
+  'bomb_abortdefuse',
+  'round_freeze_end',
+  'round_officially_ended',
+  'round_announce_match_start',
+  'begin_new_match',
+  'smokegrenade_detonate',
+  'smokegrenade_expired',
+  'inferno_startburn',
+  'inferno_expire',
+  'flashbang_detonate',
+  'hegrenade_detonate',
+  'grenade_thrown',
+]);
+
+
+/**
+ * Esquema Canônico de Tupla estendida com suporte a float (1 casa decimal)
+ * e novas flags de estado físico e tático (22 posições):
+ */
+export const PLAYER_TUPLE_SCHEMA = Object.freeze([
+  'id',
+  'x',
+  'y',
+  'z',
+  'yaw',
+  'pitch',
+  'vx',
+  'vy',
+  'vz',
+  'hp',
+  'armor',
+  'hasHelmet',
+  'isAlive',
+  'activeWeapon',
+  'money',
+  'team',
+  'isDefusing',
+  'hasDefuser',
+  'isScoped',
+  'isCrouching',
+  'isAirborne',
+  'flashDuration',
+]);
+
 function roundTo(val, decimals = 2) {
   const factor = 10 ** decimals;
   return Math.round((val + Number.EPSILON) * factor) / factor;
@@ -172,45 +230,100 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
     const rawMap = header.map_name || 'de_inferno';
     const map = VALID_MAPS.has(rawMap) ? rawMap : 'de_inferno';
 
-    const parseEv = (name, extraProps) => {
-      if (typeof demoparser.parseEvent !== 'function') return [];
+    const eventsByName = new Map();
+    if (typeof demoparser.parseEvents === 'function') {
       try {
-        if (extraProps && extraProps.length > 0) {
-          const res = demoparser.parseEvent(demFilePath, name, extraProps);
-          if (Array.isArray(res)) return res;
+        const consolidated = demoparser.parseEvents(demFilePath, [...CONSOLIDATED_EVENTS], ['X', 'Y', 'Z']);
+        if (Array.isArray(consolidated)) {
+          for (const ev of consolidated) {
+            const name = ev.event_name;
+            if (name) {
+              if (!eventsByName.has(name)) eventsByName.set(name, []);
+              eventsByName.get(name).push(ev);
+            }
+          }
         }
       } catch {
-        // fallback sem extraProps para mocks de testes unitários
+        try {
+          const consolidated = demoparser.parseEvents(demFilePath, [...CONSOLIDATED_EVENTS]);
+          if (Array.isArray(consolidated)) {
+            for (const ev of consolidated) {
+              const name = ev.event_name;
+              if (name) {
+                if (!eventsByName.has(name)) eventsByName.set(name, []);
+                eventsByName.get(name).push(ev);
+              }
+            }
+          }
+        } catch {}
       }
-      try {
-        return demoparser.parseEvent(demFilePath, name) || [];
-      } catch {
-        return [];
+    }
+
+    const parseEv = (eventInput, extraProps) => {
+      const eventNames = Array.isArray(eventInput) ? eventInput : [eventInput];
+      const singleName = typeof eventInput === 'string' ? eventInput : eventNames[0];
+      const safeProps = Array.isArray(extraProps) && extraProps.length > 0 ? extraProps : undefined;
+
+      // 1. Tenta recuperar do cache consolidado
+      if (eventsByName.has(singleName)) {
+        const cached = eventsByName.get(singleName);
+        if (cached && cached.length > 0) return cached;
       }
+
+      // 2. Tenta via parseEvents (o motor Rust/C++ exige estritamente um Array de Strings no 2o parâmetro)
+      if (typeof demoparser.parseEvents === 'function') {
+        try {
+          if (safeProps) {
+            const res = demoparser.parseEvents(demFilePath, eventNames, safeProps);
+            if (Array.isArray(res) && res.length > 0) return res;
+          }
+        } catch {}
+        try {
+          const res = demoparser.parseEvents(demFilePath, eventNames);
+          if (Array.isArray(res) && res.length > 0) return res;
+        } catch {}
+      }
+
+      // 3. Tenta via parseEvent (espera string no 2o parâmetro conforme assinatura nativa e mocks de testes)
+      if (typeof demoparser.parseEvent === 'function') {
+        try {
+          if (safeProps) {
+            const res = demoparser.parseEvent(demFilePath, singleName, safeProps);
+            if (Array.isArray(res)) return res;
+          }
+        } catch {}
+        try {
+          const res = demoparser.parseEvent(demFilePath, singleName);
+          if (Array.isArray(res)) return res;
+        } catch {}
+      }
+
+      return [];
     };
 
-    const roundEnds = parseEv('round_end');
-    const killsEvents = parseEv('player_death', ['X', 'Y', 'Z']);
-    const hurtEvents = parseEv('player_hurt', ['X', 'Y', 'Z']);
 
-    const freezeEnds = parseEv('round_freeze_end')
+    const roundEnds = parseEv(['round_end']);
+    const killsEvents = parseEv(['player_death'], ['X', 'Y', 'Z']);
+    const hurtEvents = parseEv(['player_hurt'], ['X', 'Y', 'Z']);
+
+    const freezeEnds = parseEv(['round_freeze_end'])
       .map((e) => Number(e.tick))
       .filter(Number.isFinite)
       .sort((a, b) => a - b);
 
-    const roundStarts = parseEv('round_start')
+    const roundStarts = parseEv(['round_start'])
       .map((e) => Number(e.tick))
       .filter(Number.isFinite)
       .sort((a, b) => a - b);
-    const officiallyEnded = parseEv('round_officially_ended');
+    const officiallyEnded = parseEv(['round_officially_ended']);
 
     // 1. Descarte de Warmup e Knife Round:
     // O início real da partida competitiva ocorre a partir de round_announce_match_start
     // (ou o último reset/begin_new_match pós-aquecimento).
-    const matchStartEvents = parseEv('round_announce_match_start')
+    const matchStartEvents = parseEv(['round_announce_match_start'])
       .map((e) => Number(e.tick))
       .filter(Number.isFinite);
-    const beginTicks = parseEv('begin_new_match')
+    const beginTicks = parseEv(['begin_new_match'])
       .map((e) => Number(e.tick))
       .filter(Number.isFinite);
     const liveStartTick =
@@ -347,16 +460,17 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
       'flash_duration',
       'has_defuser',
       'is_defusing',
+      'account',
       'balance',
       'current_equip_value',
-      'cash_spent_this_round',
       'last_place_name',
     ];
 
     let tickRows = [];
     if (typeof demoparser.parseTicks === 'function') {
+      const safeTickFields = tickFields.filter((f) => f !== 'cash' && !f.startsWith('cash'));
       try {
-        tickRows = demoparser.parseTicks(demFilePath, tickFields, wantedTicks) || [];
+        tickRows = demoparser.parseTicks(demFilePath, safeTickFields, wantedTicks) || [];
       } catch {
         tickRows =
           demoparser.parseTicks(demFilePath, [
@@ -368,13 +482,16 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
             'Y',
             'Z',
             'yaw',
+            'pitch',
             'health',
             'armor_value',
             'has_helmet',
             'is_alive',
+            'account',
           ]) || [];
       }
     }
+
 
     // 3. Mapeamento Preciso de Times e Lados:
     const KNOWN_ROSTERS = {
@@ -702,19 +819,19 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
     };
 
     // Eventos táticos de utilitários e C4 com coordenadas mundiais
-    const smokeDetonates = parseEv('smokegrenade_detonate', ['X', 'Y', 'Z']);
-    const smokeExpireds = parseEv('smokegrenade_expired', ['X', 'Y', 'Z']);
-    const infernoStarts = parseEv('inferno_startburn', ['X', 'Y', 'Z']);
-    const infernoExpires = parseEv('inferno_expire', ['X', 'Y', 'Z']);
-    const flashDetonates = parseEv('flashbang_detonate', ['X', 'Y', 'Z']);
-    const heDetonates = parseEv('hegrenade_detonate', ['X', 'Y', 'Z']);
-    const grenadeThrowns = parseEv('grenade_thrown', ['X', 'Y', 'Z']);
+    const smokeDetonates = parseEv(['smokegrenade_detonate'], ['X', 'Y', 'Z']);
+    const smokeExpireds = parseEv(['smokegrenade_expired'], ['X', 'Y', 'Z']);
+    const infernoStarts = parseEv(['inferno_startburn'], ['X', 'Y', 'Z']);
+    const infernoExpires = parseEv(['inferno_expire'], ['X', 'Y', 'Z']);
+    const flashDetonates = parseEv(['flashbang_detonate'], ['X', 'Y', 'Z']);
+    const heDetonates = parseEv(['hegrenade_detonate'], ['X', 'Y', 'Z']);
+    const grenadeThrowns = parseEv(['grenade_thrown'], ['X', 'Y', 'Z']);
 
-    const bombPlantedEvents = parseEv('bomb_planted', ['X', 'Y', 'Z']);
-    const bombDefusedEvents = parseEv('bomb_defused', ['X', 'Y', 'Z']);
-    const bombExplodedEvents = parseEv('bomb_exploded', ['X', 'Y', 'Z']);
-    const bombDroppedEvents = parseEv('bomb_dropped', ['X', 'Y', 'Z']);
-    const bombPickupEvents = parseEv('bomb_pickup', ['X', 'Y', 'Z']);
+    const bombPlantedEvents = parseEv(['bomb_planted'], ['X', 'Y', 'Z']);
+    const bombDefusedEvents = parseEv(['bomb_defused'], ['X', 'Y', 'Z']);
+    const bombExplodedEvents = parseEv(['bomb_exploded'], ['X', 'Y', 'Z']);
+    const bombDroppedEvents = parseEv(['bomb_dropped'], ['X', 'Y', 'Z']);
+    const bombPickupEvents = parseEv(['bomb_pickup'], ['X', 'Y', 'Z']);
 
     // Extrai trajetórias parabólicas reais via parseGrenades (amostradas a cada 4 ticks)
     const grenadeTrajectoriesByEntity = new Map();
@@ -1158,7 +1275,7 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
           const invIds = invList.map((item) => resolveWeaponIdFromName(item, 0)).filter((id) => id > 0);
           const hasC4 = invIds.includes(49) ? 1 : 0;
           const hasDefuser = rRow.has_defuser ? 1 : 0;
-          const money = Math.max(0, Math.round(Number(rRow.balance ?? 0)));
+          const money = Math.max(0, Math.round(Number(rRow.account ?? rRow.balance ?? 0)));
           const equipVal = Math.max(0, Math.round(Number(rRow.current_equip_value ?? 0)));
           const callout = resolveInfernoCallout(rRow.last_place_name, px, py);
 
@@ -1721,6 +1838,14 @@ export function buildMatchPackageAndRecord(rawDemo) {
       combatLines,
       utility: utilityTuples,
       bomb: bombTuples,
+      grenades: r.grenades ?? [],
+      trajectories: r.trajectories ?? [],
+      shots: r.shots ?? [],
+      ctRoundType: r.ctRoundType ?? (r.roundNumber === 1 || r.roundNumber === 13 ? 'eco' : 'full-buy'),
+      tRoundType: r.tRoundType ?? (r.roundNumber === 1 || r.roundNumber === 13 ? 'eco' : 'full-buy'),
+      freezeTimeEndTick: Number(r.freezeTimeEndTick ?? r.startTick ?? 0),
+      ctScore: Number(r.ctScore ?? scoreCt),
+      tScore: Number(r.tScore ?? scoreT),
       events: {
         damages: damagesTuples,
         kills: killsTuples,
@@ -1761,7 +1886,7 @@ export function buildMatchPackageAndRecord(rawDemo) {
 /**
  * Grava a partida nas tabelas matches, match_maps e player_stats do PostgreSQL local.
  */
-async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerStats, replayPath }) {
+async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerStats, replayPath, targetMatchId }) {
   const winner =
     matchRecord.score_ct > matchRecord.score_t
       ? matchRecord.team_ct_name
@@ -1769,10 +1894,12 @@ async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerS
       ? matchRecord.team_t_name
       : 'DRAW';
 
+  const finalMatchId = targetMatchId || CANONICAL_MATCH_ID;
+
   // 1. matches
   const matchSql = `
-    INSERT INTO matches (match_date, team1, team2, format, score_t1, score_t2, winner, replay_path, demo_hash)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    INSERT INTO matches (match_date, team1, team2, format, score_t1, score_t2, winner, replay_path, demo_hash, id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     ON CONFLICT (demo_hash) DO NOTHING
     RETURNING id;
   `;
@@ -1786,6 +1913,7 @@ async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerS
     winner,
     replayPath,
     matchRecord.demo_hash,
+    finalMatchId,
   ];
 
   const matchRes = await dbClientOrPool.query(matchSql, matchValues);
@@ -1795,9 +1923,10 @@ async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerS
     const existing = await dbClientOrPool.query('SELECT id FROM matches WHERE demo_hash = $1', [
       matchRecord.demo_hash,
     ]);
-    return existing.rows[0].id;
+    return existing.rows[0]?.id || finalMatchId;
   }
-  const matchId = matchRes.rows[0].id;
+  const matchId = matchRes.rows[0]?.id || finalMatchId;
+
 
   // 2. match_maps
   const mapSql = `
@@ -1892,6 +2021,7 @@ export async function processDemoFile(demFilePath, options = {}) {
     throw new Error('Caminho do arquivo .dem é obrigatório.');
   }
 
+  const targetMatchId = options.matchId || CANONICAL_MATCH_ID;
   const resolvedDemPath = path.resolve(demFilePath);
   let localPool = null;
   const keepDemFile = Boolean(options.keepDemFile);
@@ -1903,16 +2033,19 @@ export async function processDemoFile(demFilePath, options = {}) {
     const rawDemo = await extractRawDemoWithParser(resolvedDemPath, fileBuffer, demoparser);
 
     const { packageData, matchRecord } = buildMatchPackageAndRecord(rawDemo);
+    packageData.id = targetMatchId;
+    packageData.matchId = targetMatchId;
     const playerStats = computeMatchPlayerMetrics(rawDemo);
 
     // 1. Gera o caminho e grava o arquivo de replay compactado (.bin.gz level: 9)
+    const baseReplaysDir = options.replaysBaseDir || './data/replays';
     const taxonomy = buildTaxonomyPath({
       demFilePath: resolvedDemPath,
       playedAt: matchRecord.played_at,
       team1: matchRecord.team_ct_name,
       team2: matchRecord.team_t_name,
       format: rawDemo.format || 'BO1',
-      baseDir: options.replaysBaseDir || './data/replays',
+      baseDir: baseReplaysDir,
     });
 
     const fullReplayDir = path.resolve(taxonomy.dir);
@@ -1923,10 +2056,21 @@ export async function processDemoFile(demFilePath, options = {}) {
     const compressedReplay = gzipSync(Buffer.from(rawJson, 'utf8'), { level: 9 });
     await writeFile(fullReplayPath, compressedReplay);
 
+    // Persistência no diretório alinhado com o frontend: data/replays/<targetMatchId>/
+    const matchReplayDir = path.resolve(baseReplaysDir, targetMatchId);
+    await mkdir(matchReplayDir, { recursive: true });
+
+    const originalBaseName = path.parse(resolvedDemPath).name;
+    await writeFile(path.join(matchReplayDir, `${originalBaseName}.bin.gz`), compressedReplay);
+    await writeFile(path.join(matchReplayDir, `${targetMatchId}.bin.gz`), compressedReplay);
+    await writeFile(path.join(matchReplayDir, 'replay.bin.gz'), compressedReplay);
+    await writeFile(path.join(matchReplayDir, 'match.json'), rawJson, 'utf8');
+    await writeFile(path.join(matchReplayDir, `${originalBaseName}.json`), rawJson, 'utf8');
+
     matchRecord.replay_storage_path = taxonomy.filePath;
 
     // 2. Gravação no PostgreSQL local (matches, match_maps, player_stats)
-    let matchId = `match-${matchRecord.demo_hash}`;
+    let matchId = targetMatchId;
     if (!options.skipDb) {
       let dbClient = options.dbClient || options.pgPool;
       if (!dbClient) {
@@ -1941,8 +2085,10 @@ export async function processDemoFile(demFilePath, options = {}) {
         rawDemo,
         playerStats,
         replayPath: taxonomy.filePath,
+        targetMatchId,
       });
     }
+
 
     // 3. Atualiza store JSON consumido pela UI
     const focusPlayerName = (options.focusPlayerName ?? 'kscerato').toLowerCase();

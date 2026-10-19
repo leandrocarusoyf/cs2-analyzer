@@ -39,6 +39,7 @@ import { TeamRosterSidebar } from './TeamRosterSidebar.tsx';
 import { PlaybackControls } from './PlaybackControls.tsx';
 import { TimelineScrubber } from './TimelineScrubber.tsx';
 import { RoundCarousel } from './RoundCarousel.tsx';
+import { ReplayHUD } from './ReplayHUD.tsx';
 
 export interface ReplayEngineProps {
   matchId: string;
@@ -113,18 +114,10 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
     matchData?.team1 ??
     replayPayload?.teams?.team1?.name ??
     'FURIA';
-  const team1Score =
-    matchData?.score_t1 ??
-    replayPayload?.teams?.team1?.score ??
-    13;
   const team2Name =
     matchData?.team2 ??
     replayPayload?.teams?.team2?.name ??
     'Aurora';
-  const team2Score =
-    matchData?.score_t2 ??
-    replayPayload?.teams?.team2?.score ??
-    10;
 
   const playersManifest: readonly PlayerManifestEntry[] = useMemo(() => {
     if (replayPayload?.playersManifest && replayPayload.playersManifest.length > 0) {
@@ -164,6 +157,17 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
   const roundNumber = activeRound?.roundNumber ?? 1;
   const startTick = activeRound?.startTick ?? 0;
   const endTick = activeRound?.endTick ?? 1000;
+
+  const team1Score =
+    (activeRound as any)?.tScore ??
+    matchData?.score_t1 ??
+    replayPayload?.teams?.team1?.score ??
+    13;
+  const team2Score =
+    (activeRound as any)?.ctScore ??
+    matchData?.score_t2 ??
+    replayPayload?.teams?.team2?.score ??
+    10;
 
   // Interpolação precisa alimentada diretamente pelos snapshots do round
   const interpolatedPlayers = useMemo(() => {
@@ -497,7 +501,7 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
         currentTick={playback.currentTick}
         startTick={startTick}
         tickrate={tickrate}
-        bombState={activeBomb?.state ?? null}
+        bombState={(activeBomb?.state as BombLifecycleState) ?? null}
         bombPlantTick={bombPlantTick}
         activeNukeLayer={activeNukeLayer}
         onChangeNukeLayer={setActiveNukeLayer}
@@ -552,6 +556,18 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
                   activeNukeLayer={activeNukeLayer}
                 />
 
+                {/* HUD Tático V2 (Cards, Buy Badges, Defuse Timer) */}
+                <div className="absolute inset-x-0 bottom-0 pointer-events-auto z-20 max-h-[30%] overflow-y-auto">
+                  <ReplayHUD
+                    players={interpolatedPlayers}
+                    currentTick={playback.currentTick}
+                    tickRate={tickrate}
+                    ctRoundType={(activeRound as any)?.ctRoundType}
+                    tRoundType={(activeRound as any)?.tRoundType}
+                    bombEvents={(activeRound as any)?.bombEvents || []}
+                  />
+                </div>
+
                 {/* Camada Z-30: Telestrator */}
                 <TelestratorLayer isPlaying={playback.isPlaying} />
               </div>
@@ -561,7 +577,7 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
             <TeamRosterSidebar
               roundNumber={roundNumber}
               playersManifest={playersManifest}
-              playerStates={interpolatedPlayers}
+              playerStates={interpolatedPlayers as any}
               weaponsManifest={weaponsManifest}
               playerMoneyById={playerMoneyById}
               playerDefusersById={playerDefusersById}

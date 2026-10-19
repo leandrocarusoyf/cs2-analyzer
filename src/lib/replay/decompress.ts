@@ -25,6 +25,14 @@ import type {
   TeamSide,
   UtilityEventTuple,
   WeaponManifestEntry,
+  CompressedFrame,
+  CompressedPlayerTuple,
+  Frame,
+  PlayerMetadata,
+  PlayerState,
+  RawPlayerTuple,
+  RoundData,
+  Team,
 } from '../../types/replay.ts';
 
 const GZIP_MAGIC_BYTE_0 = 0x1f;
@@ -466,6 +474,24 @@ export function normalizeReplayPayload(
 
     const normalizePlayerTuple14 = (p: any, pIdx: number): RawPlayerFrame => {
       if (Array.isArray(p)) {
+        if (p.length >= 21) {
+          return [
+            resolvePlayerId(p[0]) || pIdx + 1,
+            Number(p[1] ?? 0),
+            Number(p[2] ?? 0),
+            Number(p[3] ?? -200),
+            Number(p[4] ?? 0),
+            Number(p[9] ?? 100),
+            Number(p[10] ?? 100),
+            p[11] ? 1 : 0,
+            p[12] ? 1 : 0,
+            p[16] ? 1 : 0,
+            0,
+            resolveWeaponId(p[13]),
+            Number(p[21] ?? 0),
+            15,
+          ];
+        }
         if (p.length >= 17) {
           return [
             resolvePlayerId(p[0]) || pIdx + 1,
@@ -782,4 +808,219 @@ export async function fetchAndDecompressReplay(
   }
 
   return normalizeReplayPayload(parsedJson, matchId);
+}
+
+export function normalizeTeam(val: unknown): Team {
+  if (val === 'CT' || val === 3 || val === '3') return 'CT';
+  if (val === 'T' || val === 'TERRORIST' || val === 2 || val === '2') return 'T';
+  if (typeof val === 'string') {
+    const s = val.toUpperCase();
+    if (s.includes('CT')) return 'CT';
+    if (s.includes('T') || s.includes('TERROR')) return 'T';
+  }
+  return 'CT';
+}
+
+export function normalizePlayerTuple(
+  raw: RawPlayerTuple | Partial<PlayerState> | Record<string, any> | unknown[],
+  meta?: { name?: string; team?: Team } | Record<string | number, { name?: string; team?: Team }>
+): PlayerState {
+  if (Array.isArray(raw)) {
+    if (raw.length >= 21) {
+      const id = raw[0] !== undefined && raw[0] !== null ? (typeof raw[0] === 'number' ? raw[0] : String(raw[0])) : 0;
+      const x = Number(raw[1] ?? 0);
+      const y = Number(raw[2] ?? 0);
+      const z = Number(raw[3] ?? 0);
+      const yaw = Number(raw[4] ?? 0);
+      const pitch = Number(raw[5] ?? 0);
+      const vx = Number(raw[6] ?? 0);
+      const vy = Number(raw[7] ?? 0);
+      const vz = Number(raw[8] ?? 0);
+      const speed2D = Math.hypot(vx, vy);
+      const hp = Number(raw[9] ?? 100);
+      const armor = Number(raw[10] ?? 0);
+      const hasHelmet = Boolean(raw[11]);
+      const isAlive = raw[12] === undefined ? hp > 0 : Boolean(raw[12]);
+      const activeWeapon = String(raw[13] ?? 'knife');
+      const money = Number(raw[14] ?? 0);
+      const team = normalizeTeam(raw[15]);
+      const isDefusing = Boolean(raw[16]);
+      const hasDefuser = Boolean(raw[17]);
+      const isScoped = Boolean(raw[18]);
+      const isCrouching = Boolean(raw[19]);
+      const isAirborne = Boolean(raw[20]);
+      const flashDuration = Number(raw[21] ?? 0);
+
+      const resolvedMeta = meta && typeof meta === 'object' && ('name' in meta || 'team' in meta)
+        ? (meta as { name?: string; team?: Team })
+        : (meta as Record<string | number, { name?: string; team?: Team }>)?.[id];
+
+      return {
+        id,
+        name: resolvedMeta?.name || `Player ${id}`,
+        team: resolvedMeta?.team || team,
+        x,
+        y,
+        z,
+        yaw,
+        pitch,
+        velocity: { x: vx, y: vy, z: vz, speed2D },
+        hp,
+        armor,
+        hasHelmet,
+        hasDefuser,
+        isAlive,
+        activeWeapon,
+        money,
+        isDefusing,
+        isScoped,
+        isCrouching,
+        isAirborne,
+        flashDuration,
+      };
+    }
+
+    const id = raw[0] !== undefined && raw[0] !== null ? (typeof raw[0] === 'number' ? raw[0] : String(raw[0])) : 0;
+    const x = Number(raw[1] ?? 0);
+    const y = Number(raw[2] ?? 0);
+    const z = Number(raw[3] ?? 0);
+    const yaw = Number(raw[4] ?? 0);
+    const hp = Number(raw[5] ?? 100);
+    const armor = Number(raw[6] ?? 0);
+    const hasHelmet = Boolean(raw[7]);
+    const isAlive = raw[8] === undefined ? hp > 0 : Boolean(raw[8]);
+    const isDefusing = Boolean(raw[9]);
+    const wpn = raw[11] !== undefined ? (typeof raw[11] === 'number' ? `weapon_${raw[11]}` : String(raw[11])) : 'knife';
+    const flashDuration = Number(raw[12] ?? 0);
+    const ping = Number(raw[13] ?? 15);
+
+    const resolvedMeta = meta && typeof meta === 'object' && ('name' in meta || 'team' in meta)
+      ? (meta as { name?: string; team?: Team })
+      : (meta as Record<string | number, { name?: string; team?: Team }>)?.[id];
+
+    return {
+      id,
+      name: resolvedMeta?.name || `Player ${id}`,
+      team: resolvedMeta?.team || 'CT',
+      x,
+      y,
+      z,
+      yaw,
+      pitch: 0,
+      velocity: { x: 0, y: 0, z: 0, speed2D: 0 },
+      hp,
+      armor,
+      hasHelmet,
+      hasDefuser: false,
+      isAlive,
+      activeWeapon: wpn,
+      money: 800,
+      isDefusing,
+      isScoped: false,
+      isCrouching: false,
+      isAirborne: false,
+      flashDuration,
+      ping,
+    };
+  }
+
+  const obj = (raw || {}) as Record<string, any>;
+  const id = obj.id ?? obj.playerId ?? obj.steamId ?? obj.steamid ?? 0;
+  const x = Number(obj.x ?? obj.worldX ?? obj.percentX ?? 0);
+  const y = Number(obj.y ?? obj.worldY ?? obj.percentY ?? 0);
+  const z = Number(obj.z ?? obj.worldZ ?? 0);
+  const yaw = Number(obj.yaw ?? obj.ang_yaw ?? 0);
+  const pitch = Number(obj.pitch ?? obj.ang_pitch ?? 0);
+  const vx = Number(obj.vx ?? obj.velocity?.x ?? 0);
+  const vy = Number(obj.vy ?? obj.velocity?.y ?? 0);
+  const vz = Number(obj.vz ?? obj.velocity?.z ?? 0);
+  const speed2D = obj.velocity?.speed2D !== undefined ? Number(obj.velocity.speed2D) : Math.hypot(vx, vy);
+  const hp = Number(obj.hp ?? obj.health ?? (obj.isAlive === false || obj.is_alive === false ? 0 : 100));
+  const armor = Number(obj.armor ?? obj.armor_value ?? 0);
+  const hasHelmet = Boolean(obj.hasHelmet ?? obj.has_helmet);
+  const isAlive = obj.isAlive !== undefined ? Boolean(obj.isAlive) : obj.is_alive !== undefined ? Boolean(obj.is_alive) : hp > 0;
+  const activeWeapon = String(obj.activeWeapon ?? obj.weapon ?? obj.active_weapon_name ?? obj.weaponId ?? 'knife');
+  const money = Number(obj.money ?? 0);
+  const team = normalizeTeam(obj.team ?? obj.teamSide);
+  const isDefusing = Boolean(obj.isDefusing ?? obj.is_defusing);
+  const hasDefuser = Boolean(obj.hasDefuser ?? obj.has_defuser);
+  const isScoped = Boolean(obj.isScoped ?? obj.is_scoped);
+  const isCrouching = Boolean(obj.isCrouching ?? obj.is_crouching);
+  const isAirborne = Boolean(obj.isAirborne ?? obj.is_airborne);
+  const flashDuration = Number(obj.flashDuration ?? obj.flash_duration ?? 0);
+
+  const resolvedMeta = meta && typeof meta === 'object' && ('name' in meta || 'team' in meta)
+    ? (meta as { name?: string; team?: Team })
+    : (meta as Record<string | number, { name?: string; team?: Team }>)?.[id];
+
+  return {
+    id,
+    name: obj.name || resolvedMeta?.name || `Player ${id}`,
+    team: resolvedMeta?.team || team,
+    x,
+    y,
+    z,
+    yaw,
+    pitch,
+    velocity: { x: vx, y: vy, z: vz, speed2D },
+    hp,
+    armor,
+    hasHelmet,
+    hasDefuser,
+    isAlive,
+    activeWeapon,
+    money,
+    isDefusing,
+    isScoped,
+    isCrouching,
+    isAirborne,
+    flashDuration,
+    ping: obj.ping !== undefined ? Number(obj.ping) : undefined,
+    kills: obj.kills !== undefined ? Number(obj.kills) : undefined,
+    deaths: obj.deaths !== undefined ? Number(obj.deaths) : undefined,
+    assists: obj.assists !== undefined ? Number(obj.assists) : undefined,
+    adr: obj.adr !== undefined ? Number(obj.adr) : undefined,
+    color: obj.color,
+  };
+}
+
+export const parsePlayerTuple = normalizePlayerTuple;
+
+export function decompressFrame(
+  rawFrame: CompressedFrame | Frame | any,
+  playerMetaMap?: Record<string | number, { name?: string; team?: Team }>
+): Frame {
+  if (!rawFrame) {
+    return { tick: 0, players: [] };
+  }
+
+  if (rawFrame.players && Array.isArray(rawFrame.players) && typeof rawFrame.tick === 'number') {
+    return {
+      tick: rawFrame.tick,
+      players: rawFrame.players.map((p: any) => normalizePlayerTuple(p, playerMetaMap)),
+    };
+  }
+
+  if (Array.isArray(rawFrame)) {
+    const tick = Number(rawFrame[0] || 0);
+    const rawPlayers = Array.isArray(rawFrame[1]) ? rawFrame[1] : [];
+    return {
+      tick,
+      players: rawPlayers.map((p: any) => normalizePlayerTuple(p, playerMetaMap)),
+    };
+  }
+
+  return { tick: 0, players: [] };
+}
+
+export function decompressRound(round: RoundData | any): RoundData {
+  if (!round) return round;
+  const frames = Array.isArray(round.frames)
+    ? round.frames.map((f: any) => decompressFrame(f))
+    : [];
+
+  return {
+    ...round,
+    frames,
+  };
 }

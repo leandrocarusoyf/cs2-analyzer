@@ -8,7 +8,7 @@ O frontend analítico do **CS2 Analyzer** adota o App Router do Next.js sob um S
 | :--- | :--- | :--- |
 | `/matches` | `src/app/matches/page.tsx` | **Catálogo de Partidas:** Lista as demos processadas, placares, mapa e oferece entrada para o resumo pós-jogo ou abertura direta do Replayer 2D. |
 | `/matches/[id]` | `src/app/matches/[id]/page.tsx` | **Match Overview Pós-Jogo:** Painel consolidado de uma partida específica (KPIs globais de TTD, TTK, FSP, placar por metades e link contextual para inspeção tática no Replayer 2D). |
-| `/replayer/[id]` | `src/app/replayer/[id]/page.tsx` | **Visualizador Tático 2D Interativo:** Viewport dedicado à reprodução tick a tick do pacote `demos-replay/{id}.json`. Suporta recolhimento/ocultação do Shell Global (`Modo Tela Cheia`) para maximizar a área útil do radar $1024 \times 1024$. |
+| `/replayer/[id]` | `src/app/replayer/[id]/page.tsx` | **Visualizador Tático 2D Interativo:** Viewport dedicado à reprodução tick a tick do pacote de telemetria armazenado em `data/replays/[id]/` (resolvido via `/api/replays/[id]`). Suporta recolhimento/ocultação do Shell Global (`Modo Tela Cheia`) para maximizar a área útil do radar $1024 \times 1024$. |
 | `/stats/player` | `src/app/stats/player/page.tsx` | **Dashboard Analítico do Jogador:** Deep-dive individual segmentado nas 5 abas canônicas (`Intro`, `Roles`, `Weapons`, `Buy Types`, `Maps`), reagindo diretamente aos filtros globais da URL. |
 | `/leaderboards` | `src/app/leaderboards/page.tsx` | **Tabelas de Classificação:** Ranking comparativo entre jogadores nas métricas mecânicas e táticas (Avg TTD, Avg TTK, First Shot Precision). |
 

@@ -1,3 +1,313 @@
+export type Team = 'CT' | 'T';
+export type TeamSide = 'CT' | 'T';
+
+export type TacticalRoundType = 'eco' | 'semi-eco' | 'semi-buy' | 'full-buy';
+
+export type BombLifecycleState =
+  | 'carried'
+  | 'dropped'
+  | 'planting'
+  | 'planted'
+  | 'defusing'
+  | 'defused'
+  | 'exploded';
+
+export interface PlayerVelocity {
+  x: number;
+  y: number;
+  z: number;
+  speed2D: number;
+}
+
+export interface PlayerState {
+  id: string | number;
+  name: string;
+  team: Team;
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+  pitch: number;
+  velocity: PlayerVelocity;
+  hp: number;
+  armor: number;
+  hasHelmet: boolean;
+  hasDefuser?: boolean;
+  isAlive: boolean;
+  activeWeapon: string;
+  money: number;
+  isDefusing?: boolean;
+  isScoped: boolean;
+  isCrouching: boolean;
+  isAirborne: boolean;
+  flashDuration: number;
+  playerId?: string | number;
+  u?: number;
+  v?: number;
+  percentX?: number;
+  percentY?: number;
+  worldZ?: number;
+  currentFloor?: 'upper' | 'lower' | 'default';
+  activeWeaponId?: number;
+  isPlanting?: boolean;
+  ping?: number;
+  kills?: number;
+  deaths?: number;
+  assists?: number;
+  adr?: number;
+  color?: string;
+}
+
+/**
+ * Contrato Canônico de Tupla estendida com suporte a float (1 casa decimal)
+ * e novas flags de estado físico e tático:
+ * [0: id, 1: x, 2: y, 3: z, 4: yaw, 5: pitch, 6: vx, 7: vy, 8: vz,
+ *  9: hp, 10: armor, 11: hasHelmet, 12: isAlive, 13: activeWeapon, 14: money,
+ *  15: team, 16: isDefusing, 17: hasDefuser, 18: isScoped, 19: isCrouching,
+ *  20: isAirborne, 21: flashDuration]
+ */
+export type RawPlayerTuple = [
+  id: string | number,
+  x: number,
+  y: number,
+  z: number,
+  yaw: number,
+  pitch: number,
+  vx: number,
+  vy: number,
+  vz: number,
+  hp: number,
+  armor: number,
+  hasHelmet: number | boolean,
+  isAlive: number | boolean,
+  activeWeapon: string,
+  money: number,
+  team: number | string,
+  isDefusing: number | boolean,
+  hasDefuser: number | boolean,
+  isScoped: number | boolean,
+  isCrouching: number | boolean,
+  isAirborne: number | boolean,
+  flashDuration: number
+];
+
+/**
+ * Compatibilidade legada para tupla compactada
+ */
+export type CompressedPlayerTuple =
+  | RawPlayerTuple
+  | [
+      id: string | number,
+      x: number,
+      y: number,
+      z: number,
+      yaw: number,
+      hp: number,
+      armor: number,
+      hasHelmet: number | boolean,
+      isAlive: number | boolean,
+      activeWeapon?: string,
+      money?: number,
+      team?: number | string
+    ];
+
+export type CompressedFrame = [number, (RawPlayerTuple | CompressedPlayerTuple)[]];
+
+export interface Frame {
+  tick: number;
+  players: PlayerState[];
+}
+
+export interface GrenadeTrajectoryPoint {
+  x: number;
+  y: number;
+  z: number;
+  tick: number;
+}
+
+export interface GrenadeTrajectory {
+  id: string;
+  throwerId: string;
+  weapon: string;
+  points: GrenadeTrajectoryPoint[];
+}
+
+export interface GrenadeEffectEvent {
+  id: string;
+  type: 'smoke' | 'molotov' | 'flash' | 'he';
+  x: number;
+  y: number;
+  z: number;
+  startTick: number;
+  endTick: number;
+  radius: number;
+}
+
+export interface WeaponFireEvent {
+  tick: number;
+  playerId: string;
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+  pitch: number;
+  weapon: string;
+}
+
+export interface PlayerHurtEvent {
+  tick: number;
+  attackerId: string;
+  victimId: string;
+  damage: number;
+  hitgroup: number;
+  remainingHp: number;
+  remainingArmor: number;
+}
+
+export interface KillFeedEvent {
+  tick: number;
+  round?: number;
+  attackerId: string | number;
+  victimId: string | number;
+  assisterId?: string | number | null;
+  weapon: string;
+  headshot: boolean;
+  penetrated?: boolean;
+  noscope?: boolean;
+  smokeshot?: boolean;
+  attackerName?: string;
+  victimName?: string;
+  attackerTeam?: Team;
+  victimTeam?: Team;
+  killerId?: string | number;
+  killerName?: string;
+  killerTeam?: Team;
+  assisterName?: string | null;
+  isHeadshot?: boolean;
+  isWallbang?: boolean;
+  isThroughSmoke?: boolean;
+  isNoScope?: boolean;
+  isAttackerBlind: boolean;
+  distance: number;
+}
+
+export interface KillEvent extends KillFeedEvent {
+  round: number;
+}
+
+export interface BombEvent {
+  tick: number;
+  round?: number;
+  type:
+    | 'planted'
+    | 'defused'
+    | 'exploded'
+    | 'dropped'
+    | 'pickup'
+    | 'begin_defuse'
+    | 'abort_defuse'
+    | 'plant_start'
+    | 'plant'
+    | 'defuse_start'
+    | 'defuse'
+    | 'explode';
+  site?: 'A' | 'B';
+  playerId?: string | number;
+  x?: number;
+  y?: number;
+  z?: number;
+  hasKit?: boolean;
+}
+
+export interface ActiveGrenade {
+  id: string | number;
+  type: 'smoke' | 'molotov' | 'incendiary' | 'flash' | 'he' | 'decoy';
+  throwerId?: string | number;
+  throwerTeam?: Team;
+  x: number;
+  y: number;
+  z: number;
+  startTick: number;
+  endTick?: number;
+  radius?: number;
+}
+
+export type WinReason =
+  | 'terrorists_eliminated'
+  | 'cts_eliminated'
+  | 'target_bombed'
+  | 'bomb_defused'
+  | 'time_ran_out'
+  | 'ct_win_elimination'
+  | 't_win_elimination'
+  | string;
+
+export interface RoundData {
+  roundNumber: number;
+  startTick: number;
+  endTick: number;
+  freezeTimeEndTick?: number;
+  winner?: Team | null;
+  winReason?: WinReason | null;
+  scoreCT: number;
+  scoreT: number;
+  ctScore?: number;
+  tScore?: number;
+  ctRoundType?: TacticalRoundType;
+  tRoundType?: TacticalRoundType;
+  frames: (CompressedFrame | Frame | [number, RawPlayerTuple[]])[];
+  kills: (KillEvent | KillFeedEvent)[];
+  bombEvents: BombEvent[];
+  grenades?: (GrenadeEffectEvent | ActiveGrenade)[];
+  trajectories?: GrenadeTrajectory[];
+  shots?: WeaponFireEvent[];
+  damages?: PlayerHurtEvent[];
+}
+
+export interface MatchMetadata {
+  mapName: string;
+  duration?: number;
+  tickRate: number;
+  serverName?: string;
+  teamCTName?: string;
+  teamTName?: string;
+  finalScoreCT: number;
+  finalScoreT: number;
+  totalRounds: number;
+}
+
+export interface PlayerMetadata {
+  id: string | number;
+  name: string;
+  team: Team;
+  steamId?: string;
+  kills?: number;
+  deaths?: number;
+  assists?: number;
+  adr?: number;
+  hsPercentage?: number;
+}
+
+export interface MatchData {
+  metadata: MatchMetadata;
+  players: Record<string, PlayerMetadata> | PlayerMetadata[];
+  rounds: RoundData[];
+}
+
+export interface MapMetadata {
+  mapName: string;
+  displayName: string;
+  pos_x: number;
+  pos_y: number;
+  scale: number;
+  radarWidth: number;
+  radarHeight: number;
+}
+
+/* ============================================================================
+ * CONTRATOS LEGADOS E TIPOS DE PARIDADE ARQUITETURAL
+ * ============================================================================ */
+
 export type CS2Map =
   | 'de_mirage'
   | 'de_inferno'
@@ -6,10 +316,6 @@ export type CS2Map =
   | 'de_ancient'
   | 'de_anubis'
   | 'de_cache';
-
-export type BinaryFlag = 0 | 1;
-
-export type TeamSide = 'CT' | 'T';
 
 export type RawPlayerFrame = [
   playerId: number,
@@ -25,16 +331,16 @@ export type RawPlayerFrame = [
   isPlanting: 0 | 1,
   activeWeaponId: number,
   flashDuration: number,
-  ping: number,
+  ping: number
 ];
 
-export type RawFrame = [tick: number, players: RawPlayerFrame[]];
+export type RawFrame = [number, RawPlayerFrame[]];
 
 export interface PlayerManifestEntry {
   id: number;
   steamId: string;
   name: string;
-  initialTeam: 'CT' | 'T';
+  initialTeam: TeamSide;
 }
 
 export interface WeaponManifestEntry {
@@ -48,7 +354,7 @@ export type DamageEventTuple = [
   victim: number,
   damage: number,
   hitgroup: string,
-  weaponId: number,
+  weaponId: number
 ];
 
 export type KillEventTuple = [
@@ -57,7 +363,7 @@ export type KillEventTuple = [
   victim: number,
   weaponId: number,
   headshot: boolean,
-  penetrated: boolean,
+  penetrated: boolean
 ];
 
 export type UtilityEventTuple = [
@@ -67,7 +373,7 @@ export type UtilityEventTuple = [
   y: number,
   z: number,
   startTick: number,
-  endTick: number,
+  endTick: number
 ];
 
 export type BombEventTuple = [
@@ -75,15 +381,55 @@ export type BombEventTuple = [
   event: string,
   player: number,
   x: number,
-  y: number,
+  y: number
+];
+
+export type DiscreteKillTuple = [
+  tick: number,
+  attackerSteamId: string,
+  victimSteamId: string,
+  assisterSteamId: string | null,
+  weapon: string,
+  isHeadshot: boolean,
+  isWallbang: boolean,
+  isThroughSmoke: boolean,
+  isAttackerBlind: boolean
 ];
 
 export interface ReplayEvents {
-  damages: Array<[tick: number, attacker: number, victim: number, damage: number, hitgroup: string, weaponId: number]>;
-  kills: Array<[tick: number, killer: number, victim: number, weaponId: number, headshot: boolean, penetrated: boolean]>;
-  utility: Array<[tick: number, type: string, x: number, y: number, z: number, startTick: number, endTick: number]>;
-  bomb: Array<[tick: number, event: string, player: number, x: number, y: number]>;
+  damages: DamageEventTuple[];
+  kills: KillEventTuple[];
+  utility: UtilityEventTuple[];
+  bomb: BombEventTuple[];
 }
+
+export interface ReplayRound {
+  roundNumber: number;
+  startTick: number;
+  endTick: number;
+  winnerSide: TeamSide;
+  winReason: string;
+  events: ReplayEvents;
+  frames: RawFrame[];
+  tacticalFrames?: any[];
+  playerExtrasByTick?: Record<string, any>;
+  combatLines?: any[];
+}
+
+export interface ReplayDataPackage {
+  formatVersion: string | number;
+  tickrate: number;
+  samplingRate: number;
+  map: CS2Map;
+  playersManifest: PlayerManifestEntry[];
+  weaponsManifest: WeaponManifestEntry[];
+  rounds: ReplayRound[];
+}
+
+export type BinaryFlag = 0 | 1;
+export type RoundWinnerLabel = 'CT' | 'TERRORIST';
+export type RoundEndReason = 'elimination' | 'defuse' | 'explosion' | 'time' | string;
+export type GrenadeEntityType = 'smoke' | 'molotov' | 'incendiary' | 'flashbang' | 'he' | 'decoy';
 
 export interface CombatLineEvent {
   tick: number;
@@ -99,54 +445,6 @@ export interface CombatLineEvent {
   damage?: number;
   isKill?: boolean;
 }
-
-export interface ReplayRound {
-  roundNumber: number;
-  startTick: number;
-  endTick: number;
-  winnerSide: 'CT' | 'T';
-  winReason: string;
-  events: ReplayEvents;
-  frames: RawFrame[];
-  tacticalFrames?: any[];
-  playerExtrasByTick?: Record<string, any>;
-  combatLines?: CombatLineEvent[];
-}
-
-export interface ReplayDataPackage {
-  formatVersion: string | number;
-  tickrate: number;
-  samplingRate: number;
-  map: CS2Map;
-  playersManifest: PlayerManifestEntry[];
-  weaponsManifest: WeaponManifestEntry[];
-  rounds: ReplayRound[];
-}
-
-/* ============================================================================
- * ESPECIFICAÇÃO COMPLETA DO MOTOR TÁTICO 2D (FASE 1)
- * ============================================================================ */
-
-export type BombLifecycleState =
-  | 'carried'
-  | 'dropped'
-  | 'planting'
-  | 'planted'
-  | 'defusing'
-  | 'defused'
-  | 'exploded';
-
-export type GrenadeEntityType =
-  | 'smoke'
-  | 'molotov'
-  | 'incendiary'
-  | 'flashbang'
-  | 'he'
-  | 'decoy';
-
-export type RoundWinnerLabel = 'CT' | 'TERRORIST';
-
-export type RoundEndReason = 'elimination' | 'defuse' | 'explosion' | 'time';
 
 export interface ReplayRosterAthlete {
   id?: number;
@@ -167,10 +465,6 @@ export interface ReplayHeader {
   roster: ReplayRosterAthlete[];
 }
 
-/**
- * Tupla compactada de 17 posições para cada jogador vivo/morto no frame:
- * [playerId, x, y, z, yaw, pitch, hp, armor, helmet, isAlive, isFlashed, isDefusing, isPlanting, activeWeapon, hasC4, hasDefuser, money]
- */
 export type CompactPlayerTuple = [
   playerId: number | string,
   x: number,
@@ -191,10 +485,6 @@ export type CompactPlayerTuple = [
   money: number,
 ];
 
-/**
- * Estado contínuo da C4 no frame:
- * [x, y, z, state, carrierId, defuserId, timerSecondsRemaining]
- */
 export type ContinuousBombTuple = [
   x: number,
   y: number,
@@ -205,10 +495,6 @@ export type ContinuousBombTuple = [
   timerSecondsRemaining: number,
 ];
 
-/**
- * Entidade de granada ativa no frame:
- * [entityId, throwerId, type, x, y, z, vx, vy, vz, isActive, areaRadius, stage]
- */
 export type ActiveGrenadeTuple = [
   entityId: number | string,
   throwerId: number | string,
@@ -231,26 +517,6 @@ export interface TacticalSnapshotFrame {
   grenades: ActiveGrenadeTuple[];
 }
 
-/**
- * Abates (kills):
- * [tick, attackerSteamId, victimSteamId, assisterSteamId, weapon, isHeadshot, isWallbang, isThroughSmoke, isAttackerBlind]
- */
-export type DiscreteKillTuple = [
-  tick: number,
-  attackerSteamId: string,
-  victimSteamId: string,
-  assisterSteamId: string | null,
-  weapon: string,
-  isHeadshot: boolean,
-  isWallbang: boolean,
-  isThroughSmoke: boolean,
-  isAttackerBlind: boolean,
-];
-
-/**
- * Danos (damages):
- * [tick, attackerSteamId, victimSteamId, weapon, healthDamage, armorDamage]
- */
 export type DiscreteDamageTuple = [
   tick: number,
   attackerSteamId: string,
@@ -260,10 +526,6 @@ export type DiscreteDamageTuple = [
   armorDamage: number,
 ];
 
-/**
- * Disparos (shots):
- * [tick, shooterSteamId, weapon, originX, originY, originZ]
- */
 export type DiscreteShotTuple = [
   tick: number,
   shooterSteamId: string,
@@ -329,8 +591,18 @@ export interface TacticalRound {
   winnerSide: TeamSide;
   reason: RoundEndReason;
   winReason: string;
+  buyTypeCT?: string;
+  buyTypeT?: string;
+  equipValueCT?: number;
+  equipValueT?: number;
+  playerExtrasByTick?: any;
+  combatLines?: any[];
   frames: RawFrame[];
   tacticalFrames: TacticalSnapshotFrame[];
+  kills?: KillEventTuple[];
+  damages?: DamageEventTuple[];
+  utility?: UtilityEventTuple[];
+  bomb?: BombEventTuple[];
   events: ReplayEvents;
   discreteEvents: DiscreteEventsTable;
 }

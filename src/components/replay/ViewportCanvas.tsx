@@ -1,487 +1,692 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
-import type {
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import {
+  ActiveGrenade,
+  BombEvent,
   BombLifecycleState,
-  CombatLineEvent,
-  CS2Map,
-  PlayerManifestEntry,
-  TeamSide,
-} from '../../types/replay.ts';
-import type { NukeLayer } from '../../types/replayer-engine.ts';
-import {
-  C4_DEFUSE_WITHOUT_KIT_SECONDS,
-  C4_DEFUSE_WITH_KIT_SECONDS,
-  C4_PLANT_DURATION_SECONDS,
-  FOV_CONE_ANGLE_DEG,
-  FOV_CONE_REACH_PX,
-  PLAYER_RADIUS_PX,
-  RADAR_SIZE,
-  SMOKE_WORLD_RADIUS,
-  TEAM_CANONICAL_COLORS,
-} from '../../lib/replay/constants.ts';
-import {
-  getMapCalibration,
-  worldRadiusToCanvasPixels,
-  worldToRadarUV,
-} from '../../lib/replay/coordinates.ts';
-import type { TacticalInterpolatedPlayer } from '../../lib/replay/interpolation.ts';
+  GrenadeEffectEvent,
+  GrenadeTrajectory,
+  KillEvent,
+  KillFeedEvent,
+  MapMetadata,
+  PlayerHurtEvent,
+  PlayerState,
+  WeaponFireEvent,
+} from '../../types/replay';
+import { worldToCanvas, OFFICIAL_MAP_METADATA } from '../../lib/replay/coordinates';
+import { formatWeaponName } from '../../lib/replay/weapons';
 
-export interface ActiveUtilityVisual {
-  id: string;
-  type: 'smoke' | 'molotov' | 'incendiary' | 'flashbang' | 'he' | 'decoy';
-  x: number;
-  y: number;
-  z: number;
-  throwTick?: number;
-  startTick: number;
-  endTick: number;
-  trajectory?: Array<[number, number, number]>;
-  polygonHull?: Array<[number, number]>;
+export interface ActiveShotEffect {
+  id?: string;
+  shooterId?: string | number;
+  tick: number;
+  fromX?: number;
+  fromY?: number;
+  toX?: number;
+  toY?: number;
+  team?: 'CT' | 'T';
 }
 
-export interface BombVisualState {
+export interface ActiveUtilityVisual {
+  id: string | number;
+  type: string;
   x: number;
   y: number;
   z?: number;
-  state: BombLifecycleState;
-  carrierId?: number | null;
-  defuserId?: number | null;
+  radius?: number;
+  startTick: number;
+  endTick: number;
+  throwTick?: number;
+  color?: string;
+}
+
+export interface BombVisualState {
+  state: BombLifecycleState | string;
+  x: number;
+  y: number;
+  z?: number;
+  carrierId?: string | number | null;
+  defuserId?: string | number | null;
+  hasKit?: boolean | null;
   plantStartTick?: number | null;
   defuseStartTick?: number | null;
-  hasKit?: boolean;
-  timerRemaining: number;
+  timerRemaining?: number;
 }
 
 export interface RecentDeathMarker {
-  victimId: number;
-  u: number;
-  v: number;
-  team: TeamSide;
-  killTick: number;
-}
-
-export interface ActiveShotEffect {
-  shooterId: number;
-  tick: number;
+  id?: string | number;
+  victimId?: string | number;
+  u?: number;
+  v?: number;
+  x?: number;
+  y?: number;
+  team?: 'CT' | 'T' | string;
+  killTick?: number;
+  tick?: number;
 }
 
 export interface ViewportCanvasProps {
-  mapName: CS2Map | string;
+  players: PlayerState[];
+  mapMetadata?: MapMetadata;
+  mapName?: string;
   currentTick: number;
-  tickrate: number;
+  tickrate?: number;
   isPlaying?: boolean;
-  players: ReadonlyArray<TacticalInterpolatedPlayer>;
-  playersManifest: ReadonlyArray<PlayerManifestEntry>;
-  roundNumber: number;
-  utilities: ReadonlyArray<ActiveUtilityVisual>;
-  bomb: BombVisualState | null;
-  recentDeaths?: ReadonlyArray<RecentDeathMarker>;
-  activeShots?: ReadonlyArray<ActiveShotEffect>;
-  combatLines?: ReadonlyArray<CombatLineEvent>;
-  playerCalloutsById?: Readonly<Record<number, string>>;
-  playerHasC4ById?: Readonly<Record<number, boolean>>;
-  playerDefusersById?: Readonly<Record<number, boolean>>;
-  activeNukeLayer?: NukeLayer;
+  playersManifest?: readonly any[];
+  roundNumber?: number;
+  activeNukeLayer?: any;
+  utilities?: any[];
+  bomb?: any;
+  recentDeaths?: RecentDeathMarker[];
+  activeShots?: ActiveShotEffect[];
+  combatLines?: any[];
+  playerCalloutsById?: Record<number, string>;
+  playerHasC4ById?: Record<number, boolean>;
+  playerDefusersById?: Record<number, boolean>;
+  bombEvents?: BombEvent[];
+  kills?: (KillEvent | KillFeedEvent)[];
+  grenades?: (GrenadeEffectEvent | ActiveGrenade)[];
+  trajectories?: GrenadeTrajectory[];
+  shots?: WeaponFireEvent[];
+  damages?: PlayerHurtEvent[];
+  selectedPlayerId?: string | number | null;
+  onSelectPlayer?: (playerId: string | number) => void;
+  radarImageUrl?: string;
   className?: string;
 }
 
-function safeGet2DContext(
-  canvas: HTMLCanvasElement | null,
-): CanvasRenderingContext2D | null {
-  if (!canvas || typeof canvas.getContext !== 'function') return null;
-  try {
-    return canvas.getContext('2d');
-  } catch {
-    return null;
-  }
-}
-
-function resolveCoordinateUV(
-  rawX: number,
-  rawY: number,
-  mapName: string,
-): { u: number; v: number } {
-  if (mapName === 'test' && rawX >= 0 && rawX <= 1024 && rawY >= 0 && rawY <= 1024) {
-    return { u: rawX, v: rawY };
-  }
-  return worldToRadarUV(rawX, rawY, mapName);
-}
-
-function getHpRingColor(hp: number): string {
-  if (hp > 60) return '#22C55E';
-  if (hp > 25) return '#F59E0B';
-  return '#EF4444';
-}
-
-export function ViewportCanvas({
+export const ViewportCanvas: React.FC<ViewportCanvasProps> = ({
+  players = [],
+  mapMetadata: propMapMetadata,
   mapName,
   currentTick,
   tickrate = 64,
   isPlaying = false,
-  players,
-  playersManifest,
-  roundNumber,
-  utilities,
+  playersManifest = [],
+  roundNumber = 1,
+  activeNukeLayer,
+  utilities = [],
   bomb,
+  recentDeaths = [],
+  activeShots = [],
   combatLines = [],
-  playerDefusersById,
-  activeNukeLayer = 'upper',
+  playerCalloutsById = {},
+  playerHasC4ById = {},
+  playerDefusersById = {},
+  bombEvents = [],
+  kills = [],
+  grenades = [],
+  trajectories = [],
+  shots = [],
+  damages = [],
+  selectedPlayerId = null,
+  onSelectPlayer,
+  radarImageUrl,
   className = '',
-}: ViewportCanvasProps) {
+}) => {
+  const mapMetadata: MapMetadata =
+    propMapMetadata ||
+    (mapName && OFFICIAL_MAP_METADATA[mapName]) ||
+    OFFICIAL_MAP_METADATA.de_inferno;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const rafIdRef = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const mapConfig = getMapCalibration(String(mapName));
-  const upperSrc = mapConfig.upperRadar ?? `/maps/${mapName}_radar.png`;
-  const lowerSrc = mapConfig.lowerRadar ?? `/maps/${mapName}_lower_radar.png`;
-  const activeRadarSrc = activeNukeLayer === 'lower' && mapConfig.splitZ !== undefined ? lowerSrc : upperSrc;
+  const [canvasSize, setCanvasSize] = useState<{ width: number; height: number }>({
+    width: 800,
+    height: 800,
+  });
 
-  // Função central de desenho: O Canvas agora é 100% transparente e fica POR CIMA do PNG
-  const drawFrame = () => {
-    const canvas = canvasRef.current;
-    const ctx = safeGet2DContext(canvas);
-    if (!canvas || !ctx) return;
+  const radarImgRef = useRef<HTMLImageElement | null>(null);
+  const [radarLoaded, setRadarLoaded] = useState<boolean>(false);
 
-    // 1. Limpa apenas o canvas dinâmico (o PNG do mapa está na tag <img> por baixo)
-    ctx.clearRect(0, 0, RADAR_SIZE, RADAR_SIZE);
+  const effectiveRadarUrl =
+    radarImageUrl ||
+    (mapMetadata?.mapName
+      ? '/maps/' + mapMetadata.mapName.replace(/^de_/, '') + '_radar.png'
+      : '/maps/mirage_radar.png');
 
-    // 2. Mapeamento dos Jogadores pelo Manifesto (CTs: 1..5, Ts: 6..10)
-    const isPostHalftime = roundNumber >= 13;
-    const manifestById = new Map<number, { name: string; side: TeamSide; number: number }>();
+  useEffect(() => {
+    let isMounted = true;
+    const img = new Image();
+    img.src = effectiveRadarUrl;
+    img.crossOrigin = 'anonymous';
 
-    const ctList: PlayerManifestEntry[] = [];
-    const tList: PlayerManifestEntry[] = [];
-    playersManifest.forEach((m) => {
-      const side: TeamSide = isPostHalftime
-        ? m.initialTeam === 'CT' ? 'T' : 'CT'
-        : m.initialTeam;
-      if (side === 'CT') ctList.push(m);
-      else tList.push(m);
-    });
-
-    ctList.forEach((m, idx) => {
-      manifestById.set(m.id, { name: m.name, side: 'CT', number: idx + 1 });
-    });
-    tList.forEach((m, idx) => {
-      manifestById.set(m.id, { name: m.name, side: 'T', number: idx + 6 });
-    });
-
-    // 3. Utilitários (Smokes e Molotovs)
-    const smokeRadiusPx = Math.max(
-      24,
-      worldRadiusToCanvasPixels(SMOKE_WORLD_RADIUS, String(mapName)),
-    );
-
-    for (const util of utilities) {
-      const { u, v } = resolveCoordinateUV(util.x, util.y, String(mapName));
-      ctx.save();
-
-      if (util.type === 'smoke') {
-        ctx.beginPath();
-        ctx.arc(u, v, smokeRadiusPx, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'rgba(226, 232, 240, 0.9)';
-        ctx.stroke();
-      } else if (util.type === 'molotov' || util.type === 'incendiary') {
-        ctx.beginPath();
-        ctx.arc(u, v, smokeRadiusPx * 0.9, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(239, 68, 68, 0.45)';
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'rgba(249, 115, 22, 0.95)';
-        ctx.stroke();
+    img.onload = () => {
+      if (isMounted) {
+        radarImgRef.current = img;
+        setRadarLoaded(true);
       }
-      ctx.restore();
-    }
+    };
 
-    // 4. Bomba C4 (Planted, Defusing, Dropped)
-    let bombCanvasPos: { u: number; v: number } | null = null;
-    if (bomb && bomb.state !== 'carried') {
-      bombCanvasPos = resolveCoordinateUV(bomb.x, bomb.y, String(mapName));
-      const { u: bu, v: bv } = bombCanvasPos;
-
-      ctx.save();
-      if (bomb.state === 'planted' || bomb.state === 'defusing') {
-        const blink = Math.floor(currentTick / 8) % 2 === 0;
-        ctx.fillStyle = blink ? '#EF4444' : '#991B1B';
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.rect(bu - 7, bv - 7, 14, 14);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 8px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('C4', bu, bv);
-      } else if (bomb.state === 'dropped') {
-        ctx.fillStyle = '#FACC15';
-        ctx.strokeStyle = '#090D12';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.rect(bu - 5, bv - 4, 10, 8);
-        ctx.fill();
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    // 5. Linhas de Combate (Traçantes de tiro)
-    for (const cl of combatLines) {
-      if (
-        cl.attackerX !== undefined &&
-        cl.attackerY !== undefined &&
-        cl.victimX !== undefined &&
-        cl.victimY !== undefined
-      ) {
-        const attPos = resolveCoordinateUV(cl.attackerX, cl.attackerY, String(mapName));
-        const vicPos = resolveCoordinateUV(cl.victimX, cl.victimY, String(mapName));
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(attPos.u, attPos.v);
-        ctx.lineTo(vicPos.u, vicPos.v);
-        ctx.strokeStyle = cl.isKill ? '#EF4444' : 'rgba(250, 204, 21, 0.85)';
-        ctx.lineWidth = cl.isKill ? 2.2 : 1.5;
-        ctx.setLineDash([4, 2]);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(vicPos.u, vicPos.v, 3, 0, Math.PI * 2);
-        ctx.fillStyle = '#EF4444';
-        ctx.fill();
-        ctx.restore();
-      }
-    }
-
-    // 6. Desenho dos 10 Jogadores (Renderizados na camada visível por cima)
-    for (let i = 0; i < players.length; i++) {
-      const p = players[i];
-      const pid = Number(p.id ?? p.playerId);
-      const meta = manifestById.get(pid);
-      const side: TeamSide = meta?.side ?? (pid <= 5 ? 'CT' : 'T');
-      const playerNumber = meta?.number ?? ((i % 10) + 1);
-      const nickname = meta?.name ?? `P${playerNumber}`;
-      const teamColor = side === 'CT' ? TEAM_CANONICAL_COLORS.CT : TEAM_CANONICAL_COLORS.TERRORIST;
-
-      // Resolução segura de coordenadas de tela (Pixels 0..1024)
-      let u = p.u;
-      let v = p.v;
-
-      // Se u/v vierem em escala normalizada [0..1], converte para pixels
-      if (typeof u === 'number' && typeof v === 'number' && u >= 0 && u <= 1 && v >= 0 && v <= 1) {
-        u *= RADAR_SIZE;
-        v *= RADAR_SIZE;
-      }
-
-      // Se u/v forem inválidos ou 0, recalcula pelas coordenadas de mundo
-      if (!Number.isFinite(u) || !Number.isFinite(v) || (u === 0 && v === 0)) {
-        if (Number.isFinite(p.percentX) && Number.isFinite(p.percentY) && (p.percentX !== 0 || p.percentY !== 0)) {
-          u = (p.percentX / 100) * RADAR_SIZE;
-          v = (p.percentY / 100) * RADAR_SIZE;
+    img.onerror = () => {
+      if (isMounted) {
+        if (!effectiveRadarUrl.includes('de_')) {
+          const fallbackImg = new Image();
+          fallbackImg.src =
+            '/maps/de_' + (mapMetadata?.mapName?.replace(/^de_/, '') || '') + '_radar.png';
+          fallbackImg.onload = () => {
+            if (isMounted) {
+              radarImgRef.current = fallbackImg;
+              setRadarLoaded(true);
+            }
+          };
+          fallbackImg.onerror = () => {
+            if (isMounted) {
+              radarImgRef.current = null;
+              setRadarLoaded(false);
+            }
+          };
         } else {
-          const rawX = p.x ?? (p as any).xWorld ?? 0;
-          const rawY = p.y ?? (p as any).yWorld ?? 0;
-          const coords = resolveCoordinateUV(rawX, rawY, String(mapName));
-          u = coords.u <= 1 && coords.v <= 1 && (coords.u !== 0 || coords.v !== 0) ? coords.u * RADAR_SIZE : coords.u;
-          v = coords.u <= 1 && coords.v <= 1 && (coords.u !== 0 || coords.v !== 0) ? coords.v * RADAR_SIZE : coords.v;
+          radarImgRef.current = null;
+          setRadarLoaded(false);
         }
       }
+    };
 
-      // Marcador de Jogador Abatido (Caveira / X vermelho)
-      if (!p.isAlive) {
-        ctx.save();
-        ctx.strokeStyle = teamColor;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(u, v, PLAYER_RADIUS_PX * 0.75, 0, Math.PI * 2);
-        ctx.stroke();
+    return () => {
+      isMounted = false;
+    };
+  }, [effectiveRadarUrl, mapMetadata?.mapName]);
 
-        const c = 5;
-        ctx.strokeStyle = '#EF4444';
-        ctx.lineWidth = 2;
+  useEffect(() => {
+    const handleResize = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const minDimension = Math.floor(Math.min(rect.width, rect.height || rect.width));
+      const size = Math.max(400, minDimension);
+
+      setCanvasSize({ width: size, height: size });
+    };
+
+    handleResize();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(handleResize) : null;
+    if (ro && containerRef.current) ro.observe(containerRef.current);
+
+    return () => {
+      ro?.disconnect();
+    };
+  }, []);
+
+  const renderCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const { width, height } = canvasSize;
+    ctx.clearRect(0, 0, width, height);
+
+    // ========================================================================
+    // CAMADA 0 (Fundo): Radar PNG estático (centralizado/escalado)
+    // ========================================================================
+    const radarImg = radarImgRef.current;
+    if (radarLoaded && radarImg && radarImg.complete && radarImg.naturalWidth > 0) {
+      ctx.drawImage(radarImg, 0, 0, width, height);
+    } else {
+      ctx.fillStyle = '#0b0f19';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+      ctx.lineWidth = 1;
+      const gridSize = 40;
+      for (let x = 0; x <= width; x += gridSize) {
         ctx.beginPath();
-        ctx.moveTo(u - c, v - c);
-        ctx.lineTo(u + c, v + c);
-        ctx.moveTo(u + c, v - c);
-        ctx.lineTo(u - c, v + c);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
         ctx.stroke();
-        ctx.restore();
-        continue;
+      }
+      for (let y = 0; y <= height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
       }
 
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.5)';
+      ctx.font = '12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(
+        '[Radar: ' + (mapMetadata?.displayName || mapMetadata?.mapName || 'CS2') + ']',
+        width / 2,
+        25
+      );
+    }
+
+    if (!mapMetadata) return;
+
+    // ========================================================================
+    // CAMADA 1 (Utilitários Ativos): Smokes, Molotovs e Trajetórias
+    // ========================================================================
+    // 1.1 Trajetórias de granadas arremessadas recentemente
+    if (trajectories && trajectories.length > 0) {
       ctx.save();
+      for (const traj of trajectories) {
+        const pts = traj.points || [];
+        if (pts.length < 2) continue;
 
-      // Cabo de Defuse se o CT estiver desarmando a bomba
-      const isDefusing = p.isDefusing || (bomb?.state === 'defusing' && bomb.defuserId === pid);
-      if (isDefusing && bombCanvasPos) {
+        const firstTick = pts[0].tick;
+        const lastTick = pts[pts.length - 1].tick;
+        if (currentTick < firstTick - 10 || currentTick > lastTick + 64) continue;
+
+        ctx.beginPath();
+        let started = false;
+        for (const pt of pts) {
+          if (pt.tick > currentTick) break;
+          const { x: px, y: py } = worldToCanvas(pt.x, pt.y, mapMetadata, width, height);
+          if (!started) {
+            ctx.moveTo(px, py);
+            started = true;
+          } else {
+            ctx.lineTo(px, py);
+          }
+        }
+        if (started) {
+          ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 3]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+      ctx.restore();
+    }
+
+    // 1.2 Smokes e Molotovs ativos no tick atual
+    for (const g of grenades) {
+      const start = g.startTick ?? 0;
+      const end = g.endTick ?? start + 1280; // ~20 segundos default
+      if (currentTick >= start && currentTick <= end) {
+        const { x: gx, y: gy } = worldToCanvas(g.x, g.y, mapMetadata, width, height);
+        const radiusInCanvas = g.radius
+          ? (g.radius / mapMetadata.scale) * (width / 1024)
+          : 22;
+
+        if (g.type === 'smoke') {
+          // Smokes ativas: círculo preenchido cinza translúcido com borda suave
+          ctx.beginPath();
+          ctx.arc(gx, gy, radiusInCanvas, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(203, 213, 225, 0.6)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Centro sutil de dispersão
+          ctx.beginPath();
+          ctx.arc(gx, gy, radiusInCanvas * 0.5, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(226, 232, 240, 0.25)';
+          ctx.fill();
+        } else if (g.type === 'molotov' || (g as any).type === 'incendiary') {
+          // Molotovs/Fogo: círculos alaranjados translúcidos pulsantes
+          const pulse = 0.3 + 0.12 * Math.sin(Date.now() / 150);
+          ctx.beginPath();
+          ctx.arc(gx, gy, radiusInCanvas, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(239, 68, 68, ${pulse})`;
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(249, 115, 22, 0.7)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Núcleo alaranjado quente
+          ctx.beginPath();
+          ctx.arc(gx, gy, radiusInCanvas * 0.55, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(251, 146, 60, 0.45)';
+          ctx.fill();
+        } else if (g.type === 'flash' && currentTick <= start + 16) {
+          // Flashbang detonação efêmera
+          ctx.beginPath();
+          ctx.arc(gx, gy, 14, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(254, 240, 138, 0.7)';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        } else if (g.type === 'he' && currentTick <= start + 24) {
+          // HE detonação efêmera
+          ctx.beginPath();
+          ctx.arc(gx, gy, 16, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
+          ctx.fill();
+          ctx.strokeStyle = '#f97316';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // ========================================================================
+    // CAMADA 2 (C4 e Entidades do Chão): C4 plantada ou no chão
+    // ========================================================================
+    for (const bomb of bombEvents) {
+      if (bomb.x !== undefined && bomb.y !== undefined && bomb.tick <= currentTick) {
+        const { x: bx, y: by } = worldToCanvas(bomb.x, bomb.y, mapMetadata, width, height);
+        const isPlanted =
+          bomb.type === 'planted' ||
+          bomb.type === 'plant' ||
+          bomb.type === 'begin_defuse' ||
+          bomb.type === 'abort_defuse';
+
+        if (isPlanted) {
+          // Pulso vermelho animado
+          const pulseRadius = 10 + 4 * Math.sin(Date.now() / 180);
+          ctx.beginPath();
+          ctx.arc(bx, by, pulseRadius, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.35)';
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(bx, by, 7, 0, Math.PI * 2);
+          ctx.fillStyle = '#ef4444';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 9px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('C4', bx, by);
+        } else if (bomb.type === 'dropped') {
+          // C4 solta no chão: ícone amarelo/vermelho
+          ctx.fillStyle = '#eab308';
+          ctx.fillRect(bx - 6, by - 4, 12, 8);
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(bx - 6, by - 4, 12, 8);
+
+          ctx.fillStyle = '#000000';
+          ctx.font = 'bold 8px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('C4', bx, by);
+        }
+      }
+    }
+
+    // ========================================================================
+    // CAMADA 3 (Traçantes de Tiro): Linhas efêmeras saindo da posição no yaw
+    // ========================================================================
+    if (shots && shots.length > 0) {
+      for (const shot of shots) {
+        const age = currentTick - shot.tick;
+        if (age >= 0 && age <= 6) {
+          const alpha = 1 - age / 6;
+          const { x: sx, y: sy } = worldToCanvas(shot.x, shot.y, mapMetadata, width, height);
+          const rad = (-shot.yaw * Math.PI) / 180;
+          const tracerLength = 50;
+
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(sx + Math.cos(rad) * tracerLength, sy + Math.sin(rad) * tracerLength);
+          ctx.strokeStyle = `rgba(254, 240, 138, ${alpha * 0.85})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // ========================================================================
+    // CAMADA 4 (Jogadores Mortos): Marcador 'X' cinza/translúcido da equipe
+    // ========================================================================
+    const deadPlayers = players.filter((p) => !p.isAlive);
+    for (const p of deadPlayers) {
+      const { x: px, y: py } = worldToCanvas(p.x, p.y, mapMetadata, width, height);
+      const isCT = p.team === 'CT';
+      const color = isCT ? 'rgba(96, 165, 250, 0.45)' : 'rgba(251, 146, 60, 0.45)';
+
+      const size = 5;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(px - size, py - size);
+      ctx.lineTo(px + size, py + size);
+      ctx.moveTo(px + size, py - size);
+      ctx.lineTo(px - size, py + size);
+      ctx.stroke();
+    }
+
+    // ========================================================================
+    // CAMADA 5 (Jogadores Vivos): Cones de visão, mira scoped, cego, HP, C4 defuse
+    // ========================================================================
+    const alivePlayers = players.filter((p) => p.isAlive);
+    const playerRadius = 9;
+
+    for (let i = 0; i < alivePlayers.length; i++) {
+      const p = alivePlayers[i];
+      const { x: px, y: py } = worldToCanvas(p.x, p.y, mapMetadata, width, height);
+
+      const rad = (-p.yaw * Math.PI) / 180;
+      const isCT = p.team === 'CT';
+      const isSelected = String(p.id) === String(selectedPlayerId);
+
+      // 5.1 Cones de Visão (24px, 30° de abertura)
+      const coneLength = 24;
+      const fovAngle = (30 * Math.PI) / 180;
+      const coneColor = isCT ? 'rgba(59, 130, 246, 0.22)' : 'rgba(245, 158, 11, 0.22)';
+
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.arc(px, py, coneLength, rad - fovAngle / 2, rad + fovAngle / 2);
+      ctx.closePath();
+      ctx.fillStyle = coneColor;
+      ctx.fill();
+
+      // Linha central do cone
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + Math.cos(rad) * 16, py + Math.sin(rad) * 16);
+      ctx.strokeStyle = isCT ? '#93c5fd' : '#fde047';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Linha guia pontilhada estendida caso isScoped === true
+      if (p.isScoped) {
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(u, v);
-        ctx.lineTo(bombCanvasPos.u, bombCanvasPos.v);
-        ctx.strokeStyle = '#38BDF8';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([4, 3]);
+        ctx.setLineDash([3, 3]);
+        ctx.moveTo(px + Math.cos(rad) * 16, py + Math.sin(rad) * 16);
+        ctx.lineTo(px + Math.cos(rad) * 75, py + Math.sin(rad) * 75);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.lineWidth = 1;
         ctx.stroke();
         ctx.restore();
+      }
 
-        const hasKit = playerDefusersById?.[pid] ?? p.hasDefuser ?? bomb?.hasKit ?? false;
-        const defuseTotalTicks = (hasKit ? C4_DEFUSE_WITH_KIT_SECONDS : C4_DEFUSE_WITHOUT_KIT_SECONDS) * tickrate;
-        const defuseElapsed = bomb?.defuseStartTick ? Math.max(0, currentTick - bomb.defuseStartTick) : (currentTick % defuseTotalTicks);
-        const defuseProgress = Math.min(1, defuseElapsed / Math.max(1, defuseTotalTicks));
-
+      // 5.2 Indicador de Cego (flashDuration > 0): Anel brilhante pulsante
+      if (p.flashDuration > 0) {
+        const flashIntensity = Math.min(1, p.flashDuration / 2);
         ctx.beginPath();
-        ctx.arc(u, v, PLAYER_RADIUS_PX + 6, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * defuseProgress);
-        ctx.strokeStyle = '#38BDF8';
+        ctx.arc(px, py, playerRadius + 6, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(253, 224, 71, ${0.4 + 0.5 * flashIntensity})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#fde047';
+        ctx.font = 'bold 9px Inter, sans-serif';
+        ctx.fillText('⚡', px + playerRadius + 4, py - playerRadius);
+      }
+
+      // 5.3 Indicador de Desarme Ativo (isDefusing) com destaque verde
+      if (p.isDefusing) {
+        ctx.beginPath();
+        ctx.arc(px, py, playerRadius + 5, 0, Math.PI * 2);
+        ctx.strokeStyle = '#10b981';
         ctx.lineWidth = 3;
         ctx.stroke();
       }
 
-      // Barra de progresso circular se o TR estiver plantando
-      const isPlanting = p.isPlanting || (bomb?.state === 'planting' && bomb.carrierId === pid);
-      if (isPlanting) {
-        const plantTotalTicks = C4_PLANT_DURATION_SECONDS * tickrate;
-        const plantElapsed = bomb?.plantStartTick ? Math.max(0, currentTick - bomb.plantStartTick) : (currentTick % plantTotalTicks);
-        const plantProgress = Math.min(1, plantElapsed / Math.max(1, plantTotalTicks));
-
+      // 5.4 Seleção de Jogador
+      if (isSelected) {
         ctx.beginPath();
-        ctx.arc(u, v, PLAYER_RADIUS_PX + 6, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * plantProgress);
-        ctx.strokeStyle = '#FACC15';
-        ctx.lineWidth = 3;
+        ctx.arc(px, py, playerRadius + 5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
         ctx.stroke();
       }
 
-      // Cone de Visão (FOV 90° e 25px de alcance)
-      const yawRad = (-p.yaw * Math.PI) / 180;
-      const halfConeRad = ((FOV_CONE_ANGLE_DEG / 2) * Math.PI) / 180;
+      // 5.5 Anel Perimétrico de HP Dinâmico
+      const hp = Math.max(0, Math.min(100, p.hp));
+      const hpPct = hp / 100;
+      const startAngle = -Math.PI / 2;
+      const endAngle = startAngle + Math.PI * 2 * hpPct;
 
       ctx.beginPath();
-      ctx.moveTo(u, v);
-      ctx.arc(u, v, FOV_CONE_REACH_PX, yawRad - halfConeRad, yawRad + halfConeRad);
-      ctx.closePath();
-      ctx.fillStyle = side === 'CT' ? 'rgba(37, 99, 235, 0.28)' : 'rgba(234, 88, 12, 0.28)';
-      ctx.fill();
-
-      // Vetor / Linha Central de Mira
-      const tipX = u + Math.cos(yawRad) * (FOV_CONE_REACH_PX - 2);
-      const tipY = v + Math.sin(yawRad) * (FOV_CONE_REACH_PX - 2);
-      ctx.beginPath();
-      ctx.moveTo(u, v);
-      ctx.lineTo(tipX, tipY);
-      ctx.strokeStyle = '#FFFFFF';
+      ctx.arc(px, py, playerRadius + 2.5, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.7)';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Círculo Principal do Jogador (Raio 12px)
+      if (hp > 0) {
+        ctx.beginPath();
+        ctx.arc(px, py, playerRadius + 2.5, startAngle, endAngle);
+        ctx.strokeStyle = hp > 50 ? '#22c55e' : hp > 20 ? '#eab308' : '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // 5.6 Círculo Oficial do Jogador CT/TR
+      const teamBg = isCT ? '#2563eb' : '#d97706';
+      const teamBorder = isSelected ? '#ffffff' : isCT ? '#93c5fd' : '#fde68a';
+
       ctx.beginPath();
-      ctx.arc(u, v, PLAYER_RADIUS_PX, 0, Math.PI * 2);
-      ctx.fillStyle = teamColor;
+      ctx.arc(px, py, playerRadius, 0, Math.PI * 2);
+      ctx.fillStyle = teamBg;
       ctx.fill();
+      ctx.strokeStyle = teamBorder;
       ctx.lineWidth = 2;
-      ctx.strokeStyle = '#090D12';
       ctx.stroke();
 
-      // Anel Circular de Vida (HP)
-      const hpRatio = Math.max(0, Math.min(1, p.hp / 100));
-      ctx.beginPath();
-      ctx.arc(u, v, PLAYER_RADIUS_PX + 2, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * hpRatio);
-      ctx.strokeStyle = getHpRingColor(p.hp);
-      ctx.lineWidth = 2.2;
-      ctx.stroke();
-
-      // Número da Camisa (Centralizado no círculo)
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 10px Inter, monospace, sans-serif';
+      // Número identificador no círculo
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 9px Inter, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(playerNumber), u, v);
+      ctx.fillText(String(i + 1), px, py);
 
-      // Nickname do Atleta (Pill com fundo escuro semi-transparente)
-      const labelY = v - PLAYER_RADIUS_PX - 10;
-      const textWidth = Math.max(28, nickname.length * 5.8 + 8);
-      ctx.fillStyle = 'rgba(9, 13, 18, 0.85)';
-      ctx.fillRect(u - textWidth / 2, labelY - 6, textWidth, 12);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = '600 9px Inter, system-ui, sans-serif';
-      ctx.fillText(nickname, u, labelY);
+      // 5.7 Nome do Jogador e Arma Ativa
+      const displayName = p.name ? p.name.slice(0, 10) : 'P' + (i + 1);
+      const displayWeapon = formatWeaponName(p.activeWeapon);
 
-      ctx.restore();
+      ctx.font = '9px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      const labelText = `${displayName} [${displayWeapon}]`;
+      const textWidth = ctx.measureText(labelText).width;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.fillRect(px - textWidth / 2 - 3, py - playerRadius - 16, textWidth + 6, 12);
+
+      ctx.fillStyle = isCT ? '#bfdbfe' : '#fed7aa';
+      ctx.fillText(labelText, px, py - playerRadius - 7);
+    }
+
+    // ========================================================================
+    // CAMADA 6 (Indicadores de Dano / Floating Combat Text): -XX subindo e sumindo
+    // ========================================================================
+    if (damages && damages.length > 0) {
+      for (const dmg of damages) {
+        const delta = currentTick - dmg.tick;
+        if (delta >= 0 && delta <= 48) {
+          // Animação de subida e desvanecimento (~48 ticks = 0.75s)
+          const progress = delta / 48;
+          const alpha = 1 - progress;
+          const yOffset = progress * 20;
+
+          // Encontra a posição da vítima atingida
+          const victim = players.find((p) => String(p.id) === String(dmg.victimId));
+          if (victim) {
+            const { x: vx, y: vy } = worldToCanvas(victim.x, victim.y, mapMetadata, width, height);
+
+            ctx.save();
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Sombra preta para alto contraste
+            ctx.fillStyle = `rgba(0, 0, 0, ${alpha * 0.9})`;
+            ctx.fillText(`-${dmg.damage}`, vx + 1, vy - playerRadius - 12 - yOffset + 1);
+
+            // Texto vermelho vibrante
+            ctx.fillStyle = `rgba(239, 68, 68, ${alpha})`;
+            ctx.fillText(`-${dmg.damage}`, vx, vy - playerRadius - 12 - yOffset);
+            ctx.restore();
+          }
+        }
+      }
+    }
+  }, [
+    canvasSize,
+    mapMetadata,
+    players,
+    radarLoaded,
+    selectedPlayerId,
+    bombEvents,
+    kills,
+    grenades,
+    trajectories,
+    shots,
+    damages,
+    currentTick,
+  ]);
+
+  useEffect(() => {
+    let animId: number;
+    const tick = () => {
+      renderCanvas();
+      animId = requestAnimationFrame(tick);
+    };
+    animId = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(animId);
+    };
+  }, [renderCanvas]);
+
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current || !onSelectPlayer || !mapMetadata) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    const hitRadius = 16;
+    for (const p of players) {
+      if (!p.isAlive) continue;
+      const { x: px, y: py } = worldToCanvas(
+        p.x,
+        p.y,
+        mapMetadata,
+        canvasSize.width,
+        canvasSize.height
+      );
+      const dist = Math.hypot(clickX - px, clickY - py);
+      if (dist <= hitRadius) {
+        onSelectPlayer(p.id);
+        return;
+      }
     }
   };
 
-  useEffect(() => {
-    drawFrame();
-
-    if (!isPlaying) {
-      if (rafIdRef.current !== null) {
-        cancelAnimationFrame(rafIdRef.current);
-        rafIdRef.current = null;
-      }
-      return;
-    }
-
-    let running = true;
-    const loop = () => {
-      if (!running) return;
-      drawFrame();
-      rafIdRef.current = requestAnimationFrame(loop);
-    };
-    rafIdRef.current = requestAnimationFrame(loop);
-
-    return () => {
-      running = false;
-      if (rafIdRef.current !== null) {
-        cancelAnimationFrame(rafIdRef.current);
-        rafIdRef.current = null;
-      }
-    };
-  }, [
-    mapName,
-    currentTick,
-    tickrate,
-    isPlaying,
-    players,
-    playersManifest,
-    roundNumber,
-    utilities,
-    bomb,
-    combatLines,
-    playerDefusersById,
-    activeNukeLayer,
-  ]);
-
   return (
     <div
-      data-testid="viewport-radar-container"
-      style={{ aspectRatio: '1 / 1' }}
-      className={`relative w-full h-full max-w-full max-h-full aspect-square rounded-[2px] border border-[#1F2629] bg-[#0B0E0F] overflow-hidden select-none ${className}`.trim()}
+      ref={containerRef}
+      className={
+        'relative flex items-center justify-center w-full h-full bg-slate-950 overflow-hidden rounded-xl shadow-2xl border border-slate-800 ' +
+        className
+      }
     >
-      {/* CAMADA 0 (Fundo, Z-Index 0): Imagem estática do radar acelerada por GPU */}
-      <img
-        key={`${mapName}-${activeNukeLayer}`}
-        src={activeRadarSrc}
-        alt={`Radar do mapa ${mapName}`}
-        className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-0"
-        onError={(e) => {
-          (e.target as HTMLElement).style.display = 'none';
-        }}
-      />
-
-      {/* CAMADA 1 (Frente, Z-Index 10): Canvas 100% transparente para entidades dinâmicas */}
       <canvas
         ref={canvasRef}
-        width={RADAR_SIZE}
-        height={RADAR_SIZE}
         data-testid="radar-canvas"
-        className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
+        width={canvasSize.width}
+        height={canvasSize.height}
+        onClick={handleCanvasClick}
+        className="cursor-crosshair select-none block"
       />
     </div>
   );
-}
+};
 
 export default ViewportCanvas;
