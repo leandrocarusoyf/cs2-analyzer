@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-canvas: #0B0E0F;
+  --color-surface: #111618;
+  --color-surface-card: #0E1214;
+  --color-surface-active: #13191B;
+  --color-border-subtle: #1F2629;
+  --color-border-card: #1B2226;
+  --color-border-muted: #232B30;
+  --color-accent: #00FFA3;
+  --color-primary: #00FFA3;
+  --color-primary-glow: rgba(0, 255, 163, 0.14);
+  --color-ct: #2979FF;
+  --color-ct-hover: #3B82F6;
+  --color-ct-bg: #0F1E2E;
+  --color-ct-border: #1E3A5F;
+  --color-tr: #FF8C00;
+  --color-tr-hover: #F97316;
+  --color-tr-bg: #26160A;
+  --color-tr-border: #3D2411;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #7E8F98;
+  --color-text-muted: #9BA8B0;
+  --color-text-dim: #4B5563;
+  --color-status-win: #00FFA3;
+  --color-status-loss: #EF4444;
+  --color-status-tie: #EAB308;
+  --radius-sm: 2px;
+}
+
+html, body {
+  background-color: var(--color-canvas);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: var(--color-primary-glow);
+  color: var(--color-accent);
+}
+
+/* Aplicação global de números tabulares para dados estatísticos e métricas */
+.stat-value,
+.tabular-nums,
+[data-tabular="true"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scrollbars finas táticas no padrão EDGE */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2A3439;
+}

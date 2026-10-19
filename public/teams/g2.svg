@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- G2 Esports Samurai Mask -->
+  <circle cx="50" cy="50" r="42" fill="#0E1214" stroke="#FFFFFF" stroke-width="3"/>
+  <path d="M50 20 L66 40 L50 48 L34 40 Z" fill="#E41E26"/>
+  <path d="M32 50 L42 66 L50 56 L58 66 L68 50 L62 76 L50 82 L38 76 Z" fill="#FFFFFF"/>
+  <circle cx="42" cy="54" r="2.5" fill="#E41E26"/>
+  <circle cx="58" cy="54" r="2.5" fill="#E41E26"/>
+</svg>
+

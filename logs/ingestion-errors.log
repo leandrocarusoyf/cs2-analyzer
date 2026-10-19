@@ -1,0 +1,12 @@
+[2026-10-18T02:37:48.699Z] Demo: D:\Users\leand\cs2-analyzer\furia-vs-aurora-m2-inferno.dem
+Erro: Não foi possível extrair dados da demo: demoparser2 não encontrado e o arquivo não possui payload de telemetria reconhecido.
+Stack: Error: Não foi possível extrair dados da demo: demoparser2 não encontrado e o arquivo não possui payload de telemetria reconhecido.
+    at extractRawDemoWithParser (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:325:9)
+    at processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:747:27)
+
+[2026-10-18T02:45:25.352Z] Demo: D:\Users\leand\cs2-analyzer\furia-vs-aurora-m2-inferno.dem
+Erro: ENOENT: no such file or directory, access 'D:\Users\leand\cs2-analyzer\furia-vs-aurora-m2-inferno.dem'
+Stack: Error: ENOENT: no such file or directory, access 'D:\Users\leand\cs2-analyzer\furia-vs-aurora-m2-inferno.dem'
+    at async access (node:internal/fs/promises:1312:10)
+    at async processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:785:5)
+

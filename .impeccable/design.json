@@ -1,0 +1,481 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-17T17:15:00Z",
+  "title": "Design System: CS2 Analyzer",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Radar Neon Cyan-Green",
+        "canonical": "oklch(89% 0.26 158)",
+        "tonalRamp": [
+          "oklch(22% 0.08 158)",
+          "oklch(35% 0.13 158)",
+          "oklch(48% 0.18 158)",
+          "oklch(62% 0.22 158)",
+          "oklch(76% 0.25 158)",
+          "oklch(89% 0.26 158)",
+          "oklch(93% 0.18 158)",
+          "oklch(97% 0.08 158)"
+        ]
+      },
+      "primary-glow": {
+        "role": "accent",
+        "displayName": "Neon Radar Glow",
+        "canonical": "rgba(0, 255, 163, 0.14)",
+        "tonalRamp": [
+          "rgba(0, 255, 163, 0.04)",
+          "rgba(0, 255, 163, 0.08)",
+          "rgba(0, 255, 163, 0.14)",
+          "rgba(0, 255, 163, 0.22)",
+          "rgba(0, 255, 163, 0.35)",
+          "rgba(0, 255, 163, 0.50)",
+          "rgba(0, 255, 163, 0.70)",
+          "rgba(0, 255, 163, 0.90)"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Abyssal Onyx Canvas",
+        "canonical": "oklch(14% 0.005 200)",
+        "tonalRamp": [
+          "#050708",
+          "#080B0C",
+          "#0B0E0F",
+          "#111618",
+          "#171E21",
+          "#222C31",
+          "#344148",
+          "#4B5C65"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Cockpit Titanium Slate",
+        "canonical": "oklch(17% 0.008 210)",
+        "tonalRamp": [
+          "#090C0D",
+          "#0D1113",
+          "#111618",
+          "#171E21",
+          "#1E272B",
+          "#29353B",
+          "#3B4A52",
+          "#55666F"
+        ]
+      },
+      "surface-card": {
+        "role": "neutral",
+        "displayName": "Telemetry Card Slate",
+        "canonical": "oklch(16% 0.007 205)",
+        "tonalRamp": [
+          "#07090A",
+          "#0B0E0F",
+          "#0E1214",
+          "#14191C",
+          "#1C2327",
+          "#273036",
+          "#3A464E",
+          "#52606A"
+        ]
+      },
+      "surface-active": {
+        "role": "neutral",
+        "displayName": "Active Selection Slate",
+        "canonical": "oklch(19% 0.009 210)",
+        "tonalRamp": [
+          "#0A0E0F",
+          "#0E1315",
+          "#13191B",
+          "#1A2225",
+          "#222C30",
+          "#2E3B40",
+          "#415158",
+          "#596C75"
+        ]
+      },
+      "border-subtle": {
+        "role": "border",
+        "displayName": "Structural Carbon Border",
+        "canonical": "oklch(23% 0.008 210)",
+        "tonalRamp": [
+          "#0E1214",
+          "#14191B",
+          "#1F2629",
+          "#283236",
+          "#344045",
+          "#435157",
+          "#56676F",
+          "#6D8089"
+        ]
+      },
+      "border-card": {
+        "role": "border",
+        "displayName": "Inner Card Framing Border",
+        "canonical": "oklch(22% 0.008 210)",
+        "tonalRamp": [
+          "#0C1012",
+          "#121719",
+          "#1B2226",
+          "#242D32",
+          "#303B41",
+          "#3E4C53",
+          "#506169",
+          "#667982"
+        ]
+      },
+      "border-muted": {
+        "role": "border",
+        "displayName": "Divider Grid Carbon",
+        "canonical": "oklch(25% 0.009 210)",
+        "tonalRamp": [
+          "#101517",
+          "#171D20",
+          "#232B30",
+          "#2D383E",
+          "#39464E",
+          "#495962",
+          "#5D6F7A",
+          "#738794"
+        ]
+      },
+      "side-ct": {
+        "role": "secondary",
+        "displayName": "Cobalt Interceptor (CT Side)",
+        "canonical": "oklch(58% 0.22 255)",
+        "tonalRamp": [
+          "oklch(18% 0.08 255)",
+          "oklch(28% 0.13 255)",
+          "oklch(40% 0.18 255)",
+          "oklch(52% 0.21 255)",
+          "oklch(58% 0.22 255)",
+          "oklch(68% 0.18 255)",
+          "oklch(80% 0.12 255)",
+          "oklch(92% 0.05 255)"
+        ]
+      },
+      "side-ct-hover": {
+        "role": "secondary",
+        "displayName": "Cobalt Interceptor Hover",
+        "canonical": "oklch(62% 0.21 255)",
+        "tonalRamp": [
+          "oklch(20% 0.08 255)",
+          "oklch(30% 0.13 255)",
+          "oklch(42% 0.18 255)",
+          "oklch(54% 0.20 255)",
+          "oklch(62% 0.21 255)",
+          "oklch(72% 0.17 255)",
+          "oklch(83% 0.11 255)",
+          "oklch(93% 0.05 255)"
+        ]
+      },
+      "side-ct-bg": {
+        "role": "secondary",
+        "displayName": "Cobalt Tactical Tint Background",
+        "canonical": "oklch(19% 0.04 250)",
+        "tonalRamp": [
+          "#050C14",
+          "#0A1521",
+          "#0F1E2E",
+          "#172E45",
+          "#213F5E",
+          "#2D537B",
+          "#3B6B9B",
+          "#4E87C2"
+        ]
+      },
+      "side-tr": {
+        "role": "secondary",
+        "displayName": "Safety Amber Flare (TR Side)",
+        "canonical": "oklch(68% 0.21 55)",
+        "tonalRamp": [
+          "oklch(20% 0.08 55)",
+          "oklch(32% 0.13 55)",
+          "oklch(45% 0.17 55)",
+          "oklch(58% 0.20 55)",
+          "oklch(68% 0.21 55)",
+          "oklch(78% 0.18 55)",
+          "oklch(87% 0.12 55)",
+          "oklch(94% 0.06 55)"
+        ]
+      },
+      "side-tr-hover": {
+        "role": "secondary",
+        "displayName": "Safety Amber Hover",
+        "canonical": "oklch(65% 0.21 50)",
+        "tonalRamp": [
+          "oklch(18% 0.08 50)",
+          "oklch(30% 0.13 50)",
+          "oklch(43% 0.17 50)",
+          "oklch(56% 0.20 50)",
+          "oklch(65% 0.21 50)",
+          "oklch(75% 0.18 50)",
+          "oklch(85% 0.12 50)",
+          "oklch(93% 0.06 50)"
+        ]
+      },
+      "side-tr-bg": {
+        "role": "secondary",
+        "displayName": "Safety Amber Tactical Tint Background",
+        "canonical": "oklch(18% 0.035 50)",
+        "tonalRamp": [
+          "#100904",
+          "#1A0F07",
+          "#26160A",
+          "#38200E",
+          "#4D2D15",
+          "#663C1D",
+          "#844E27",
+          "#A66434"
+        ]
+      },
+      "text-primary": {
+        "role": "text",
+        "displayName": "Telemetry Primary White",
+        "canonical": "oklch(100% 0 0)",
+        "tonalRamp": [
+          "#333333",
+          "#555555",
+          "#777777",
+          "#999999",
+          "#BBBBBB",
+          "#DDDDDD",
+          "#EEEEEE",
+          "#FFFFFF"
+        ]
+      },
+      "text-secondary": {
+        "role": "text",
+        "displayName": "Muted Telemetry Cyan-Grey (WCAG AA)",
+        "canonical": "oklch(62% 0.02 215)",
+        "tonalRamp": [
+          "#1D2427",
+          "#2C3539",
+          "#3D484D",
+          "#526066",
+          "#6B7A82",
+          "#7E8F98",
+          "#9CAAB1",
+          "#CBD5DA"
+        ]
+      },
+      "text-muted": {
+        "role": "text",
+        "displayName": "Inactive Navigation Slate",
+        "canonical": "oklch(70% 0.02 215)",
+        "tonalRamp": [
+          "#2A3237",
+          "#3E484E",
+          "#546168",
+          "#6E7D85",
+          "#8C9CA4",
+          "#9BA8B0",
+          "#B7C2C8",
+          "#D8E0E4"
+        ]
+      },
+      "text-dim": {
+        "role": "text",
+        "displayName": "Sub-Telemetry Dim Grey",
+        "canonical": "oklch(45% 0.02 220)",
+        "tonalRamp": [
+          "#181E21",
+          "#242B2F",
+          "#333C42",
+          "#4B5563",
+          "#636F7E",
+          "#818E9E",
+          "#A2ADC0",
+          "#C7D0DE"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "hero-metric": {
+        "displayName": "Hero Metric Display",
+        "purpose": "Primary 32px tabular monospaced numbers (HLTV Rating hero metric)."
+      },
+      "display": {
+        "displayName": "Display Logo & Brandmark",
+        "purpose": "Hero brandmark and application logo (/ CS2 ANALYZER)."
+      },
+      "metric": {
+        "displayName": "Metric Display",
+        "purpose": "High-impact 24px tabular monospaced numbers (ratings, ADR, K/D)."
+      },
+      "headline": {
+        "displayName": "Panel Headline",
+        "purpose": "Major panel headings and pro player identification callouts."
+      },
+      "title": {
+        "displayName": "Section Title",
+        "purpose": "Category headers, subpanel titles, and table column titles."
+      },
+      "nav": {
+        "displayName": "Navigation Link",
+        "purpose": "Sidebar navigation item titles."
+      },
+      "body": {
+        "displayName": "Body & Details",
+        "purpose": "Secondary player descriptors, explanatory text, and table cells."
+      },
+      "caption": {
+        "displayName": "Filter & Action Caption",
+        "purpose": "Tactical role filter pills, table header columns, and secondary actions."
+      },
+      "label": {
+        "displayName": "Tabular Telemetry Label",
+        "purpose": "Monospaced ratings, ADR, K/D, round scores, timers, and radar coordinates."
+      },
+      "micro": {
+        "displayName": "Micro Badge",
+        "purpose": "Tactical side indicators (CT/T badges), version badge, and card footnotes."
+      },
+      "nano": {
+        "displayName": "Nano Timeline Axis",
+        "purpose": "Sparkline timeline date intervals and micro-coordinates."
+      }
+    },
+    "shadows": [
+      {
+        "name": "none",
+        "value": "none",
+        "purpose": "Flat at rest by default. Diffuse ambient blur shadows are prohibited across all UI surfaces in favor of strict tonal layering."
+      }
+    ],
+    "motion": [
+      {
+        "name": "telemetry-snap",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Snappy tactical transition for tab switches and radar vertices."
+      },
+      {
+        "name": "subtle-fade",
+        "value": "150ms ease-in-out",
+        "purpose": "Hover transitions for navigation links and buttons."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "2xl",
+        "value": "1360px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Active Sidebar Item",
+      "kind": "nav",
+      "refersTo": "sidebar-item-active",
+      "description": "Selected navigation item with 3px absolute white left indicator line.",
+      "html": "<a class=\"ds-sidebar-item ds-sidebar-item-active\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/></svg><span>Player Stats</span></a>",
+      "css": ".ds-sidebar-item { height: 35px; display: flex; align-items: center; padding: 0 14px; margin: 2px 0; border-radius: 2px; text-decoration: none; font-family: Inter, sans-serif; font-size: 13px; font-weight: 700; color: #9BA8B0; position: relative; cursor: pointer; transition: color 0.15s, background-color 0.15s; } .ds-sidebar-item-active { background-color: #13191B; color: #FFFFFF; } .ds-sidebar-item-active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 19px; background-color: #FFFFFF; } .ds-icon { width: 16px; height: 16px; margin-right: 10px; flex-shrink: 0; }"
+    },
+    {
+      "name": "Inactive Sidebar Item",
+      "kind": "nav",
+      "refersTo": "sidebar-item",
+      "description": "Standard sidebar navigation item with subtle hover tint.",
+      "html": "<a class=\"ds-sidebar-item\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><polygon points=\"12 6 12 12 16 14\"/></svg><span>Matches</span></a>",
+      "css": ".ds-sidebar-item { height: 35px; display: flex; align-items: center; padding: 0 14px; margin: 2px 0; border-radius: 2px; text-decoration: none; font-family: Inter, sans-serif; font-size: 13px; font-weight: 700; color: #9BA8B0; position: relative; cursor: pointer; transition: color 0.15s, background-color 0.15s; } .ds-sidebar-item:hover { color: #FFFFFF; background-color: rgba(255, 255, 255, 0.05); } .ds-icon { width: 16px; height: 16px; margin-right: 10px; flex-shrink: 0; }"
+    },
+    {
+      "name": "CT Role Filter Pill",
+      "kind": "chip",
+      "refersTo": "filter-pill-ct",
+      "description": "Active filter pill for Counter-Terrorist tactical roles.",
+      "html": "<button class=\"ds-pill-ct\">Anchor</button>",
+      "css": ".ds-pill-ct { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; font-family: Inter, sans-serif; font-size: 11px; font-weight: 700; border-radius: 2px; border: 1px solid #1E3A5F; background-color: #0F1E2E; color: #2979FF; cursor: pointer; transition: opacity 0.15s; } .ds-pill-ct:hover { opacity: 0.9; }"
+    },
+    {
+      "name": "TR Role Filter Pill",
+      "kind": "chip",
+      "refersTo": "filter-pill-tr",
+      "description": "Active filter pill for Terrorist tactical roles.",
+      "html": "<button class=\"ds-pill-tr\">Lurk</button>",
+      "css": ".ds-pill-tr { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; font-family: Inter, sans-serif; font-size: 11px; font-weight: 700; border-radius: 2px; border: 1px solid #3D2411; background-color: #26160A; color: #FF8C00; cursor: pointer; transition: opacity 0.15s; } .ds-pill-tr:hover { opacity: 0.9; }"
+    },
+    {
+      "name": "KPI Metric Pod",
+      "kind": "card",
+      "refersTo": "kpi-card",
+      "description": "Compact 84px telemetry metric card with monospaced value.",
+      "html": "<div class=\"ds-kpi-card\"><div class=\"ds-kpi-label\">DAMAGE / ROUND</div><div class=\"ds-kpi-value\">84.2</div><div class=\"ds-kpi-benchmark\">RANK #3 IN TOURNAMENT</div></div>",
+      "css": ".ds-kpi-card { height: 84px; background-color: #0E1214; border: 1px solid #1B2226; border-radius: 2px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; } .ds-kpi-label { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7A82; line-height: 1; } .ds-kpi-value { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 24px; font-weight: 700; color: #FFFFFF; line-height: 1; font-variant-numeric: tabular-nums; } .ds-kpi-benchmark { font-family: Inter, sans-serif; font-size: 10px; font-weight: 600; color: #00FFA3; letter-spacing: 0.04em; }"
+    },
+    {
+      "name": "Tactical Search Input",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Recessed 28px search field with neon focus ring.",
+      "html": "<input class=\"ds-input-search\" type=\"text\" placeholder=\"Search player...\" />",
+      "css": ".ds-input-search { width: 190px; height: 28px; background-color: #0B0E0F; border: 1px solid #1F2629; border-radius: 2px; padding: 0 8px; font-family: Inter, sans-serif; font-size: 11px; color: #FFFFFF; outline: none; box-sizing: border-box; transition: border-color 0.15s; } .ds-input-search::placeholder { color: #6B7A82; } .ds-input-search:focus { border-color: #00FFA3; }"
+    },
+    {
+      "name": "Telemetry Section Title",
+      "kind": "custom",
+      "refersTo": "section-header",
+      "description": "Section header with neon green slash indicator.",
+      "html": "<div class=\"ds-section-title\"><span class=\"ds-slash font-mono\">/</span><h2 class=\"ds-heading\">ROLE PERFORMANCE</h2><div class=\"ds-divider\"></div></div>",
+      "css": ".ds-section-title { display: flex; align-items: center; gap: 6px; user-select: none; } .ds-slash { color: #00FFA3; font-size: 13px; font-weight: 700; font-family: ui-monospace, monospace; } .ds-heading { font-family: Inter, sans-serif; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #FFFFFF; margin: 0; white-space: nowrap; } .ds-divider { flex: 1; height: 1px; background-color: #232B30; margin-left: 8px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Tactical Telemetry Flight Deck",
+    "overview": "CS2 Analyzer is an ultra-dense, military-precision esports HUD engineered for pro coaching staff, analysts, and competitive players. The interface treats match data not as decorative graphics, but as tactical instrumentation—combining the austerity of a military radar suite with the reactive feedback of a professional broadcasting system.\n\nSurfaces are anchored in deep abyssal blacks and dark titanium slates. Visual hierarchy is established through ruthless tonal layering, hairline carbon dividers, and sparse, high-voltage neon accents that direct the analyst's eye to high-impact telemetry without visual noise.",
+    "keyCharacteristics": [
+      "High-Density Cockpit Ergonomics: Tightly locked vertical rhythms and strict horizontal bounding (1280px / 1360px max width).",
+      "Tabular Mono Precision: Numeric data, coordinates, ratings, and economy delta metrics always render in monospaced, tabular numbers.",
+      "Micro-Bevel Restraint: Universal 2px border radius across all cards, pills, buttons, and inputs; zero rounded pill fluff.",
+      "Surgical Neon Signaling: Neon green (#00FFA3) reserved strictly for active tactical states, live playback, and key performance outliers."
+    ],
+    "rules": [
+      {
+        "name": "The Rarity of Neon Rule",
+        "body": "#00FFA3 is never used for broad container backgrounds, large borders, or decorative illustrations. Its tactical impact relies entirely on its scarcity; when a green pixel appears, it signals an active state or an elite performance threshold.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Precision Rule",
+        "body": "Every numeric data point—including ratings, ADR, K/D, percentages, round scores, and coordinates—must declare tabular-nums or font-mono. Column values must never shift horizontally as numbers change during live playback or filtering.",
+        "section": "typography"
+      },
+      {
+        "name": "The Zero Ambient Shadow Rule",
+        "body": "Diffuse Gaussian blur shadows are prohibited across all cards, modals, and tables. Depth is conveyed strictly through value contrast and 1px structural borders.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do lock all numeric values with tabular-nums or font-mono.",
+      "Do maintain a strict 2px border radius (rounded-[2px]) for all UI surfaces.",
+      "Do use uppercase 10px-11px tracked headers with a neon slash prefix (<span className=\"text-[#00FFA3] font-bold mr-1.5 font-mono\">/</span>).",
+      "Do align team-specific data strictly with their faction colors (CT #2979FF, TR #FF8C00).",
+      "Do preserve 1280px / 1360px centered max-width bounds on high-resolution displays."
+    ],
+    "donts": [
+      "Don't use diffuse drop shadows, card glows, or floating elevation effects.",
+      "Don't use generic rounded pills (rounded-full) or soft playful radiuses (rounded-lg / rounded-xl).",
+      "Don't flood screens with neon green; keep #00FFA3 strictly bounded to active states and key vector points.",
+      "Don't allow tables or metric blocks to reflow dynamically based on number of digits.",
+      "Don't embed hardcoded player names or un-typed mock objects inside component JSX."
+    ]
+  }
+}
+

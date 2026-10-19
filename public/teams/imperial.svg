@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <polygon points="50,6 90,22 82,70 50,94 18,70 10,22" fill="#111618" stroke="#00FFA3" stroke-width="4"/>
+  <polygon points="50,14 82,27 75,66 50,86 25,66 18,27" fill="#161E22" stroke="#1B2226" stroke-width="2"/>
+  <text x="50" y="57" text-anchor="middle" fill="#FFFFFF" font-family="monospace" font-weight="bold" font-size="26">I</text>
+</svg>
