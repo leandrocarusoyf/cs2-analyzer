@@ -8,6 +8,8 @@ import {
   computeMatchPlayerMetrics,
   extractRawDemoWithParser,
   buildTaxonomyPath,
+  extractMapIdentifier,
+  generateDeterministicSeriesId,
 } from '../scripts/process-demo.mjs';
 import {
   syncMatchAssets,
@@ -37,18 +39,17 @@ describe('Pipeline de Ingestão de Demos (PostgreSQL Local + .bin.gz + Exclusão
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('constrói corretamente a taxonomia de pastas de replay', () => {
+  it('constrói corretamente a taxonomia de pastas de replay (YYYY/DD-MM-YYYY/TimeA_vs_TimeB)', () => {
     const tax = buildTaxonomyPath({
       demFilePath: '/demos/furia-vs-imperial.dem',
       playedAt: '2026-10-17T19:00:00.000Z',
       team1: 'FURIA',
       team2: 'Imperial',
-      format: 'BO1',
       baseDir: './data/replays',
     });
 
-    expect(tax.dir).toBe('data/replays/10-2026/17-10-2026/FURIA_vs_Imperial_BO1');
-    expect(tax.filePath).toBe('data/replays/10-2026/17-10-2026/FURIA_vs_Imperial_BO1/furia-vs-imperial.bin.gz');
+    expect(tax.dir).toBe('data/replays/2026/17-10-2026/FURIA_vs_Imperial');
+    expect(tax.filePath).toBe('data/replays/2026/17-10-2026/FURIA_vs_Imperial/furia-vs-imperial.bin.gz');
     expect(tax.fileName).toBe('furia-vs-imperial.bin.gz');
   });
 
@@ -204,12 +205,12 @@ describe('Pipeline de Ingestão de Demos (PostgreSQL Local + .bin.gz + Exclusão
     const ksceratoQuery = playerInserts.find((q) => q.values.includes('KSCERATO'));
     expect(ksceratoQuery).toBeTruthy();
 
-    // 2. Confirma gravação do arquivo .bin.gz respeitando a taxonomia
+    // 2. Confirma gravação do arquivo .bin.gz respeitando a taxonomia YYYY/DD-MM-YYYY/TimeA_vs_TimeB
     const expectedGzPath = path.join(
       replaysDir,
-      '10-2026',
+      '2026',
       '17-10-2026',
-      'FURIA_vs_Imperial_BO1',
+      'FURIA_vs_Imperial',
       'furia-vs-imperial.bin.gz',
     );
     expect(await exists(expectedGzPath)).toBe(true);
@@ -581,6 +582,175 @@ describe('Pipeline de Ingestão de Demos (PostgreSQL Local + .bin.gz + Exclusão
     expect(auditCalls[22]).toContain('Round 23: FURIA (CT) venceu | Placar: FURIA 13 x 10 Aurora');
 
     consoleSpy.mockRestore();
+  });
+
+  it('extrai identificadores de mapa (m1, m2, m3) com Regex e gera ID de Série Determinístico (Pai)', () => {
+    // 1. Extração via Regex
+    expect(extractMapIdentifier('furia-vs-aurora-m1-dust2.dem')).toBe('m1');
+    expect(extractMapIdentifier('furia-vs-aurora-m2-inferno.dem')).toBe('m2');
+    expect(extractMapIdentifier('navi_vs_faze_m3.dem')).toBe('m3');
+    expect(extractMapIdentifier('match-single.dem')).toBeNull();
+
+    // 2. ID Determinístico RFC 4122 v4
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const seriesId1 = generateDeterministicSeriesId({
+      playedAt: '2026-10-18T14:00:00Z',
+      team1: 'FURIA',
+      team2: 'Aurora',
+    });
+    const seriesId2 = generateDeterministicSeriesId({
+      playedAt: '2026-10-18T16:30:00Z',
+      team1: 'Aurora', // lados trocados no mapa 2
+      team2: 'FURIA',
+    });
+    const differentDaySeriesId = generateDeterministicSeriesId({
+      playedAt: '2026-10-19T14:00:00Z',
+      team1: 'FURIA',
+      team2: 'Aurora',
+    });
+
+    expect(seriesId1).toMatch(uuidRegex);
+    expect(seriesId2).toMatch(uuidRegex);
+    expect(seriesId1).toBe(seriesId2); // mesmo confronto no mesmo dia = mesmo ID Pai
+    expect(seriesId1).not.toBe(differentDaySeriesId);
+    expect(seriesId1).not.toBe('54e43847-2490-4751-9981-831bf7cf367c');
+  });
+
+  it('salva replays estritamente em YYYY/DD-MM-YYYY/TimeA_vs_TimeB e remove diretórios soltos de UUID', async () => {
+    const demPath = path.join(tmpDir, 'furia-vs-aurora-m1-dust2.dem');
+    const replaysDir = path.join(tmpDir, 'replays');
+
+    await writeFile(
+      demPath,
+      JSON.stringify({
+        demoHash: 'hash_series_m1',
+        map: 'de_dust2',
+        tickrate: 64,
+        playedAt: '2026-10-18T15:00:00.000Z',
+        teamCtName: 'FURIA',
+        teamTName: 'Aurora',
+        rounds: [{ roundNumber: 1, startTick: 100, endTick: 200, winnerSide: 'CT', winReason: 'ct_win' }],
+      }),
+    );
+
+    const res = await processDemoFile(demPath, {
+      skipDb: true,
+      replaysBaseDir: replaysDir,
+      storeFilePath: null,
+      assetOptions: { publicDir: path.join(tmpDir, 'public'), fetchImpl: vi.fn() },
+    });
+
+    // 1. O destino estrito é data/replays/YYYY/DD-MM-YYYY/TimeA_vs_TimeB/
+    const seriesDir = path.join(replaysDir, '2026', '18-10-2026', 'FURIA_vs_Aurora');
+    expect(await exists(path.join(seriesDir, 'furia-vs-aurora-m1-dust2.bin.gz'))).toBe(true);
+    expect(await exists(path.join(seriesDir, 'furia-vs-aurora-m1-dust2.json'))).toBe(true);
+    expect(await exists(path.join(seriesDir, 'm1.bin.gz'))).toBe(true);
+    expect(await exists(path.join(seriesDir, 'm1.json'))).toBe(true);
+    expect(await exists(path.join(seriesDir, 'replay.bin.gz'))).toBe(true);
+
+    // 2. Não cria pastas na raiz com UUID solto
+    const looseUuidDir = path.join(replaysDir, res.matchId);
+    expect(await exists(looseUuidDir)).toBe(false);
+  });
+
+  it('agrupa série MD3 no mesmo ID pai e executa query UPSERT com ON CONFLICT (id) DO UPDATE SET', async () => {
+    const dem1Path = path.join(tmpDir, 'furia-vs-aurora-m1-dust2.dem');
+    const dem2Path = path.join(tmpDir, 'furia-vs-aurora-m2-inferno.dem');
+
+    await writeFile(
+      dem1Path,
+      JSON.stringify({
+        demoHash: 'hash_m1_test',
+        map: 'de_dust2',
+        playedAt: '2026-10-18T14:00:00.000Z',
+        teamCtName: 'FURIA',
+        teamTName: 'Aurora',
+        rounds: [{ roundNumber: 1, startTick: 100, endTick: 200, winnerSide: 'CT', winReason: 'ct_win' }],
+      }),
+    );
+    await writeFile(
+      dem2Path,
+      JSON.stringify({
+        demoHash: 'hash_m2_test',
+        map: 'de_inferno',
+        playedAt: '2026-10-18T15:30:00.000Z',
+        teamCtName: 'FURIA',
+        teamTName: 'Aurora',
+        rounds: [{ roundNumber: 1, startTick: 100, endTick: 200, winnerSide: 'CT', winReason: 'ct_win' }],
+      }),
+    );
+
+    const executedQueries: Array<{ sql: string; values?: any[] }> = [];
+    const storedMaps: Array<{ id: string; match_id: string; map_name: string; rounds_t1: number; rounds_t2: number }> = [];
+
+    const mockDb = {
+      query: vi.fn(async (sql: string, values?: any[]) => {
+        executedQueries.push({ sql, values });
+
+        if (sql.includes('INSERT INTO matches')) {
+          return { rows: [{ id: values?.[9] || 'deterministic-series-uuid' }] };
+        }
+        if (sql.includes('SELECT id, map_name, rounds_t1, rounds_t2 FROM match_maps')) {
+          return { rows: [...storedMaps] };
+        }
+        if (sql.includes('SELECT id FROM match_maps WHERE match_id = $1 AND map_name = $2')) {
+          const found = storedMaps.find((m) => m.match_id === values?.[0] && m.map_name === values?.[1]);
+          return { rows: found ? [{ id: found.id }] : [] };
+        }
+        if (sql.includes('INSERT INTO match_maps')) {
+          const newMap = {
+            id: `map-${storedMaps.length + 1}`,
+            match_id: values?.[0],
+            map_name: values?.[1],
+            rounds_t1: values?.[2],
+            rounds_t2: values?.[3],
+          };
+          storedMaps.push(newMap);
+          return { rows: [{ id: newMap.id }] };
+        }
+        if (sql.includes('SELECT rounds_t1, rounds_t2 FROM match_maps')) {
+          return { rows: storedMaps.map((m) => ({ rounds_t1: m.rounds_t1, rounds_t2: m.rounds_t2 })) };
+        }
+        return { rows: [] };
+      }),
+    };
+
+    const res1 = await processDemoFile(dem1Path, {
+      dbClient: mockDb,
+      replaysBaseDir: path.join(tmpDir, 'replays'),
+      storeFilePath: null,
+      assetOptions: { publicDir: path.join(tmpDir, 'public'), fetchImpl: vi.fn() },
+    });
+
+    const res2 = await processDemoFile(dem2Path, {
+      dbClient: mockDb,
+      replaysBaseDir: path.join(tmpDir, 'replays'),
+      storeFilePath: null,
+      assetOptions: { publicDir: path.join(tmpDir, 'public'), fetchImpl: vi.fn() },
+    });
+
+    // 1. Ambos os mapas compartilham o mesmo ID pai de série
+    expect(res1.matchId).toBe(res2.matchId);
+    expect(res1.seriesId).toBe(res2.seriesId);
+
+    // 2. Ambos os mapas coexistem em match_maps (m1 não foi apagado por m2)
+    expect(storedMaps).toHaveLength(2);
+    expect(storedMaps[0].map_name).toBe('de_dust2');
+    expect(storedMaps[1].map_name).toBe('de_inferno');
+
+    // 3. Ao processar m2, a série é atualizada para formato MD3
+    const formatUpdates = executedQueries.filter(
+      (q) => q.sql.includes('UPDATE matches SET format = $1') && q.values?.includes('MD3'),
+    );
+    expect(formatUpdates.length).toBeGreaterThan(0);
+
+    // 4. Inserções em matches usam UPSERT (ON CONFLICT (id) DO UPDATE SET)
+    const matchInserts = executedQueries.filter((q) => q.sql.includes('INSERT INTO matches'));
+    expect(matchInserts).toHaveLength(2);
+    for (const insert of matchInserts) {
+      expect(insert.sql).toContain('ON CONFLICT (id) DO UPDATE SET');
+      expect(insert.sql).toContain('demo_hash = COALESCE(matches.demo_hash, EXCLUDED.demo_hash)');
+    }
   });
 });
 

@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS matches (
     winner VARCHAR(100),
     replay_path TEXT,
     demo_hash VARCHAR(64) UNIQUE,
+    event_name VARCHAR(100),
+    bans JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -21,7 +23,9 @@ CREATE TABLE IF NOT EXISTS match_maps (
     map_name VARCHAR(64) NOT NULL,
     rounds_t1 INTEGER NOT NULL DEFAULT 0,
     rounds_t2 INTEGER NOT NULL DEFAULT 0,
-    duration INTEGER DEFAULT 0
+    duration INTEGER DEFAULT 0,
+    pick_type VARCHAR(20) DEFAULT 'PICK',
+    pick_team VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS player_stats (

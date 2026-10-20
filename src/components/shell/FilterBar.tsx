@@ -30,6 +30,75 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
   );
   const filterState = parseFilterParams(currentParams);
 
+  const [registeredPlayers, setRegisteredPlayers] = React.useState<
+    Array<{ steamId: string; nickname: string; team: string }>
+  >([
+    { steamId: '76561198058500492', nickname: 'KSCERATO', team: 'FURIA' },
+    { steamId: '76561197960690195', nickname: 'FalleN', team: 'FURIA' },
+    { steamId: '76561198164970560', nickname: 'yuurih', team: 'FURIA' },
+    { steamId: '76561198134401925', nickname: 'YEKINDAR', team: 'FURIA' },
+    { steamId: '76561198200982290', nickname: 'molodoy', team: 'FURIA' },
+    { steamId: '76561198044118796', nickname: 'XANTARES', team: 'Aurora' },
+    { steamId: '76561198855375325', nickname: 'Jimpphat', team: 'Aurora' },
+    { steamId: '76561198812513923', nickname: 'Wicadia', team: 'Aurora' },
+    { steamId: '76561198083485506', nickname: 'woxic', team: 'Aurora' },
+    { steamId: '76561198057282432', nickname: 'kyxsan', team: 'Aurora' },
+  ]);
+
+  React.useEffect(() => {
+    fetch('/api/players')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.players && Array.isArray(data.players) && data.players.length > 0) {
+          setRegisteredPlayers(data.players);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const currentPlayerValue = React.useMemo(() => {
+    const currentSteamId = currentParams.get('steamId');
+    if (currentSteamId) {
+      const match = registeredPlayers.find((p) => p.steamId === currentSteamId);
+      if (match) return match.steamId;
+    }
+    const currentTarget = filterState.targetPlayerId?.toLowerCase();
+    if (currentTarget) {
+      const match = registeredPlayers.find(
+        (p) => p.nickname.toLowerCase() === currentTarget || p.steamId === currentTarget,
+      );
+      if (match) return match.steamId;
+    }
+    return registeredPlayers[0]?.steamId || '76561198058500492';
+  }, [currentParams, filterState.targetPlayerId, registeredPlayers]);
+
+  const handlePlayerChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedSteamId = event.target.value;
+    const playerObj = registeredPlayers.find(
+      (p) => p.steamId === selectedSteamId || p.nickname.toLowerCase() === selectedSteamId.toLowerCase(),
+    );
+    const nick = playerObj ? playerObj.nickname.toLowerCase() : selectedSteamId.toLowerCase();
+
+    const nextSearchParams = serializeFilterParams({
+      ...filterState,
+      targetPlayerId: nick,
+    });
+    nextSearchParams.set('steamId', playerObj ? playerObj.steamId : selectedSteamId);
+    nextSearchParams.set('player', nick);
+
+    const activeTab = currentParams.get('tab');
+    if (activeTab) {
+      nextSearchParams.set('tab', activeTab);
+    }
+
+    const queryString = nextSearchParams.toString();
+    const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
+    router.push(nextUrl);
+    if (onFilterChange) {
+      onFilterChange({ ...filterState, targetPlayerId: nick }, nextUrl);
+    }
+  };
+
   const applyFilterUpdate = (patch: Partial<GlobalFilterState>) => {
     const nextState: GlobalFilterState = {
       ...filterState,
@@ -42,6 +111,10 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
     const activeTab = currentParams.get('tab');
     if (activeTab) {
       nextSearchParams.set('tab', activeTab);
+    }
+    const currentSteamId = currentParams.get('steamId');
+    if (currentSteamId) {
+      nextSearchParams.set('steamId', currentSteamId);
     }
 
     const queryString = nextSearchParams.toString();
@@ -84,14 +157,28 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
     >
       {/* Controles da Esquerda em Linha Contínua Ultra Compacta (h-7 / 28px) */}
       <div className="flex flex-wrap items-center gap-2.5">
-        {/* Seletor de Perfil / Jogador */}
-        <div className="h-7 bg-canvas border border-border-subtle text-xs text-white px-2 rounded-[2px] flex items-center gap-1.5 font-mono">
-          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-          <span className="text-text-secondary text-[10px] font-bold">PLAYER:</span>
-          <span className="font-semibold text-text-primary">
-            {filterState.targetPlayerId ? filterState.targetPlayerId : 'kscerato'}
-          </span>
-        </div>
+        {/* Seletor Interativo de Perfil / Jogador (Dropdown) alimentado do banco */}
+        <label
+          htmlFor="filter-player-select"
+          className="h-7 bg-canvas border border-border-subtle text-xs text-white px-2 rounded-[2px] flex items-center gap-1.5 font-mono cursor-pointer hover:border-[#6B7A82] transition-colors"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shrink-0" />
+          <span className="text-text-secondary text-[10px] font-bold shrink-0">PLAYER:</span>
+          <select
+            id="filter-player-select"
+            aria-label="Selecionar Jogador"
+            data-testid="filter-player-select"
+            value={currentPlayerValue}
+            onChange={handlePlayerChange}
+            className="bg-transparent text-text-primary text-xs font-semibold focus:outline-none cursor-pointer pr-1"
+          >
+            {registeredPlayers.map((player) => (
+              <option key={player.steamId} value={player.steamId} className="bg-[#111618] text-white">
+                {player.nickname} ({player.team})
+              </option>
+            ))}
+          </select>
+        </label>
 
         {/* Indicador de Mapa: Tag "ON" em text-text-secondary + Dropdown */}
         <label className="flex items-center gap-1.5 text-xs text-text-secondary h-7">
@@ -192,7 +279,7 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
 
       {/* Controles da Direita: Chip de Jogador Ativo + Botões Secundários Compactos com Ícones */}
       <div className="flex items-center gap-2">
-        {filterState.targetPlayerId && (
+        {!pathname.startsWith('/matches') && filterState.targetPlayerId && (
           <span
             data-testid="active-player-chip"
             className="h-7 px-2 flex items-center text-[10px] font-mono font-bold text-accent bg-accent/10 border border-accent/30 rounded-[2px]"

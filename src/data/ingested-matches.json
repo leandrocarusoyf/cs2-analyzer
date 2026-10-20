@@ -1,8 +1,565 @@
 [
   {
-    "matchId": "54e43847-2490-4751-9981-831bf7cf367c",
+    "matchId": "99587581-afaa-434f-8d27-379000307790",
+    "demoHash": "ce8afa8b01a1ad20",
+    "savedAt": "2026-10-20T05:59:27.390Z",
+    "matchRecord": {
+      "demo_hash": "ce8afa8b01a1ad20",
+      "map_name": "de_dust2",
+      "played_at": "2026-10-18T03:28:53.895Z",
+      "team_ct_name": "FURIA",
+      "team_t_name": "Aurora",
+      "score_ct": 13,
+      "score_t": 8,
+      "rounds_count": 21,
+      "replay_storage_path": "data/replays/2026/18-10-2026/FURIA_vs_Aurora/upload_1792475934541_furia-vs-aurora-m1-dust2.bin.gz",
+      "global_avg_ttd_ms": null,
+      "global_avg_ttk_ms": 298,
+      "global_avg_fsp_pct": 100,
+      "is_public": false,
+      "uploader_id": null
+    },
+    "playerStats": [
+      {
+        "steamId": "76561198164970560",
+        "name": "yuurih",
+        "playerSlug": "yuurih",
+        "initialTeam": "CT",
+        "teamName": "FURIA",
+        "kills": 10,
+        "deaths": 11,
+        "assists": 8,
+        "roundsPlayed": 21,
+        "ttd": null,
+        "ttk": 358,
+        "fsp": 100,
+        "duelsWon": 10,
+        "duelsTotal": 21,
+        "metrics": {
+          "hltv": {
+            "overall": 1.01,
+            "ct": 1.48,
+            "t": 0.36
+          },
+          "adr": {
+            "overall": 67.6,
+            "ct": 94.8,
+            "t": 31.3
+          },
+          "kd": {
+            "overall": 0.91,
+            "ct": 1.8,
+            "t": 0.17
+          },
+          "kpr": {
+            "overall": 0.48,
+            "ct": 0.75,
+            "t": 0.11
+          },
+          "udr": {
+            "overall": 0.8,
+            "ct": 0.3,
+            "t": 1.6
+          },
+          "kast": {
+            "overall": 76.2,
+            "ct": 91.7,
+            "t": 55.6
+          }
+        },
+        "metricsJson": "{\"hltv\":{\"overall\":1.01,\"ct\":1.48,\"t\":0.36},\"adr\":{\"overall\":67.6,\"ct\":94.8,\"t\":31.3},\"kd\":{\"overall\":0.91,\"ct\":1.8,\"t\":0.17},\"kpr\":{\"overall\":0.48,\"ct\":0.75,\"t\":0.11},\"udr\":{\"overall\":0.8,\"ct\":0.3,\"t\":1.6},\"kast\":{\"overall\":76.2,\"ct\":91.7,\"t\":55.6}}"
+      },
+      {
+        "steamId": "76561198058500492",
+        "name": "KSCERATO",
+        "playerSlug": "kscerato",
+        "initialTeam": "CT",
+        "teamName": "FURIA",
+        "kills": 22,
+        "deaths": 9,
+        "assists": 2,
+        "roundsPlayed": 21,
+        "ttd": null,
+        "ttk": 455,
+        "fsp": 100,
+        "duelsWon": 22,
+        "duelsTotal": 31,
+        "metrics": {
+          "hltv": {
+            "overall": 1.76,
+            "ct": 1.91,
+            "t": 1.55
+          },
+          "adr": {
+            "overall": 141,
+            "ct": 133.6,
+            "t": 151
+          },
+          "kd": {
+            "overall": 2.44,
+            "ct": 4,
+            "t": 1.67
+          },
+          "kpr": {
+            "overall": 1.05,
+            "ct": 1,
+            "t": 1.11
+          },
+          "udr": {
+            "overall": 11.1,
+            "ct": 19.5,
+            "t": 0
+          },
+          "kast": {
+            "overall": 76.2,
+            "ct": 91.7,
+            "t": 55.6
+          }
+        },
+        "metricsJson": "{\"hltv\":{\"overall\":1.76,\"ct\":1.91,\"t\":1.55},\"adr\":{\"overall\":141,\"ct\":133.6,\"t\":151},\"kd\":{\"overall\":2.44,\"ct\":4,\"t\":1.67},\"kpr\":{\"overall\":1.05,\"ct\":1,\"t\":1.11},\"udr\":{\"overall\":11.1,\"ct\":19.5,\"t\":0},\"kast\":{\"overall\":76.2,\"ct\":91.7,\"t\":55.6}}"
+      },
+      {
+        "steamId": "76561198057282432",
+        "name": "kyxsan",
+        "playerSlug": "kyxsan",
+        "initialTeam": "T",
+        "teamName": "Aurora",
+        "kills": 11,
+        "deaths": 14,
+        "assists": 2,
+        "roundsPlayed": 21,
+        "ttd": null,
+        "ttk": 399,
+        "fsp": 100,
+        "duelsWon": 11,
+        "duelsTotal": 25,
+        "metrics": {
+          "hltv": {
+            "overall": 0.73,
+            "ct": 1.27,
+            "t": 0.34
+          },
+          "adr": {
+            "overall": 57.9,
+            "ct": 84.4,
+            "t": 37.9
+          },
+          "kd": {
+            "overall": 0.79,
+            "ct": 1.75,
+            "t": 0.4
+          },
+          "kpr": {
+            "overall": 0.52,
+            "ct": 0.78,
+            "t": 0.33
+          },
+          "udr": {
+            "overall": 5.8,
+            "ct": 13.3,
+            "t": 0.1
+          },
+          "kast": {
+            "overall": 52.4,
+            "ct": 66.7,
+            "t": 41.7
+          }
+        },
+        "metricsJson": "{\"hltv\":{\"overall\":0.73,\"ct\":1.27,\"t\":0.34},\"adr\":{\"overall\":57.9,\"ct\":84.4,\"t\":37.9},\"kd\":{\"overall\":0.79,\"ct\":1.75,\"t\":0.4},\"kpr\":{\"overall\":0.52,\"ct\":0.78,\"t\":0.33},\"udr\":{\"overall\":5.8,\"ct\":13.3,\"t\":0.1},\"kast\":{\"overall\":52.4,\"ct\":66.7,\"t\":41.7}}"
+      },
+      {
+        "steamId": "76561198855375325",
+        "name": "Jimpphat",
+        "playerSlug": "jimpphat",
+        "initialTeam": "T",
+        "teamName": "Aurora",
+        "kills": 9,
+        "deaths": 16,
+        "assists": 3,
+        "roundsPlayed": 21,
+        "ttd": null,
+        "ttk": 311,
+        "fsp": 100,
+        "duelsWon": 9,
+        "duelsTotal": 25,
+        "metrics": {
+          "hltv": {
+            "overall": 0.6,
+            "ct": 1.51,
+            "t": 0.1
+          },
+          "adr": {
+            "overall": 64.7,
+            "ct": 122,
+            "t": 21.7
+          },
+          "kd": {
+            "overall": 0.56,
+            "ct": 1.4,
+            "t": 0.18
+          },
+          "kpr": {
+            "overall": 0.43,
+            "ct": 0.78,
+            "t": 0.17
+          },
+          "udr": {
+            "overall": 0,
+            "ct": 0.1,
+            "t": 0
+          },
+          "kast": {
+            "overall": 47.6,
+            "ct": 88.9,
+            "t": 16.7
+          }
+        },
+        "metricsJson": "{\"hltv\":{\"overall\":0.6,\"ct\":1.51,\"t\":0.1},\"adr\":{\"overall\":64.7,\"ct\":122,\"t\":21.7},\"kd\":{\"overall\":0.56,\"ct\":1.4,\"t\":0.18},\"kpr\":{\"overall\":0.43,\"ct\":0.78,\"t\":0.17},\"udr\":{\"overall\":0,\"ct\":0.1,\"t\":0},\"kast\":{\"overall\":47.6,\"ct\":88.9,\"t\":16.7}}"
+      },
+      {
+        "steamId": "76561198200982290",
+        "name": "molodoy",
+        "playerSlug": "molodoy",
+        "initialTeam": "CT",
+        "teamName": "FURIA",
+        "kills": 13,
+        "deaths": 11,
+        "assists": 3,
+        "roundsPlayed": 21,
+        "ttd": null,
+        "ttk": 234,
+        "fsp": 100,
+        "duelsWon": 13,
+        "duelsTotal": 24,
+        "metrics": {
+          "hltv": {
+            "overall": 1.15,
+            "ct": 1.2,
+            "t": 1.07
+          },
+          "adr": {
+            "overall": 102.5,
+            "ct": 112.8,
+            "t": 88.8
+          },
+          "kd": {
+            "overall": 1.18,
+            "ct": 1.4,
+            "t": 1
+          },
+          "kpr": {
+            "overall": 0.62,
+            "ct": 0.58,
+            "t": 0.67
+          },
+          "udr": {
+            "overall": 9.2,
+            "ct": 8.8,
+            "t": 9.8
+          },
+          "kast": {
+            "overall": 66.7,
+            "ct": 66.7,
+            "t": 66.7
+          }
+        },
+        "metricsJson": "{\"hltv\":{\"overall\":1.15,\"ct\":1.2,\"t\":1.07},\"adr\":{\"overall\":102.5,\"ct\":112.8,\"t\":88.8},\"kd\":{\"overall\":1.18,\"ct\":1.4,\"t\":1},\"kpr\":{\"overall\":0.62,\"ct\":0.58,\"t\":0.67},\"udr\":{\"overall\":9.2,\"ct\":8.8,\"t\":9.8},\"kast\":{\"overall\":66.7,\"ct\":66.7,\"t\":66.7}}"
+      },
+      {
+        "steamId": "76561198044118796",
+        "name": "XANTARES",
+        "playerSlug": "xantares",
+        "initialTeam": "T",
+        "teamName": "Aurora",
+        "kills": 6,
+        "deaths": 17,
+        "assists": 6,
+        "roundsPlayed": 21,
+        "ttd": null,
+        "ttk": 461,
+        "fsp": 100,
+        "duelsWon": 6,
+        "duelsTotal": 23,
+        "metrics": {
+          "hltv": {
+            "overall": 0.49,
+            "ct": 0.85,
+            "t": 0.21
+          },
+          "adr": {
+            "overall": 61.4,
+            "ct": 76.3,
+            "t": 50.3
+          },
+          "kd": {
+            "overall": 0.35,
+            "ct": 0.67,
+            "t": 0.18
+          },
+          "kpr": {
+            "overall": 0.29,
+            "ct": 0.44,
+            "t": 0.17
+          },
+          "udr": {
+            "overall": 8,
+            "ct": 16.4,
+            "t": 1.6
+          },
+          "kast": {
+            "overall": 52.4,
+            "ct": 66.7,
+            "t": 41.7
+          }
+        },
+        "metricsJson": "{\"hltv\":{\"overall\":0.49,\"ct\":0.85,\"t\":0.21},\"adr\":{\"overall\":61.4,\"ct\":76.3,\"t\":50.3},\"kd\":{\"overall\":0.35,\"ct\":0.67,\"t\":0.18},\"kpr\":{\"overall\":0.29,\"ct\":0.44,\"t\":0.17},\"udr\":{\"overall\":8,\"ct\":16.4,\"t\":1.6},\"kast\":{\"overall\":52.4,\"ct\":66.7,\"t\":41.7}}"
+      },
+      {
+        "steamId": "76561197960690195",
+        "name": "FalleN",
+        "playerSlug": "fallen",
+        "initialTeam": "CT",
+        "teamName": "FURIA",
+        "kills": 12,
+        "deaths": 14,
+        "assists": 2,
+        "roundsPlayed": 21,
+        "ttd": null,
+        "ttk": 165,
+        "fsp": 100,
+        "duelsWon": 12,
+        "duelsTotal": 26,
+        "metrics": {
+          "hltv": {
+            "overall": 0.9,
+            "ct": 1.45,
+            "t": 0.17
+          },
+          "adr": {
+            "overall": 75.6,
+            "ct": 96.3,
+            "t": 47.9
+          },
+          "kd": {
+            "overall": 0.86,
+            "ct": 1.67,
+            "t": 0.25
+          },
+          "kpr": {
+            "overall": 0.57,
+            "ct": 0.83,
+            "t": 0.22
+          },
+          "udr": {
+            "overall": 0.1,
+            "ct": 0.1,
+            "t": 0.1
+          },
+          "kast": {
+            "overall": 61.9,
+            "ct": 83.3,
+            "t": 33.3
+          }
+        },
+        "metricsJson": "{\"hltv\":{\"overall\":0.9,\"ct\":1.45,\"t\":0.17},\"adr\":{\"overall\":75.6,\"ct\":96.3,\"t\":47.9},\"kd\":{\"overall\":0.86,\"ct\":1.67,\"t\":0.25},\"kpr\":{\"overall\":0.57,\"ct\":0.83,\"t\":0.22},\"udr\":{\"overall\":0.1,\"ct\":0.1,\"t\":0.1},\"kast\":{\"overall\":61.9,\"ct\":83.3,\"t\":33.3}}"
+      },
+      {
+        "steamId": "76561198134401925",
+        "name": "YEKINDAR",
+        "playerSlug": "yekindar",
+        "initialTeam": "CT",
+        "teamName": "FURIA",
+        "kills": 20,
+        "deaths": 9,
+        "assists": 5,
+        "roundsPlayed": 21,
+        "ttd": null,
+        "ttk": 217,
+        "fsp": 100,
+        "duelsWon": 20,
+        "duelsTotal": 29,
+        "metrics": {
+          "hltv": {
+            "overall": 1.72,
+            "ct": 2.01,
+            "t": 1.32
+          },
+          "adr": {
+            "overall": 129,
+            "ct": 143.1,
+            "t": 110.3
+          },
+          "kd": {
+            "overall": 2.22,
+            "ct": 4.33,
+            "t": 1.17
+          },
+          "kpr": {
+            "overall": 0.95,
+            "ct": 1.08,
+            "t": 0.78
+          },
+          "udr": {
+            "overall": 1,
+            "ct": 1.8,
+            "t": 0
+          },
+          "kast": {
+            "overall": 85.7,
+            "ct": 91.7,
+            "t": 77.8
+          }
+        },
+        "metricsJson": "{\"hltv\":{\"overall\":1.72,\"ct\":2.01,\"t\":1.32},\"adr\":{\"overall\":129,\"ct\":143.1,\"t\":110.3},\"kd\":{\"overall\":2.22,\"ct\":4.33,\"t\":1.17},\"kpr\":{\"overall\":0.95,\"ct\":1.08,\"t\":0.78},\"udr\":{\"overall\":1,\"ct\":1.8,\"t\":0},\"kast\":{\"overall\":85.7,\"ct\":91.7,\"t\":77.8}}"
+      },
+      {
+        "steamId": "76561198812513923",
+        "name": "Wicadia",
+        "playerSlug": "wicadia",
+        "initialTeam": "T",
+        "teamName": "Aurora",
+        "kills": 16,
+        "deaths": 17,
+        "assists": 3,
+        "roundsPlayed": 21,
+        "ttd": null,
+        "ttk": 302,
+        "fsp": 100,
+        "duelsWon": 16,
+        "duelsTotal": 33,
+        "metrics": {
+          "hltv": {
+            "overall": 1.09,
+            "ct": 1.3,
+            "t": 0.94
+          },
+          "adr": {
+            "overall": 105.1,
+            "ct": 122,
+            "t": 92.4
+          },
+          "kd": {
+            "overall": 0.94,
+            "ct": 1,
+            "t": 0.9
+          },
+          "kpr": {
+            "overall": 0.76,
+            "ct": 0.78,
+            "t": 0.75
+          },
+          "udr": {
+            "overall": 2.1,
+            "ct": 0,
+            "t": 3.8
+          },
+          "kast": {
+            "overall": 61.9,
+            "ct": 77.8,
+            "t": 50
+          }
+        },
+        "metricsJson": "{\"hltv\":{\"overall\":1.09,\"ct\":1.3,\"t\":0.94},\"adr\":{\"overall\":105.1,\"ct\":122,\"t\":92.4},\"kd\":{\"overall\":0.94,\"ct\":1,\"t\":0.9},\"kpr\":{\"overall\":0.76,\"ct\":0.78,\"t\":0.75},\"udr\":{\"overall\":2.1,\"ct\":0,\"t\":3.8},\"kast\":{\"overall\":61.9,\"ct\":77.8,\"t\":50}}"
+      },
+      {
+        "steamId": "76561198083485506",
+        "name": "woxic",
+        "playerSlug": "woxic",
+        "initialTeam": "T",
+        "teamName": "Aurora",
+        "kills": 12,
+        "deaths": 13,
+        "assists": 2,
+        "roundsPlayed": 21,
+        "ttd": null,
+        "ttk": 108,
+        "fsp": 100,
+        "duelsWon": 12,
+        "duelsTotal": 25,
+        "metrics": {
+          "hltv": {
+            "overall": 1.05,
+            "ct": 1.53,
+            "t": 0.7
+          },
+          "adr": {
+            "overall": 135.9,
+            "ct": 142,
+            "t": 131.3
+          },
+          "kd": {
+            "overall": 0.92,
+            "ct": 1.75,
+            "t": 0.56
+          },
+          "kpr": {
+            "overall": 0.57,
+            "ct": 0.78,
+            "t": 0.42
+          },
+          "udr": {
+            "overall": 0.7,
+            "ct": 1.7,
+            "t": 0
+          },
+          "kast": {
+            "overall": 52.4,
+            "ct": 77.8,
+            "t": 33.3
+          }
+        },
+        "metricsJson": "{\"hltv\":{\"overall\":1.05,\"ct\":1.53,\"t\":0.7},\"adr\":{\"overall\":135.9,\"ct\":142,\"t\":131.3},\"kd\":{\"overall\":0.92,\"ct\":1.75,\"t\":0.56},\"kpr\":{\"overall\":0.57,\"ct\":0.78,\"t\":0.42},\"udr\":{\"overall\":0.7,\"ct\":1.7,\"t\":0},\"kast\":{\"overall\":52.4,\"ct\":77.8,\"t\":33.3}}"
+      }
+    ],
+    "recentTelemetryEntry": {
+      "matchId": "99587581-afaa-434f-8d27-379000307790",
+      "mapName": "DUST2",
+      "opponentTeam": "Aurora",
+      "opponentSlug": "aurora",
+      "opponentLogoUrl": "/teams/aurora.svg",
+      "date": "18/10",
+      "teamScore": 13,
+      "opponentScore": 8,
+      "score": "13 - 8",
+      "result": "W",
+      "metrics": {
+        "hltv": {
+          "overall": 1.76,
+          "ct": 1.91,
+          "t": 1.55
+        },
+        "adr": {
+          "overall": 141,
+          "ct": 133.6,
+          "t": 151
+        },
+        "kd": {
+          "overall": 2.44,
+          "ct": 4,
+          "t": 1.67
+        },
+        "kpr": {
+          "overall": 1.05,
+          "ct": 1,
+          "t": 1.11
+        },
+        "udr": {
+          "overall": 11.1,
+          "ct": 19.5,
+          "t": 0
+        },
+        "kast": {
+          "overall": 76.2,
+          "ct": 91.7,
+          "t": 55.6
+        }
+      }
+    }
+  },
+  {
+    "matchId": "99587581-afaa-434f-8d27-379000307790",
     "demoHash": "916fac287383f0fb",
-    "savedAt": "2026-10-19T04:27:16.600Z",
+    "savedAt": "2026-10-20T06:00:16.991Z",
     "matchRecord": {
       "demo_hash": "916fac287383f0fb",
       "map_name": "de_inferno",
@@ -12,7 +569,7 @@
       "score_ct": 13,
       "score_t": 10,
       "rounds_count": 23,
-      "replay_storage_path": "data/replays/10-2026/18-10-2026/FURIA_vs_Aurora_BO1/furia-vs-aurora-m2-inferno.bin.gz",
+      "replay_storage_path": "data/replays/2026/18-10-2026/FURIA_vs_Aurora/upload_1792475968295_furia-vs-aurora-m2-inferno.bin.gz",
       "global_avg_ttd_ms": null,
       "global_avg_ttk_ms": 237,
       "global_avg_fsp_pct": 99.31,
@@ -512,7 +1069,7 @@
       }
     ],
     "recentTelemetryEntry": {
-      "matchId": "54e43847-2490-4751-9981-831bf7cf367c",
+      "matchId": "99587581-afaa-434f-8d27-379000307790",
       "mapName": "INFERNO",
       "opponentTeam": "Aurora",
       "opponentSlug": "aurora",

@@ -12,12 +12,13 @@ export default async function PlayerPage(props: {
 
   try {
     const resolvedParams = props.searchParams ? await props.searchParams : {};
-    const steamId =
-      typeof resolvedParams?.steamId === 'string'
-        ? resolvedParams.steamId
-        : '76561198058500492';
+    const selectedPlayerId =
+      (typeof resolvedParams?.steamId === 'string' && resolvedParams.steamId) ||
+      (typeof resolvedParams?.player === 'string' && resolvedParams.player) ||
+      (typeof resolvedParams?.targetPlayerId === 'string' && resolvedParams.targetPlayerId) ||
+      '76561198058500492';
 
-    performanceData = await getPlayerPerformance(steamId);
+    performanceData = await getPlayerPerformance(selectedPlayerId);
   } catch (error: unknown) {
     if ((error as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
       throw error;
@@ -25,9 +26,11 @@ export default async function PlayerPage(props: {
     console.error('[STATS_PLAYER_PAGE_ERROR]:', error);
   }
 
+  const selectedKey = performanceData?.steamId || performanceData?.nickname || 'default';
+
   return (
     <React.Suspense fallback={<div className="p-6 text-slate-400">Carregando estatísticas...</div>}>
-      <PlayerStatsClient initialPerformance={performanceData} />
+      <PlayerStatsClient key={selectedKey} initialPerformance={performanceData} />
     </React.Suspense>
   );
 }

@@ -556,17 +556,7 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
                   activeNukeLayer={activeNukeLayer}
                 />
 
-                {/* HUD Tático V2 (Cards, Buy Badges, Defuse Timer) */}
-                <div className="absolute inset-x-0 bottom-0 pointer-events-auto z-20 max-h-[30%] overflow-y-auto">
-                  <ReplayHUD
-                    players={interpolatedPlayers}
-                    currentTick={playback.currentTick}
-                    tickRate={tickrate}
-                    ctRoundType={(activeRound as any)?.ctRoundType}
-                    tRoundType={(activeRound as any)?.tRoundType}
-                    bombEvents={(activeRound as any)?.bombEvents || []}
-                  />
-                </div>
+
 
                 {/* Camada Z-30: Telestrator */}
                 <TelestratorLayer isPlaying={playback.isPlaying} />

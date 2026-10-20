@@ -41,6 +41,43 @@ export function PlayerStatsClient({ initialPerformance }: PlayerStatsClientProps
     [searchParams],
   );
 
+  const selectedPlayerId =
+    searchParams?.get('steamId') ||
+    searchParams?.get('player') ||
+    searchParams?.get('targetPlayerId') ||
+    initialPerformance?.steamId ||
+    initialPerformance?.nickname ||
+    '76561198058500492';
+
+  const [performance, setPerformance] = React.useState<PlayerPerformanceResult | null>(
+    initialPerformance ?? null,
+  );
+
+  React.useEffect(() => {
+    if (
+      initialPerformance &&
+      (initialPerformance.steamId === selectedPlayerId ||
+        initialPerformance.nickname.toLowerCase() === selectedPlayerId.toLowerCase())
+    ) {
+      setPerformance(initialPerformance);
+      return;
+    }
+
+    let isMounted = true;
+    fetch(`/api/stats/player/${encodeURIComponent(selectedPlayerId)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted && data) {
+          setPerformance(data);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedPlayerId, initialPerformance]);
+
   const rawTab = currentParams.get('tab');
   const activeTab: PlayerStatsTabId =
     rawTab && VALID_TAB_IDS.has(rawTab as PlayerStatsTabId)
@@ -61,35 +98,36 @@ export function PlayerStatsClient({ initialPerformance }: PlayerStatsClientProps
   };
 
   const mappedOverview = useMemo(() => {
-    if (!initialPerformance) return undefined;
-    const wins = initialPerformance.history.filter((h) => h.result === 'W').length;
-    const total = Math.max(1, initialPerformance.history.length);
+    if (!performance) return undefined;
+    const wins = performance.history.filter((h) => h.result === 'W').length;
+    const total = Math.max(1, performance.history.length);
     return {
-      steamId: initialPerformance.steamId,
-      name: initialPerformance.nickname,
-      avatarUrl: `/players/${initialPerformance.nickname.toLowerCase()}.png`,
-      teamName: initialPerformance.team,
-      matchesCount: initialPerformance.matchesCount,
+      steamId: performance.steamId,
+      name: performance.nickname,
+      avatarUrl: `/players/${performance.nickname.toLowerCase()}.png`,
+      teamName: performance.team,
+      matchesCount: performance.matchesCount,
       roundWinRatePct: Number(((wins / total) * 100).toFixed(1)),
-      currentRating: initialPerformance.currentRating,
-      adr: initialPerformance.adr,
-      kd: initialPerformance.kd,
-      kpr: initialPerformance.kpr,
-      dpr: initialPerformance.dpr,
-      kastPct: initialPerformance.kastPct,
-      ttd: initialPerformance.ttd,
-      ttk: initialPerformance.ttk,
-      fsp: initialPerformance.fsp,
-      recentRatingHistory: initialPerformance.history.map((h) => ({
+      currentRating: performance.currentRating,
+      adr: performance.adr,
+      kd: performance.kd,
+      kpr: performance.kpr,
+      dpr: performance.dpr,
+      kastPct: performance.kastPct,
+      ttd: performance.ttd,
+      ttk: performance.ttk,
+      fsp: performance.fsp,
+      recentRatingHistory: performance.history.map((h) => ({
         matchId: h.matchId,
         date: h.date,
         rating: h.rating,
       })),
     };
-  }, [initialPerformance]);
+  }, [performance]);
 
   return (
     <section
+      key={selectedPlayerId}
       aria-labelledby="player-stats-heading"
       className="max-w-[1280px] w-full mx-auto px-4 pt-4 pb-5 select-none"
     >
@@ -142,10 +180,15 @@ export function PlayerStatsClient({ initialPerformance }: PlayerStatsClientProps
         {activeTab === 'intro' && (
           <TabIntro
             overview={mappedOverview}
-            telemetryData={initialPerformance?.telemetry}
+            telemetryData={performance?.telemetry}
           />
         )}
-        {activeTab === 'roles' && <TabRoles />}
+        {activeTab === 'roles' && (
+          <TabRoles
+            playerName={performance?.nickname || selectedPlayerId}
+            matchesCount={performance?.matchesCount ?? 1}
+          />
+        )}
         {activeTab === 'weapons' && <TabWeapons />}
         {activeTab === 'buy_types' && <TabBuyTypes />}
         {activeTab === 'maps' && <TabMaps />}

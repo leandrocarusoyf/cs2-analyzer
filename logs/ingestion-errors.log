@@ -10,3 +10,19 @@ Stack: Error: ENOENT: no such file or directory, access 'D:\Users\leand\cs2-anal
     at async access (node:internal/fs/promises:1312:10)
     at async processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:785:5)
 
+[2026-10-20T04:54:58.911Z] Demo: D:\Users\leand\cs2-analyzer\data\replays\upload_1792472043653_furia-vs-aurora-m1-dust2.dem
+Erro: duplicate key value violates unique constraint "matches_pkey"
+Stack: error: duplicate key value violates unique constraint "matches_pkey"
+    at D:\Users\leand\cs2-analyzer\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async persistToPostgres (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:1919:20)
+    at async processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:2083:17)
+
+[2026-10-20T04:57:04.395Z] Demo: D:\Users\leand\cs2-analyzer\data\replays\upload_1792472191086_furia-vs-aurora-m1-dust2.dem
+Erro: duplicate key value violates unique constraint "matches_pkey"
+Stack: error: duplicate key value violates unique constraint "matches_pkey"
+    at D:\Users\leand\cs2-analyzer\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async persistToPostgres (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:1919:20)
+    at async processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:2083:17)
+

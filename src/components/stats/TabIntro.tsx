@@ -8,6 +8,7 @@ import { liquipedia } from '../../lib/liquipedia.ts';
 import { getSavedRecentTelemetry } from '../../data/recent-performance-mock.ts';
 import { RecentPerformanceChart } from './RecentPerformanceChart.tsx';
 import { PlayerAvatar } from './PlayerAvatar.tsx';
+import { RoleDetailsModal } from './RoleDetailsModal.tsx';
 
 export const DEFAULT_OVERVIEW_STATS: PlayerOverviewStats = {
   steamId: '76561198058500492',
@@ -170,6 +171,7 @@ function RoleEqualizer({ compValue, benchmarkIndex }: RoleEqualizerProps) {
 export function TabIntro({ overview = DEFAULT_OVERVIEW_STATS, telemetryData }: TabIntroProps) {
   const [resolvedAvatarUrl, setResolvedAvatarUrl] = useState<string | null>(overview.avatarUrl ?? null);
   const [dbTelemetry, setDbTelemetry] = useState<RecentMatchTelemetry[] | null>(null);
+  const [activeModalRole, setActiveModalRole] = useState<{ name: string; map: string } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -206,6 +208,7 @@ export function TabIntro({ overview = DEFAULT_OVERVIEW_STATS, telemetryData }: T
 
   useEffect(() => {
     let isMounted = true;
+    setResolvedAvatarUrl(overview?.avatarUrl || null);
     if (overview.name) {
       liquipedia.getPlayerProfile(overview.name, overview.teamName).then((profile) => {
         if (isMounted && profile.avatarUrl) {
@@ -216,7 +219,7 @@ export function TabIntro({ overview = DEFAULT_OVERVIEW_STATS, telemetryData }: T
     return () => {
       isMounted = false;
     };
-  }, [overview.name, overview.teamName]);
+  }, [overview.name, overview.teamName, overview.avatarUrl]);
 
   const BENCHMARKS = {
     adr: '74.0',
@@ -398,7 +401,11 @@ export function TabIntro({ overview = DEFAULT_OVERVIEW_STATS, telemetryData }: T
           <div className="h-[142px] border-t border-border-card p-3.5">
             <div className="grid grid-cols-2 gap-4 h-full items-center">
               {/* Role #1 */}
-              <div className="flex flex-col justify-between h-full">
+              <div
+                onClick={() => setActiveModalRole({ name: 'Inferno A Rotation', map: 'de_inferno' })}
+                title="Clique para ver o ranking e comparar jogadores na função Inferno A Rotation"
+                className="flex flex-col justify-between h-full cursor-pointer group hover:bg-[#151C20]/60 p-2 rounded-[2px] transition-colors"
+              >
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-text-secondary">Role #1</span>
@@ -408,8 +415,12 @@ export function TabIntro({ overview = DEFAULT_OVERVIEW_STATS, telemetryData }: T
                   </div>
                   <button
                     type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveModalRole({ name: 'Inferno A Rotation', map: 'de_inferno' });
+                    }}
                     aria-label="Inspecionar detalhes da função Inferno A Rotation"
-                    className="text-[14px] font-bold text-text-primary hover:underline flex items-center gap-1.5 cursor-pointer mt-0.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-[2px]"
+                    className="text-[14px] font-bold text-text-primary group-hover:text-accent hover:underline flex items-center gap-1.5 cursor-pointer mt-0.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-[2px]"
                   >
                     <span>Inferno A Rotation</span>
                     <span className="text-[11px] text-accent" aria-hidden="true">↗</span>
@@ -431,7 +442,11 @@ export function TabIntro({ overview = DEFAULT_OVERVIEW_STATS, telemetryData }: T
               </div>
 
               {/* Role #2 */}
-              <div className="flex flex-col justify-between h-full">
+              <div
+                onClick={() => setActiveModalRole({ name: 'Mirage B Lurk', map: 'de_mirage' })}
+                title="Clique para ver o ranking e comparar jogadores na função Mirage B Lurk"
+                className="flex flex-col justify-between h-full cursor-pointer group hover:bg-[#151C20]/60 p-2 rounded-[2px] transition-colors"
+              >
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-text-secondary">Role #2</span>
@@ -441,8 +456,12 @@ export function TabIntro({ overview = DEFAULT_OVERVIEW_STATS, telemetryData }: T
                   </div>
                   <button
                     type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveModalRole({ name: 'Mirage B Lurk', map: 'de_mirage' });
+                    }}
                     aria-label="Inspecionar detalhes da função Mirage B Lurk"
-                    className="text-[14px] font-bold text-text-primary hover:underline flex items-center gap-1.5 cursor-pointer mt-0.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-[2px]"
+                    className="text-[14px] font-bold text-text-primary group-hover:text-accent hover:underline flex items-center gap-1.5 cursor-pointer mt-0.5 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-[2px]"
                   >
                     <span>Mirage B Lurk</span>
                     <span className="text-[11px] text-accent" aria-hidden="true">↗</span>
@@ -639,6 +658,13 @@ export function TabIntro({ overview = DEFAULT_OVERVIEW_STATS, telemetryData }: T
 
         <RecentPerformanceChart telemetryData={resolvedTelemetry} />
       </div>
+
+      <RoleDetailsModal
+        isOpen={!!activeModalRole}
+        roleName={activeModalRole?.name || ''}
+        mapName={activeModalRole?.map}
+        onClose={() => setActiveModalRole(null)}
+      />
     </div>
   );
 }

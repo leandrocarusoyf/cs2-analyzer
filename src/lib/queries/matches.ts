@@ -1,5 +1,6 @@
 import { pool, query } from '../db.ts';
 import type { RecentMatchTelemetry } from '../../types/stats.ts';
+import type { LeaderboardPlayer, PlayerMapStats } from '../../data/leaderboards-data.ts';
 
 export interface DbPlayerStat {
   id?: string;
@@ -20,6 +21,16 @@ export interface DbPlayerStat {
   metrics_json?: Record<string, any> | null;
 }
 
+export interface MatchMapDetail {
+  id: string;
+  map_name: string;
+  rounds_t1: number;
+  rounds_t2: number;
+  duration?: number;
+  pick_type?: string | null;
+  pick_team?: string | null;
+}
+
 export interface MatchWithDetails {
   id: string;
   match_date: Date | string;
@@ -38,6 +49,9 @@ export interface MatchWithDetails {
   rounds_t2?: number;
   duration?: number;
   rounds_count?: number;
+  event_name?: string | null;
+  bans?: Array<{ team: string; maps: string[] }> | null;
+  maps?: MatchMapDetail[];
   players: DbPlayerStat[];
 }
 
@@ -104,14 +118,9 @@ export async function getRecentMatches(limit = 10): Promise<MatchWithDetails[]> 
         m.replay_path,
         m.demo_hash,
         m.created_at,
-        mm.id AS map_id,
-        mm.map_name,
-        mm.rounds_t1,
-        mm.rounds_t2,
-        mm.duration,
-        COALESCE(mm.rounds_t1 + mm.rounds_t2, m.score_t1 + m.score_t2) AS rounds_count
+        m.event_name,
+        m.bans
       FROM matches m
-      LEFT JOIN match_maps mm ON m.id = mm.match_id
       ORDER BY m.match_date DESC
       LIMIT $1;
     `;
@@ -122,6 +131,41 @@ export async function getRecentMatches(limit = 10): Promise<MatchWithDetails[]> 
     }
 
     const matchIds = matchRows.map((r) => r.id);
+
+    // Buscar todos os mapas das partidas encontradas
+    const mapsSql = `
+      SELECT 
+        id,
+        match_id,
+        map_name,
+        rounds_t1,
+        rounds_t2,
+        duration,
+        pick_type,
+        pick_team
+      FROM match_maps
+      WHERE match_id = ANY($1::uuid[])
+      ORDER BY id ASC;
+    `;
+    const mapsRes = await query(mapsSql, [matchIds]);
+    const mapsRows = mapsRes?.rows ?? [];
+
+    const mapsByMatch = new Map<string, MatchMapDetail[]>();
+    for (const mm of mapsRows) {
+      const list = mapsByMatch.get(mm.match_id) || [];
+      list.push({
+        id: mm.id,
+        map_name: mm.map_name,
+        rounds_t1: Number(mm.rounds_t1 || 0),
+        rounds_t2: Number(mm.rounds_t2 || 0),
+        duration: mm.duration ? Number(mm.duration) : undefined,
+        pick_type: mm.pick_type || 'PICK',
+        pick_team: mm.pick_team || null,
+      });
+      mapsByMatch.set(mm.match_id, list);
+    }
+
+    // Buscar estatísticas dos jogadores
     const playersSql = `
       SELECT 
         id,
@@ -174,26 +218,43 @@ export async function getRecentMatches(limit = 10): Promise<MatchWithDetails[]> 
       playersByMatch.set(p.match_id, list);
     }
 
-    return matchRows.map((row) => ({
-      id: row.id,
-      match_date: row.match_date,
-      team1: row.team1,
-      team2: row.team2,
-      format: row.format,
-      score_t1: Number(row.score_t1),
-      score_t2: Number(row.score_t2),
-      winner: row.winner,
-      replay_path: row.replay_path,
-      demo_hash: row.demo_hash,
-      created_at: row.created_at,
-      map_id: row.map_id,
-      map_name: row.map_name || 'de_inferno',
-      rounds_t1: row.rounds_t1 !== null ? Number(row.rounds_t1) : undefined,
-      rounds_t2: row.rounds_t2 !== null ? Number(row.rounds_t2) : undefined,
-      duration: row.duration !== null ? Number(row.duration) : undefined,
-      rounds_count: row.rounds_count !== null ? Number(row.rounds_count) : Number(row.score_t1) + Number(row.score_t2),
-      players: playersByMatch.get(row.id) || [],
-    }));
+    return matchRows.map((row) => {
+      const matchMaps = mapsByMatch.get(row.id) || [];
+      const primaryMap = matchMaps[0];
+      const parsedBans = typeof row.bans === 'string'
+        ? (() => {
+            try { return JSON.parse(row.bans); } catch { return null; }
+          })()
+        : row.bans || null;
+
+      const totalRoundsCount = matchMaps.length > 0
+        ? matchMaps.reduce((acc, mm) => acc + (mm.rounds_t1 + mm.rounds_t2), 0)
+        : Number(row.score_t1) + Number(row.score_t2);
+
+      return {
+        id: row.id,
+        match_date: row.match_date,
+        team1: row.team1,
+        team2: row.team2,
+        format: row.format,
+        score_t1: Number(row.score_t1),
+        score_t2: Number(row.score_t2),
+        winner: row.winner,
+        replay_path: row.replay_path,
+        demo_hash: row.demo_hash,
+        created_at: row.created_at,
+        event_name: row.event_name || 'Counter-Strike 2 Match',
+        bans: parsedBans,
+        maps: matchMaps,
+        map_id: primaryMap?.id || null,
+        map_name: primaryMap?.map_name || 'de_inferno',
+        rounds_t1: primaryMap?.rounds_t1,
+        rounds_t2: primaryMap?.rounds_t2,
+        duration: primaryMap?.duration,
+        rounds_count: totalRoundsCount,
+        players: playersByMatch.get(row.id) || [],
+      };
+    });
   } catch (err) {
     console.error('[getRecentMatches] Database error, returning fallback:', err);
     return [];
@@ -219,14 +280,9 @@ export async function getMatchById(id: string): Promise<MatchWithDetails | null>
         m.replay_path,
         m.demo_hash,
         m.created_at,
-        mm.id AS map_id,
-        mm.map_name,
-        mm.rounds_t1,
-        mm.rounds_t2,
-        mm.duration,
-        COALESCE(mm.rounds_t1 + mm.rounds_t2, m.score_t1 + m.score_t2) AS rounds_count
+        m.event_name,
+        m.bans
       FROM matches m
-      LEFT JOIN match_maps mm ON m.id = mm.match_id
       WHERE m.id::text = $1 OR m.demo_hash = $1
       LIMIT 1;
     `;
@@ -238,6 +294,35 @@ export async function getMatchById(id: string): Promise<MatchWithDetails | null>
 
     const row = matchRows[0];
     const matchUuid = row.id;
+
+    // Buscar mapas da partida
+    const mapsSql = `
+      SELECT 
+        id,
+        match_id,
+        map_name,
+        rounds_t1,
+        rounds_t2,
+        duration,
+        pick_type,
+        pick_team
+      FROM match_maps
+      WHERE match_id = $1::uuid
+      ORDER BY id ASC;
+    `;
+    const mapsRes = await query(mapsSql, [matchUuid]);
+    const mapsRows = mapsRes?.rows ?? [];
+    const maps: MatchMapDetail[] = mapsRows.map((mm) => ({
+      id: mm.id,
+      map_name: mm.map_name,
+      rounds_t1: Number(mm.rounds_t1 || 0),
+      rounds_t2: Number(mm.rounds_t2 || 0),
+      duration: mm.duration ? Number(mm.duration) : undefined,
+      pick_type: mm.pick_type || 'PICK',
+      pick_team: mm.pick_team || null,
+    }));
+
+    const primaryMap = maps[0];
 
     const playersSql = `
       SELECT 
@@ -288,6 +373,16 @@ export async function getMatchById(id: string): Promise<MatchWithDetails | null>
       };
     });
 
+    const parsedBans = typeof row.bans === 'string'
+      ? (() => {
+          try { return JSON.parse(row.bans); } catch { return null; }
+        })()
+      : row.bans || null;
+
+    const totalRoundsCount = maps.length > 0
+      ? maps.reduce((acc, mm) => acc + (mm.rounds_t1 + mm.rounds_t2), 0)
+      : Number(row.score_t1) + Number(row.score_t2);
+
     return {
       id: row.id,
       match_date: row.match_date,
@@ -300,12 +395,15 @@ export async function getMatchById(id: string): Promise<MatchWithDetails | null>
       replay_path: row.replay_path,
       demo_hash: row.demo_hash,
       created_at: row.created_at,
-      map_id: row.map_id,
-      map_name: row.map_name || 'de_inferno',
-      rounds_t1: row.rounds_t1 !== null ? Number(row.rounds_t1) : undefined,
-      rounds_t2: row.rounds_t2 !== null ? Number(row.rounds_t2) : undefined,
-      duration: row.duration !== null ? Number(row.duration) : undefined,
-      rounds_count: row.rounds_count !== null ? Number(row.rounds_count) : Number(row.score_t1) + Number(row.score_t2),
+      event_name: row.event_name || 'Counter-Strike 2 Match',
+      bans: parsedBans,
+      maps,
+      map_id: primaryMap?.id || null,
+      map_name: primaryMap?.map_name || 'de_inferno',
+      rounds_t1: primaryMap?.rounds_t1,
+      rounds_t2: primaryMap?.rounds_t2,
+      duration: primaryMap?.duration,
+      rounds_count: totalRoundsCount,
       players,
     };
   } catch (err) {
@@ -350,7 +448,7 @@ export async function getPlayerPerformance(
       FROM player_stats ps
       JOIN matches m ON ps.match_id = m.id
       LEFT JOIN match_maps mm ON ps.map_id = mm.id OR ps.match_id = mm.match_id
-      WHERE ps.player_steamid = $1
+      WHERE ps.player_steamid = $1 OR LOWER(ps.nickname) = LOWER($1)
       ORDER BY m.match_date ASC
       LIMIT $2;
     `;
@@ -522,3 +620,185 @@ export async function getPlayerPerformance(
     return null;
   }
 }
+
+/**
+ * Busca e agrega dados reais do Supabase/PostgreSQL para montar a tabela de Leaderboards.
+ * Se o jogador possuir dados de 1 partida, exibe os dados dela.
+ * Se houver múltiplas partidas, calcula a média ponderada com base no total de rounds.
+ */
+export async function getLeaderboardPlayersFromDb(): Promise<LeaderboardPlayer[]> {
+  try {
+    const sql = `
+      SELECT 
+        ps.player_steamid,
+        ps.nickname,
+        ps.team,
+        ps.rating,
+        ps.adr,
+        ps.kast,
+        ps.kills,
+        ps.deaths,
+        ps.assists,
+        ps.metrics_json,
+        COALESCE(mm.map_name, 'de_inferno') AS map_name,
+        COALESCE(mm.rounds_t1 + mm.rounds_t2, m.score_t1 + m.score_t2, 23) AS rounds
+      FROM player_stats ps
+      JOIN matches m ON ps.match_id = m.id
+      LEFT JOIN match_maps mm ON ps.map_id = mm.id
+      ORDER BY ps.rating DESC;
+    `;
+    const res = await query(sql);
+    const rows = res?.rows ?? [];
+    if (rows.length === 0) return [];
+
+    const byPlayer = new Map<string, any[]>();
+    for (const r of rows) {
+      const list = byPlayer.get(r.player_steamid) || [];
+      list.push(r);
+      byPlayer.set(r.player_steamid, list);
+    }
+
+    const result: LeaderboardPlayer[] = [];
+
+    for (const [steamId, playerRows] of byPlayer.entries()) {
+      const latest = playerRows[0];
+      const nickname = latest.nickname;
+      const team = latest.team;
+
+      let totalRounds = 0;
+      let totalRatingWeight = 0;
+      let totalAdrWeight = 0;
+      let totalKastWeight = 0;
+      let totalUdrWeight = 0;
+      let totalKills = 0;
+      let totalDeaths = 0;
+
+      const mapStats: Record<string, PlayerMapStats> = {};
+
+      for (const row of playerRows) {
+        const rounds = Number(row.rounds) || 23;
+        const rating = Number(row.rating) || 1.0;
+        const adr = Number(row.adr) || 80.0;
+        const kast = Number(row.kast) || 70.0;
+        const kills = Number(row.kills) || 0;
+        const deaths = Number(row.deaths) || 0;
+
+        const metrics = typeof row.metrics_json === 'string'
+          ? (() => { try { return JSON.parse(row.metrics_json); } catch { return {}; } })()
+          : (row.metrics_json || {});
+        const udr = Number(metrics?.udr?.overall ?? metrics?.general?.udr ?? 5.5);
+
+        totalRounds += rounds;
+        totalRatingWeight += rating * rounds;
+        totalAdrWeight += adr * rounds;
+        totalKastWeight += kast * rounds;
+        totalUdrWeight += udr * rounds;
+        totalKills += kills;
+        totalDeaths += deaths;
+
+        // Map name clean (ex: de_inferno -> Inferno, de_dust2 -> Dust II)
+        const rawMap = (row.map_name || 'de_inferno').toLowerCase().replace('de_', '');
+        const mapKey = rawMap === 'dust2'
+          ? 'Dust II'
+          : rawMap.charAt(0).toUpperCase() + rawMap.slice(1);
+
+        const mapKd = deaths > 0 ? Number((kills / deaths).toFixed(2)) : kills;
+        const mapKpr = Number((kills / rounds).toFixed(2));
+        const mapDpr = Number((deaths / rounds).toFixed(2));
+        const mapFar = Number((kills / (rounds * 4.5)).toFixed(2));
+
+        mapStats[mapKey] = {
+          hltv: rating,
+          adr,
+          kd: mapKd,
+          kpr: mapKpr,
+          dpr: mapDpr,
+          kast,
+          udr,
+          far: mapFar,
+          rounds,
+        };
+      }
+
+      const count = playerRows.length;
+      // Regra: se houver 1 partida, exibe dados dela; se múltiplas, média ponderada por rounds
+      const weightedHltv = count === 1 ? Number(latest.rating) : Number((totalRatingWeight / totalRounds).toFixed(2));
+      const weightedAdr = count === 1 ? Number(latest.adr) : Number((totalAdrWeight / totalRounds).toFixed(1));
+      const weightedKast = count === 1 ? Number(latest.kast) : Number((totalKastWeight / totalRounds).toFixed(1));
+      const weightedUdr = count === 1
+        ? Number((typeof latest.metrics_json === 'object' ? latest.metrics_json?.udr?.overall : 5.5) || 5.5)
+        : Number((totalUdrWeight / totalRounds).toFixed(1));
+      const overallKd = totalDeaths > 0 ? Number((totalKills / totalDeaths).toFixed(2)) : totalKills;
+      const overallKpr = Number((totalKills / totalRounds).toFixed(2));
+      const overallDpr = Number((totalDeaths / totalRounds).toFixed(2));
+      const overallFar = Number((totalKills / (totalRounds * 4.5)).toFixed(2));
+
+      // Extração de Roles
+      const parsedLatestMetrics = typeof latest.metrics_json === 'string'
+        ? (() => { try { return JSON.parse(latest.metrics_json); } catch { return {}; } })()
+        : (latest.metrics_json || {});
+      const tRole = parsedLatestMetrics?.roles?.t || (nickname.toLowerCase().includes('lurk') ? 'T Lurk' : overallKpr > 0.8 ? 'T Entry' : 'T Allround');
+      const ctRole = parsedLatestMetrics?.roles?.ct || (nickname.toLowerCase().includes('anchor') ? 'CT Anchor' : 'CT Rotation');
+
+      let roleCategory: 'AWP' | 'Entry' | 'Rifler' | 'Anchor' | 'Support' | 'Lurk' = 'Rifler';
+      const nickLow = nickname.toLowerCase();
+      if (nickLow === 'fallen' || nickLow === 'woxic' || nickLow === 'zywoo' || nickLow === 'm0nesy' || nickLow === 'broky' || nickLow === 'sh1ro') {
+        roleCategory = 'AWP';
+      } else if (nickLow === 'yekindar' || nickLow === 'xantares' || tRole.includes('Entry') || overallKpr >= 0.82) {
+        roleCategory = 'Entry';
+      } else if (tRole.includes('Lurk')) {
+        roleCategory = 'Lurk';
+      } else if (ctRole.includes('Anchor')) {
+        roleCategory = 'Anchor';
+      } else if (tRole.includes('Support')) {
+        roleCategory = 'Support';
+      }
+
+      result.push({
+        id: steamId,
+        name: nickname,
+        team,
+        tRole,
+        ctRole,
+        roleCategory,
+        overall: {
+          hltv: weightedHltv,
+          adr: weightedAdr,
+          kd: overallKd,
+          kpr: overallKpr,
+          dpr: overallDpr,
+          kast: weightedKast,
+          udr: weightedUdr,
+          far: overallFar,
+          rounds: totalRounds,
+        },
+        mapStats,
+      });
+    }
+
+    result.sort((a, b) => b.overall.hltv - a.overall.hltv);
+    return result;
+  } catch (err) {
+    console.error('[getLeaderboardPlayersFromDb] Error:', err);
+    return [];
+  }
+}
+
+/**
+ * Retorna todos os atletas cadastrados no banco para alimentar dinamicamente o seletor (Dropdown).
+ */
+export async function getAllRegisteredPlayers(): Promise<Array<{ steamId: string; nickname: string; team: string }>> {
+  try {
+    const sql = `
+      SELECT DISTINCT player_steamid AS "steamId", nickname, team
+      FROM player_stats
+      ORDER BY nickname ASC;
+    `;
+    const res = await query(sql);
+    return res?.rows ?? [];
+  } catch (err) {
+    console.error('[getAllRegisteredPlayers] Error:', err);
+    return [];
+  }
+}
+

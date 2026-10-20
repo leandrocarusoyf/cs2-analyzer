@@ -2,7 +2,8 @@
 // Uso programático: import { processDemoFile } from './process-demo.mjs'
 // Uso via CLI: node scripts/process-demo.mjs <caminho-do-arquivo.dem>
 import { readFile, writeFile, unlink, access, mkdir, appendFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
@@ -97,35 +98,85 @@ function roundTo(val, decimals = 2) {
 }
 
 /**
+ * Extrai o identificador de mapa (ex: m1, m2, m3) do nome ou caminho do arquivo .dem usando Regex
+ */
+export function extractMapIdentifier(filePathOrName) {
+  if (!filePathOrName) return null;
+  const base = path.parse(filePathOrName).name;
+  const match = base.match(/(?:^|[_\-.])(m[1-9]\d*)(?:[_\-.]|$)/i);
+  return match ? match[1].toLowerCase() : null;
+}
+
+/**
+ * Gera um ID de Série Determinístico (Pai) a partir de Data + TimeA + TimeB.
+ * Garante que m1, m2, m3 do mesmo confronto no mesmo dia compartilhem rigorosamente
+ * o mesmo ID de série sem colisões aleatórias (retornando UUID RFC 4122 válido).
+ */
+export function generateDeterministicSeriesId({ playedAt, team1, team2 }) {
+  const dateObj = new Date(playedAt || Date.now());
+  const validDate = Number.isNaN(dateObj.getTime()) ? new Date() : dateObj;
+  const yyyy = String(validDate.getUTCFullYear());
+  const mm = String(validDate.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(validDate.getUTCDate()).padStart(2, '0');
+  const dateStr = `${yyyy}-${mm}-${dd}`;
+
+  const clean1 = String(team1 || 'Team1').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  const clean2 = String(team2 || 'Team2').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  const sortedTeams = [clean1, clean2].sort().join('_vs_');
+
+  const seed = `series:${dateStr}:${sortedTeams}`;
+  const hex = createHash('sha256').update(seed).digest('hex');
+
+  const part1 = hex.substring(0, 8);
+  const part2 = hex.substring(8, 12);
+  const part3 = '4' + hex.substring(13, 16);
+  const y = (parseInt(hex.substring(16, 18), 16) & 0x3f) | 0x80;
+  const part4 = y.toString(16).padStart(2, '0') + hex.substring(18, 20);
+  const part5 = hex.substring(20, 32);
+
+  return `${part1}-${part2}-${part3}-${part4}-${part5}`;
+}
+
+/**
  * Constrói a taxonomia de diretórios e nome do arquivo .bin.gz para o replay:
- * ./data/replays/{mes-ano}/{dd-mm-aaaa}/{time1}_vs_{time2}_{formato}/{nome_original_da_demo}.bin.gz
+ * Estrutura estrita: data/replays/YYYY/DD-MM-YYYY/TimeA_vs_TimeB/
+ * Exemplo: data/replays/2026/18-10-2026/FURIA_vs_Aurora/
  */
 export function buildTaxonomyPath({
   demFilePath,
   playedAt,
   team1,
   team2,
-  format = 'BO1',
   baseDir = './data/replays',
 }) {
   const dateObj = new Date(playedAt || Date.now());
   const validDate = Number.isNaN(dateObj.getTime()) ? new Date() : dateObj;
 
-  const mm = String(validDate.getUTCMonth() + 1).padStart(2, '0');
   const yyyy = String(validDate.getUTCFullYear());
+  const mm = String(validDate.getUTCMonth() + 1).padStart(2, '0');
   const dd = String(validDate.getUTCDate()).padStart(2, '0');
 
-  const mesAno = `${mm}-${yyyy}`;
   const ddMmAaaa = `${dd}-${mm}-${yyyy}`;
 
   const cleanTeam1 = String(team1 || 'Team1').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
   const cleanTeam2 = String(team2 || 'Team2').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
-  const cleanFormat = String(format || 'BO1').trim().toUpperCase().replace(/[^a-zA-Z0-9_-]/g, '_');
 
-  const matchFolder = `${cleanTeam1}_vs_${cleanTeam2}_${cleanFormat}`;
   const originalName = path.parse(demFilePath).name;
+  const cleanBase = baseDir.replace(/\\/g, '/').replace(/^\.\//, '');
 
-  const relativeDir = path.join(baseDir, mesAno, ddMmAaaa, matchFolder).replace(/\\/g, '/');
+  // Se já existe a pasta inversa no disco para este dia (ex: Time2_vs_Time1), reutiliza para unificar a série
+  const folderCandidate1 = `${cleanTeam1}_vs_${cleanTeam2}`;
+  const folderCandidate2 = `${cleanTeam2}_vs_${cleanTeam1}`;
+  let matchFolder = folderCandidate1;
+  try {
+    const checkDir2 = path.resolve(baseDir, yyyy, ddMmAaaa, folderCandidate2);
+    const checkDir1 = path.resolve(baseDir, yyyy, ddMmAaaa, folderCandidate1);
+    if (!existsSync(checkDir1) && existsSync(checkDir2)) {
+      matchFolder = folderCandidate2;
+    }
+  } catch {}
+
+  const relativeDir = path.posix.join(cleanBase, yyyy, ddMmAaaa, matchFolder);
   const relativeFile = `${relativeDir}/${originalName}.bin.gz`;
 
   return {
@@ -1886,7 +1937,46 @@ export function buildMatchPackageAndRecord(rawDemo) {
 /**
  * Grava a partida nas tabelas matches, match_maps e player_stats do PostgreSQL local.
  */
-async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerStats, replayPath, targetMatchId }) {
+async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerStats, replayPath, targetMatchId, mapIdentifier }) {
+  let matchId = targetMatchId;
+  if (!matchId) {
+    matchId = generateDeterministicSeriesId({
+      playedAt: matchRecord.played_at,
+      team1: matchRecord.team_ct_name,
+      team2: matchRecord.team_t_name,
+    });
+  }
+
+  // Se houver registro anterior com o mesmo demo_hash sob outro id,
+  // remove o antigo para evitar violação da constraint UNIQUE(demo_hash)
+  try {
+    const existingByHash = await dbClientOrPool.query(
+      'SELECT id FROM matches WHERE demo_hash = $1 LIMIT 1;',
+      [matchRecord.demo_hash],
+    );
+    if (existingByHash.rows && existingByHash.rows.length > 0 && existingByHash.rows[0].id !== matchId) {
+      await dbClientOrPool.query('DELETE FROM matches WHERE id = $1;', [existingByHash.rows[0].id]);
+    }
+  } catch {}
+
+  // Consulta mapas existentes da série
+  let existingMaps = [];
+  try {
+    const mapsRes = await dbClientOrPool.query(
+      'SELECT id, map_name, rounds_t1, rounds_t2 FROM match_maps WHERE match_id = $1;',
+      [matchId],
+    );
+    existingMaps = mapsRes.rows || [];
+  } catch {}
+
+  const mapNum = mapIdentifier ? parseInt(mapIdentifier.replace(/\D/g, ''), 10) : 1;
+  const otherMaps = existingMaps.filter((m) => m.map_name !== matchRecord.map_name);
+  const totalMapsCount = otherMaps.length + 1;
+  const isSeries = totalMapsCount >= 2 || mapNum >= 2;
+  const seriesFormat = (totalMapsCount >= 4 || mapNum >= 4)
+    ? 'MD5'
+    : (isSeries ? 'MD3' : (rawDemo.format || 'BO1'));
+
   const winner =
     matchRecord.score_ct > matchRecord.score_t
       ? matchRecord.team_ct_name
@@ -1894,39 +1984,51 @@ async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerS
       ? matchRecord.team_t_name
       : 'DRAW';
 
-  const finalMatchId = targetMatchId || CANONICAL_MATCH_ID;
-
-  // 1. matches
+  // 1. matches com UPSERT (ON CONFLICT (id) DO UPDATE SET ...)
   const matchSql = `
     INSERT INTO matches (match_date, team1, team2, format, score_t1, score_t2, winner, replay_path, demo_hash, id)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    ON CONFLICT (demo_hash) DO NOTHING
+    ON CONFLICT (id) DO UPDATE SET
+      match_date = EXCLUDED.match_date,
+      team1 = EXCLUDED.team1,
+      team2 = EXCLUDED.team2,
+      format = EXCLUDED.format,
+      score_t1 = EXCLUDED.score_t1,
+      score_t2 = EXCLUDED.score_t2,
+      winner = EXCLUDED.winner,
+      replay_path = EXCLUDED.replay_path,
+      demo_hash = COALESCE(matches.demo_hash, EXCLUDED.demo_hash)
     RETURNING id;
   `;
   const matchValues = [
     matchRecord.played_at,
     matchRecord.team_ct_name,
     matchRecord.team_t_name,
-    rawDemo.format || 'BO1',
+    seriesFormat,
     matchRecord.score_ct,
     matchRecord.score_t,
     winner,
     replayPath,
     matchRecord.demo_hash,
-    finalMatchId,
+    matchId,
   ];
 
   const matchRes = await dbClientOrPool.query(matchSql, matchValues);
-  if (matchRes.rows.length === 0) {
-    // Demo já processada: retorna o id existente sem duplicar match_maps/player_stats
-    console.log(`[ingest] demo_hash ${matchRecord.demo_hash} já existe no banco; nada foi regravado.`);
-    const existing = await dbClientOrPool.query('SELECT id FROM matches WHERE demo_hash = $1', [
-      matchRecord.demo_hash,
-    ]);
-    return existing.rows[0]?.id || finalMatchId;
-  }
-  const matchId = matchRes.rows[0]?.id || finalMatchId;
+  const persistedMatchId = matchRes.rows[0]?.id || matchId;
 
+  // Limpa registros anteriores APENAS deste mapa específico caso seja um reprocessamento,
+  // preservando todos os demais mapas da série (ex: m1 ao processar m2)
+  try {
+    const existingCurrentMap = await dbClientOrPool.query(
+      'SELECT id FROM match_maps WHERE match_id = $1 AND map_name = $2 LIMIT 1;',
+      [persistedMatchId, matchRecord.map_name],
+    );
+    if (existingCurrentMap.rows && existingCurrentMap.rows.length > 0) {
+      const oldMapId = existingCurrentMap.rows[0].id;
+      await dbClientOrPool.query('DELETE FROM player_stats WHERE map_id = $1;', [oldMapId]);
+      await dbClientOrPool.query('DELETE FROM match_maps WHERE id = $1;', [oldMapId]);
+    }
+  } catch {}
 
   // 2. match_maps
   const mapSql = `
@@ -1935,7 +2037,7 @@ async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerS
     RETURNING id;
   `;
   const mapValues = [
-    matchId,
+    persistedMatchId,
     matchRecord.map_name,
     matchRecord.score_ct,
     matchRecord.score_t,
@@ -1943,7 +2045,7 @@ async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerS
   ];
 
   const mapRes = await dbClientOrPool.query(mapSql, mapValues);
-  const mapId = mapRes.rows[0].id;
+  const mapId = mapRes.rows[0]?.id || null;
 
   // 3. player_stats
   for (const p of playerStats) {
@@ -1960,7 +2062,7 @@ async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerS
         ? matchRecord.team_ct_name
         : matchRecord.team_t_name);
     const statsValues = [
-      matchId,
+      persistedMatchId,
       mapId,
       p.steamId,
       p.name,
@@ -1979,7 +2081,35 @@ async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerS
     await dbClientOrPool.query(statsSql, statsValues);
   }
 
-  return matchId;
+  // 4. Se a série tem múltiplos mapas (ou m2/m3 foi processado), recalcula contagem de mapas e atualiza formato para MD3/MD5
+  try {
+    const allFinalMaps = await dbClientOrPool.query(
+      'SELECT rounds_t1, rounds_t2 FROM match_maps WHERE match_id = $1;',
+      [persistedMatchId],
+    );
+    const finalCount = allFinalMaps.rows.length;
+    if (finalCount >= 2 || mapNum >= 2) {
+      let finalT1Wins = 0;
+      let finalT2Wins = 0;
+      for (const m of allFinalMaps.rows) {
+        if (m.rounds_t1 > m.rounds_t2) finalT1Wins++;
+        else if (m.rounds_t2 > m.rounds_t1) finalT2Wins++;
+      }
+      const finalWinner =
+        finalT1Wins > finalT2Wins
+          ? matchRecord.team_ct_name
+          : finalT2Wins > finalT1Wins
+          ? matchRecord.team_t_name
+          : null;
+      const finalFormat = finalCount >= 4 ? 'MD5' : 'MD3';
+      await dbClientOrPool.query(
+        'UPDATE matches SET format = $1, score_t1 = $2, score_t2 = $3, winner = $4 WHERE id = $5;',
+        [finalFormat, finalT1Wins, finalT2Wins, finalWinner, persistedMatchId],
+      );
+    }
+  } catch {}
+
+  return persistedMatchId;
 }
 
 /**
@@ -2021,7 +2151,6 @@ export async function processDemoFile(demFilePath, options = {}) {
     throw new Error('Caminho do arquivo .dem é obrigatório.');
   }
 
-  const targetMatchId = options.matchId || CANONICAL_MATCH_ID;
   const resolvedDemPath = path.resolve(demFilePath);
   let localPool = null;
   const keepDemFile = Boolean(options.keepDemFile);
@@ -2033,18 +2162,47 @@ export async function processDemoFile(demFilePath, options = {}) {
     const rawDemo = await extractRawDemoWithParser(resolvedDemPath, fileBuffer, demoparser);
 
     const { packageData, matchRecord } = buildMatchPackageAndRecord(rawDemo);
+
+    // Extrai identificador de mapa (ex: m1, m2, m3) do nome do arquivo usando Regex
+    const originalBaseName = path.parse(resolvedDemPath).name;
+    const mapIdentifier = extractMapIdentifier(originalBaseName);
+
+    // Determina matchId (ID de Série Pai):
+    // 1. Usa options.matchId / options.seriesId caso fornecido explicitamente
+    // 2. Ou gera ID de Série Determinístico (Pai) a partir de Data + TimeA + TimeB
+    // (removendo crypto.randomUUID() puro ou ID hardcoded para garantir agrupamento)
+    let targetMatchId = options.matchId || options.seriesId;
+    if (!targetMatchId) {
+      targetMatchId = generateDeterministicSeriesId({
+        playedAt: matchRecord.played_at,
+        team1: matchRecord.team_ct_name,
+        team2: matchRecord.team_t_name,
+      });
+    }
+
+    let dbClient = null;
+    if (!options.skipDb) {
+      dbClient = options.dbClient || options.pgPool;
+      if (!dbClient) {
+        localPool = new Pool({
+          connectionString: options.databaseUrl || DEFAULT_DATABASE_URL,
+        });
+        dbClient = localPool;
+      }
+    }
+
     packageData.id = targetMatchId;
     packageData.matchId = targetMatchId;
     const playerStats = computeMatchPlayerMetrics(rawDemo);
 
     // 1. Gera o caminho e grava o arquivo de replay compactado (.bin.gz level: 9)
+    // Destino estrito: data/replays/YYYY/DD-MM-YYYY/TimeA_vs_TimeB/
     const baseReplaysDir = options.replaysBaseDir || './data/replays';
     const taxonomy = buildTaxonomyPath({
       demFilePath: resolvedDemPath,
       playedAt: matchRecord.played_at,
       team1: matchRecord.team_ct_name,
       team2: matchRecord.team_t_name,
-      format: rawDemo.format || 'BO1',
       baseDir: baseReplaysDir,
     });
 
@@ -2054,41 +2212,33 @@ export async function processDemoFile(demFilePath, options = {}) {
 
     const rawJson = JSON.stringify(packageData);
     const compressedReplay = gzipSync(Buffer.from(rawJson, 'utf8'), { level: 9 });
+
+    // Salva arquivos no diretório encadeado da série (sem pastas UUID soltas)
     await writeFile(fullReplayPath, compressedReplay);
+    await writeFile(path.join(fullReplayDir, `${originalBaseName}.json`), rawJson, 'utf8');
 
-    // Persistência no diretório alinhado com o frontend: data/replays/<targetMatchId>/
-    const matchReplayDir = path.resolve(baseReplaysDir, targetMatchId);
-    await mkdir(matchReplayDir, { recursive: true });
+    if (mapIdentifier) {
+      await writeFile(path.join(fullReplayDir, `${mapIdentifier}.bin.gz`), compressedReplay);
+      await writeFile(path.join(fullReplayDir, `${mapIdentifier}.json`), rawJson, 'utf8');
+    }
 
-    const originalBaseName = path.parse(resolvedDemPath).name;
-    await writeFile(path.join(matchReplayDir, `${originalBaseName}.bin.gz`), compressedReplay);
-    await writeFile(path.join(matchReplayDir, `${targetMatchId}.bin.gz`), compressedReplay);
-    await writeFile(path.join(matchReplayDir, 'replay.bin.gz'), compressedReplay);
-    await writeFile(path.join(matchReplayDir, 'match.json'), rawJson, 'utf8');
-    await writeFile(path.join(matchReplayDir, `${originalBaseName}.json`), rawJson, 'utf8');
+    await writeFile(path.join(fullReplayDir, 'replay.bin.gz'), compressedReplay);
+    await writeFile(path.join(fullReplayDir, 'match.json'), rawJson, 'utf8');
 
     matchRecord.replay_storage_path = taxonomy.filePath;
 
     // 2. Gravação no PostgreSQL local (matches, match_maps, player_stats)
     let matchId = targetMatchId;
-    if (!options.skipDb) {
-      let dbClient = options.dbClient || options.pgPool;
-      if (!dbClient) {
-        localPool = new Pool({
-          connectionString: options.databaseUrl || DEFAULT_DATABASE_URL,
-        });
-        dbClient = localPool;
-      }
-
+    if (!options.skipDb && dbClient) {
       matchId = await persistToPostgres(dbClient, {
         matchRecord,
         rawDemo,
         playerStats,
         replayPath: taxonomy.filePath,
         targetMatchId,
+        mapIdentifier,
       });
     }
-
 
     // 3. Atualiza store JSON consumido pela UI
     const focusPlayerName = (options.focusPlayerName ?? 'kscerato').toLowerCase();
@@ -2159,6 +2309,7 @@ export async function processDemoFile(demFilePath, options = {}) {
 
     return {
       matchId,
+      seriesId: matchId,
       demoHash: matchRecord.demo_hash,
       matchRecord,
       playerStats,
@@ -2169,6 +2320,7 @@ export async function processDemoFile(demFilePath, options = {}) {
       replayPath: taxonomy.filePath,
       assets,
       demDeleted: !keepDemFile,
+      mapIdentifier,
     };
   } catch (err) {
     try {
@@ -2214,6 +2366,7 @@ if (isMain) {
         JSON.stringify(
           {
             matchId: result.matchId,
+            seriesId: result.seriesId,
             demoHash: result.demoHash,
             map: result.matchRecord.map_name,
             score: `${result.matchRecord.team_ct_name} ${result.matchRecord.score_ct} x ${result.matchRecord.score_t} ${result.matchRecord.team_t_name}`,
@@ -2221,6 +2374,7 @@ if (isMain) {
             demDeleted: result.demDeleted,
             teamsSynced: result.assets.teams.length,
             playersSynced: result.assets.players.length,
+            mapIdentifier: result.mapIdentifier,
           },
           null,
           2,

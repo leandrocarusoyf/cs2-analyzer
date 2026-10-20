@@ -865,18 +865,68 @@ export function normalizePlayerTuple(
         yaw,
         pitch,
         velocity: { x: vx, y: vy, z: vz, speed2D },
-        hp,
-        armor,
-        hasHelmet,
-        hasDefuser,
+        hp: isAlive ? hp : 0,
+        armor: isAlive ? armor : 0,
+        hasHelmet: isAlive ? hasHelmet : false,
+        hasDefuser: isAlive ? hasDefuser : false,
         isAlive,
         activeWeapon,
         money,
-        isDefusing,
-        isScoped,
-        isCrouching,
-        isAirborne,
-        flashDuration,
+        isDefusing: isAlive ? isDefusing : false,
+        isScoped: isAlive ? isScoped : false,
+        isCrouching: isAlive ? isCrouching : false,
+        isAirborne: isAlive ? isAirborne : false,
+        flashDuration: isAlive ? flashDuration : 0,
+      };
+    }
+
+    if (raw.length === 17) {
+      const id = raw[0] !== undefined && raw[0] !== null ? (typeof raw[0] === 'number' ? raw[0] : String(raw[0])) : 0;
+      const x = Number(raw[1] ?? 0);
+      const y = Number(raw[2] ?? 0);
+      const z = Number(raw[3] ?? 0);
+      const yaw = Number(raw[4] ?? 0);
+      const pitch = Number(raw[5] ?? 0);
+      const hp = Number(raw[6] ?? 100);
+      const armor = Number(raw[7] ?? 0);
+      const hasHelmet = Boolean(raw[8]);
+      const isAlive = raw[9] === undefined ? hp > 0 : Boolean(raw[9]);
+      const flashDuration = Number(raw[10] ?? 0);
+      const isDefusing = Boolean(raw[11]);
+      const isPlanting = Boolean(raw[12]);
+      const rawWpn = raw[13];
+      const activeWeapon = rawWpn !== undefined ? (typeof rawWpn === 'number' ? `weapon_${rawWpn}` : String(rawWpn)) : 'knife';
+      const hasC4 = Boolean(raw[14]);
+      const hasDefuser = Boolean(raw[15]);
+      const money = Number(raw[16] ?? 800);
+
+      const resolvedMeta = meta && typeof meta === 'object' && ('name' in meta || 'team' in meta)
+        ? (meta as { name?: string; team?: Team })
+        : (meta as Record<string | number, { name?: string; team?: Team }>)?.[id];
+
+      return {
+        id,
+        name: resolvedMeta?.name || `Player ${id}`,
+        team: resolvedMeta?.team || 'CT',
+        x,
+        y,
+        z,
+        yaw,
+        pitch,
+        velocity: { x: 0, y: 0, z: 0, speed2D: 0 },
+        hp: isAlive ? hp : 0,
+        armor: isAlive ? armor : 0,
+        hasHelmet: isAlive ? hasHelmet : false,
+        hasDefuser: isAlive ? hasDefuser : false,
+        isAlive,
+        activeWeapon,
+        money,
+        isDefusing: isAlive ? isDefusing : false,
+        isPlanting: isAlive ? isPlanting : false,
+        isScoped: false,
+        isCrouching: false,
+        isAirborne: false,
+        flashDuration: isAlive ? flashDuration : 0,
       };
     }
 
@@ -890,6 +940,7 @@ export function normalizePlayerTuple(
     const hasHelmet = Boolean(raw[7]);
     const isAlive = raw[8] === undefined ? hp > 0 : Boolean(raw[8]);
     const isDefusing = Boolean(raw[9]);
+    const isPlanting = Boolean(raw[10]);
     const wpn = raw[11] !== undefined ? (typeof raw[11] === 'number' ? `weapon_${raw[11]}` : String(raw[11])) : 'knife';
     const flashDuration = Number(raw[12] ?? 0);
     const ping = Number(raw[13] ?? 15);
@@ -908,18 +959,19 @@ export function normalizePlayerTuple(
       yaw,
       pitch: 0,
       velocity: { x: 0, y: 0, z: 0, speed2D: 0 },
-      hp,
-      armor,
-      hasHelmet,
+      hp: isAlive ? hp : 0,
+      armor: isAlive ? armor : 0,
+      hasHelmet: isAlive ? hasHelmet : false,
       hasDefuser: false,
       isAlive,
       activeWeapon: wpn,
       money: 800,
-      isDefusing,
+      isDefusing: isAlive ? isDefusing : false,
+      isPlanting: isAlive ? isPlanting : false,
       isScoped: false,
       isCrouching: false,
       isAirborne: false,
-      flashDuration,
+      flashDuration: isAlive ? flashDuration : 0,
       ping,
     };
   }

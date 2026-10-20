@@ -78,6 +78,16 @@ export interface DbPlayerStat {
   metrics_json?: Record<string, any> | null;
 }
 
+export interface MatchMapDetail {
+  id: string;
+  map_name: string;
+  rounds_t1: number;
+  rounds_t2: number;
+  duration?: number;
+  pick_type?: string | null;
+  pick_team?: string | null;
+}
+
 export interface MatchWithDetails {
   id: string;
   match_date: Date | string;
@@ -96,6 +106,9 @@ export interface MatchWithDetails {
   rounds_t2?: number;
   duration?: number;
   rounds_count?: number;
+  event_name?: string | null;
+  bans?: Array<{ team: string; maps: string[] }> | null;
+  maps?: MatchMapDetail[];
   players: DbPlayerStat[];
 }
 

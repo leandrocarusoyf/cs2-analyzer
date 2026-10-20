@@ -23,20 +23,39 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
   const roundsCount = currentMatch?.rounds_count || score1 + score2;
 
   // KPIs agregados dos duelos
-  const players: PlayerStatRow[] = (currentMatch?.players || []).map((p) => ({
-    steamId: p.player_steamid,
-    nickname: p.nickname,
-    team: p.team,
-    rating: p.rating,
-    adr: p.adr,
-    kast: p.kast,
-    kills: p.kills,
-    deaths: p.deaths,
-    assists: p.assists,
-    ttd: p.ttd,
-    ttk: p.ttk,
-    fsp: p.fsp,
-  }));
+  const players: PlayerStatRow[] = (currentMatch?.players || []).map((p) => {
+    const metrics = p.metrics_json || {};
+    const gen = metrics.general || {};
+    const aim = metrics.aim || {};
+
+    return {
+      steamId: p.player_steamid,
+      nickname: p.nickname,
+      team: p.team,
+      rating: p.rating,
+      adr: p.adr,
+      kast: p.kast,
+      kills: p.kills,
+      deaths: p.deaths,
+      assists: p.assists,
+      ttd: p.ttd,
+      ttk: p.ttk,
+      fsp: p.fsp,
+      k2: gen.k2 ?? 0,
+      k3: gen.k3 ?? 0,
+      k4: gen.k4 ?? 0,
+      k5: gen.k5 ?? 0,
+      spottedAccuracy: aim.spottedAccuracy ?? null,
+      crosshairPlacement: aim.crosshairPlacement ?? null,
+      headAccuracy: aim.headAccuracy ?? null,
+      hsKillPct: aim.hsKillPct ?? null,
+      firstBullet: aim.firstBullet ?? (p.fsp !== undefined && p.fsp !== null ? Math.round(p.fsp) : null),
+      sprayAccuracy: aim.sprayAccuracy ?? null,
+      counterStrafing: aim.counterStrafing ?? null,
+      accuracyAll: aim.accuracyAll ?? null,
+      metrics_json: metrics,
+    };
+  });
 
   const ttdList = players.map((p) => p.ttd).filter((v): v is number => typeof v === 'number');
   const ttkList = players.map((p) => p.ttk).filter((v): v is number => typeof v === 'number');
@@ -128,6 +147,10 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
           <PlayerStatsTable
             players={players}
             title={`Estatísticas Individuais — ${team1} vs ${team2}`}
+            team1Name={team1}
+            team2Name={team2}
+            winnerTeam={winner}
+            totalRounds={roundsCount}
           />
         </div>
       )}

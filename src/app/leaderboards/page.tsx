@@ -54,7 +54,10 @@ interface ComputedPlayerRow extends PlayerMapStats {
   initials: string;
 }
 
-export default function LeaderboardsPage() {
+export default function LeaderboardsPage(props: {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const [playersList, setPlayersList] = useState<LeaderboardPlayer[]>([...MOCK_LEADERBOARD_PLAYERS]);
   const [selectedMap, setSelectedMap] = useState<string>('All');
   const [selectedSide, setSelectedSide] = useState<string>('Both sides');
   const [selectedRole, setSelectedRole] = useState<string>('All roles');
@@ -64,6 +67,19 @@ export default function LeaderboardsPage() {
 
   const [sortKey, setSortKey] = useState<SortKey>('hltv');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  React.useEffect(() => {
+    fetch('/api/leaderboards')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.players && Array.isArray(data.players) && data.players.length > 0) {
+          setPlayersList(data.players);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const activePlayers = playersList.length > 0 ? playersList : MOCK_LEADERBOARD_PLAYERS;
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -87,7 +103,7 @@ export default function LeaderboardsPage() {
 
   // 1. Processar métricas dos jogadores de acordo com o mapa selecionado
   const computedPlayers = useMemo<ComputedPlayerRow[]>(() => {
-    return MOCK_LEADERBOARD_PLAYERS.map((player, idx) => {
+    return activePlayers.map((player, idx) => {
       const stats: PlayerMapStats =
         selectedMap !== 'All' && player.mapStats[selectedMap]
           ? player.mapStats[selectedMap]

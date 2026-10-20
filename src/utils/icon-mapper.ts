@@ -225,6 +225,11 @@ function normalizeWeaponKey(weapon: string | number): string {
   cleaned = cleaned.replace(/^weapon_/, '');
   cleaned = cleaned.replace(/[-\s]/g, '_');
 
+  const numVal = Number(cleaned);
+  if (!isNaN(numVal) && NUMERIC_WEAPON_ID_MAP[numVal]) {
+    return NUMERIC_WEAPON_ID_MAP[numVal];
+  }
+
   const wpnMatch = cleaned.match(/^wpn_#?(\d+)$/);
   if (wpnMatch) {
     return NUMERIC_WEAPON_ID_MAP[Number(wpnMatch[1])] ?? 'unknown';
