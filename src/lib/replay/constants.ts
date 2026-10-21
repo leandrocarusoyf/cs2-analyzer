@@ -6,13 +6,13 @@ export const FOV_CONE_REACH_PX = 25 as const;
 
 export const TEAM_CANONICAL_COLORS = Object.freeze({
   CT: '#2563EB',
-  TERRORIST: '#EA580C',
-  T: '#EA580C',
+  TERRORIST: '#EAB308',
+  T: '#EAB308',
 } as const);
 
 export const TELESTRATOR_COLORS = Object.freeze({
   CT_BLUE: '#2563EB',
-  TR_ORANGE: '#EA580C',
+  TR_ORANGE: '#EAB308',
   WARNING_YELLOW: '#FACC15',
   WHITE: '#FFFFFF',
 } as const);

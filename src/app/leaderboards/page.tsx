@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from 'react';
 import {
-  MOCK_LEADERBOARD_PLAYERS,
   type LeaderboardPlayer,
   type PlayerMapStats,
 } from '../../data/leaderboards-data.ts';
@@ -57,7 +56,7 @@ interface ComputedPlayerRow extends PlayerMapStats {
 export default function LeaderboardsPage(props: {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [playersList, setPlayersList] = useState<LeaderboardPlayer[]>([...MOCK_LEADERBOARD_PLAYERS]);
+  const [playersList, setPlayersList] = useState<LeaderboardPlayer[]>([]);
   const [selectedMap, setSelectedMap] = useState<string>('All');
   const [selectedSide, setSelectedSide] = useState<string>('Both sides');
   const [selectedRole, setSelectedRole] = useState<string>('All roles');
@@ -79,7 +78,7 @@ export default function LeaderboardsPage(props: {
       .catch(() => {});
   }, []);
 
-  const activePlayers = playersList.length > 0 ? playersList : MOCK_LEADERBOARD_PLAYERS;
+  const activePlayers = playersList;
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -109,14 +108,6 @@ export default function LeaderboardsPage(props: {
           ? player.mapStats[selectedMap]
           : player.overall;
 
-      // Ajuste sutil caso um lado específico (CT ou T) seja selecionado
-      let sideHltvMod = 0;
-      if (selectedSide === 'CT') {
-        sideHltvMod = player.ctRole.includes('Anchor') ? 0.02 : 0.01;
-      } else if (selectedSide === 'T') {
-        sideHltvMod = player.tRole.includes('Pack') || player.tRole.includes('Entry') ? 0.03 : 0.01;
-      }
-
       return {
         id: player.id,
         rank: idx + 1,
@@ -126,7 +117,7 @@ export default function LeaderboardsPage(props: {
         ctRole: player.ctRole,
         roleCategory: player.roleCategory,
         initials: player.name.slice(0, 2).toUpperCase(),
-        hltv: Number((stats.hltv + sideHltvMod).toFixed(2)),
+        hltv: stats.hltv,
         adr: stats.adr,
         kd: stats.kd,
         kpr: stats.kpr,
@@ -137,7 +128,7 @@ export default function LeaderboardsPage(props: {
         rounds: stats.rounds,
       };
     });
-  }, [selectedMap, selectedSide]);
+  }, [activePlayers, selectedMap, selectedSide]);
 
   // 2. Filtrar por função (Role) e busca textual
   const filteredPlayers = useMemo(() => {

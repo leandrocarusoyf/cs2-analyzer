@@ -2,15 +2,15 @@ import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { RecentPerformanceChart } from '../src/components/stats/RecentPerformanceChart.tsx';
-import { MOCK_RECENT_TELEMETRY } from '../src/data/recent-performance-mock.ts';
+import { MOCK_RECENT_TELEMETRY } from './fixtures/recent-performance-mock.ts';
 
 describe('RecentPerformanceChart Telemetry HUD Component', () => {
   it('deve renderizar o contêiner principal com dimensões travadas e 10 colunas de partidas', () => {
-    render(<RecentPerformanceChart />);
+    render(<RecentPerformanceChart telemetryData={MOCK_RECENT_TELEMETRY} />);
 
     const container = screen.getByTestId('recent-performance-chart-container');
     expect(container).toBeTruthy();
-    expect(container.className).toContain('h-[370px]');
+    expect(container.className).toContain('min-h-[370px]');
 
     // 10 colunas de partidas renderizadas no rodapé
     for (let i = 0; i < 10; i++) {
@@ -19,7 +19,7 @@ describe('RecentPerformanceChart Telemetry HUD Component', () => {
   });
 
   it('deve renderizar os botões de lado tático (BOTH, T, CT) e alternar a visibilidade das curvas', () => {
-    render(<RecentPerformanceChart />);
+    render(<RecentPerformanceChart telemetryData={MOCK_RECENT_TELEMETRY} />);
 
     const btnBoth = screen.getByTestId('side-filter-both');
     const btnT = screen.getByTestId('side-filter-t');
@@ -50,7 +50,7 @@ describe('RecentPerformanceChart Telemetry HUD Component', () => {
   });
 
   it('deve permitir alternar a métrica selecionada e recalcular o badge de média', () => {
-    render(<RecentPerformanceChart />);
+    render(<RecentPerformanceChart telemetryData={MOCK_RECENT_TELEMETRY} />);
 
     const averageBadge = screen.getByTestId('chart-average-badge');
     expect(averageBadge.textContent).toContain('Average:');
@@ -69,7 +69,7 @@ describe('RecentPerformanceChart Telemetry HUD Component', () => {
   });
 
   it('deve possuir hitboxes ampliadas (r="15") e exibir tooltip com data, mapa, adversário, placar e métrica no hover', () => {
-    render(<RecentPerformanceChart />);
+    render(<RecentPerformanceChart telemetryData={MOCK_RECENT_TELEMETRY} />);
 
     // Inicialmente sem tooltip
     expect(screen.queryByTestId('match-tooltip')).toBeNull();
@@ -118,7 +118,7 @@ describe('RecentPerformanceChart Telemetry HUD Component', () => {
   });
 
   it('deve exibir placar em vermelho (#EF4444) em caso de derrota (ex: partida 2 contra Spirit 8 - 13)', () => {
-    render(<RecentPerformanceChart />);
+    render(<RecentPerformanceChart telemetryData={MOCK_RECENT_TELEMETRY} />);
 
     const hitbox2 = screen.getByTestId('hitbox-overall-2');
     fireEvent.mouseEnter(hitbox2);
@@ -136,7 +136,7 @@ describe('RecentPerformanceChart Telemetry HUD Component', () => {
   });
 
   it('suporta interação via teclado (focus e blur) nas hitboxes para acessibilidade', () => {
-    render(<RecentPerformanceChart />);
+    render(<RecentPerformanceChart telemetryData={MOCK_RECENT_TELEMETRY} />);
 
     const hitbox5 = screen.getByTestId('hitbox-overall-5');
     fireEvent.focus(hitbox5);

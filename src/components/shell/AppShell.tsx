@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import { Sidebar } from './Sidebar.tsx';
@@ -22,7 +23,7 @@ export function AppShell({ children }: AppShellProps) {
           <Sidebar />
         </Suspense>
         <div className="flex flex-1 flex-col h-screen max-h-screen min-w-0 overflow-hidden">
-          <main className="flex-1 min-h-0 overflow-hidden flex flex-col bg-[#0B0E0F]">{children}</main>
+          <main className="flex-1 min-h-0 overflow-y-auto lg:overflow-hidden flex flex-col bg-[#0B0E0F]">{children}</main>
         </div>
       </div>
     );
@@ -50,6 +51,7 @@ export function AppShell({ children }: AppShellProps) {
         <Suspense fallback={<div className="h-12 border-b border-[#1F2629] bg-[#111618]" />}>
           <FilterBar />
         </Suspense>
+        <nav aria-label="Navegação móvel" className="flex gap-5 overflow-x-auto border-b border-border-subtle px-4 py-3 text-xs md:hidden"><Link href="/matches">Partidas</Link><Link href="/stats/player">Jogadores</Link><Link href="/leaderboards">Ranking</Link></nav>
         <main className={`flex-1 bg-[#0B0E0F] ${isStatsRoute ? '' : 'p-4 lg:p-6'}`}>{children}</main>
       </div>
     </div>

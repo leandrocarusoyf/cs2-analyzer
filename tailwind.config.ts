@@ -32,14 +32,14 @@ const config: Config = {
         'ct-border': '#1E3A5F',
 
         // Faction Colors: Terrorist (Safety Amber)
-        tr: '#FF8C00',
-        'tr-hover': '#F97316',
+        tr: '#EAB308',
+        'tr-hover': '#FACC15',
         'tr-bg': '#26160A',
         'tr-border': '#3D2411',
 
         // Typography Hierarchy (calibrated for WCAG AA ≥ 4.5:1 on dark surfaces)
         'text-primary': '#FFFFFF',
-        'text-secondary': '#7E8F98',
+        'text-secondary': '#A1A1AA',
         'text-muted': '#9BA8B0',
         'text-dim': '#4B5563',
 
@@ -52,7 +52,7 @@ const config: Config = {
         borderSubtle: '#1F2629',
         borderCard: '#1B2226',
         textPrimary: '#FFFFFF',
-        textSecondary: '#7E8F98',
+        textSecondary: '#A1A1AA',
       },
       borderRadius: {
         none: '0px',

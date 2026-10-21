@@ -26,3 +26,87 @@ Stack: error: duplicate key value violates unique constraint "matches_pkey"
     at async persistToPostgres (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:1919:20)
     at async processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:2083:17)
 
+[2026-10-21T00:25:29.740Z] Demo: C:\Users\Leandro\AppData\Local\Temp\cs2-demo-pipeline-RuwlSn\furia-vs-imperial.dem
+Erro: Cannot read properties of undefined (reading 'replay_path')
+Stack: TypeError: Cannot read properties of undefined (reading 'replay_path')
+    at persistMatch (D:\Users\leand\cs2-analyzer\scripts\persist-match.mjs:39:81)
+    at processDemoFile (D:\Users\leand\cs2-analyzer\scripts\process-demo.mjs:2001:17)
+    at D:\Users\leand\cs2-analyzer\tests\demo-ingestion-pipeline.test.ts:176:20
+    at file:///D:/Users/leand/cs2-analyzer/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+[2026-10-21T00:25:29.813Z] Demo: C:\Users\Leandro\AppData\Local\Temp\cs2-demo-pipeline-aZIsG4\furia-vs-aurora-m2-inferno.dem
+Erro: Cannot read properties of undefined (reading 'replay_path')
+Stack: TypeError: Cannot read properties of undefined (reading 'replay_path')
+    at persistMatch (D:\Users\leand\cs2-analyzer\scripts\persist-match.mjs:39:81)
+    at processDemoFile (D:\Users\leand\cs2-analyzer\scripts\process-demo.mjs:2001:17)
+    at D:\Users\leand\cs2-analyzer\tests\demo-ingestion-pipeline.test.ts:534:17
+    at file:///D:/Users/leand/cs2-analyzer/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+[2026-10-21T00:25:29.841Z] Demo: C:\Users\Leandro\AppData\Local\Temp\cs2-demo-pipeline-fdqRAc\furia-vs-aurora-m1-dust2.dem
+Erro: Cannot read properties of undefined (reading 'replay_path')
+Stack: TypeError: Cannot read properties of undefined (reading 'replay_path')
+    at persistMatch (D:\Users\leand\cs2-analyzer\scripts\persist-match.mjs:39:81)
+    at processDemoFile (D:\Users\leand\cs2-analyzer\scripts\process-demo.mjs:2001:17)
+    at D:\Users\leand\cs2-analyzer\tests\demo-ingestion-pipeline.test.ts:718:18
+    at file:///D:/Users/leand/cs2-analyzer/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+[2026-10-21T00:25:38.897Z] Demo: D:\Users\leand\cs2-analyzer\data\replays\upload_1792542338606_match-test.dem
+Erro: UnknownFile
+Stack: Error: UnknownFile
+    at extractRawDemoWithParser (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:283:31)
+    at processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:1929:27)
+
+[2026-10-21T00:25:39.055Z] Demo: D:\Users\leand\cs2-analyzer\data\replays\upload_1792542338923_match-error.dem
+Erro: UnknownFile
+Stack: Error: UnknownFile
+    at extractRawDemoWithParser (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:283:31)
+    at processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:1929:27)
+
+[2026-10-21T00:25:39.200Z] Demo: D:\Users\leand\cs2-analyzer\data\replays\upload_1792542339072_furia-vs-aurora-m1-dust2.dem
+Erro: UnknownFile
+Stack: Error: UnknownFile
+    at extractRawDemoWithParser (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:283:31)
+    at processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:1929:27)
+
+[2026-10-21T00:27:04.135Z] Demo: D:\Users\leand\cs2-analyzer\data\replays\upload_1792542423940_match-test.dem
+Erro: UnknownFile
+Stack: Error: UnknownFile
+    at extractRawDemoWithParser (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:283:31)
+    at processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:1929:27)
+
+[2026-10-21T00:27:04.176Z] Demo: C:\Users\Leandro\AppData\Local\Temp\cs2-demo-pipeline-ickrlC\furia-vs-imperial.dem
+Erro: Cannot read properties of undefined (reading 'replay_path')
+Stack: TypeError: Cannot read properties of undefined (reading 'replay_path')
+    at persistMatch (D:\Users\leand\cs2-analyzer\scripts\persist-match.mjs:39:81)
+    at processDemoFile (D:\Users\leand\cs2-analyzer\scripts\process-demo.mjs:2001:17)
+    at D:\Users\leand\cs2-analyzer\tests\demo-ingestion-pipeline.test.ts:176:20
+    at file:///D:/Users/leand/cs2-analyzer/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+[2026-10-21T00:27:04.361Z] Demo: C:\Users\Leandro\AppData\Local\Temp\cs2-demo-pipeline-JRPuo5\furia-vs-aurora-m2-inferno.dem
+Erro: Cannot read properties of undefined (reading 'replay_path')
+Stack: TypeError: Cannot read properties of undefined (reading 'replay_path')
+    at persistMatch (D:\Users\leand\cs2-analyzer\scripts\persist-match.mjs:39:81)
+    at processDemoFile (D:\Users\leand\cs2-analyzer\scripts\process-demo.mjs:2001:17)
+    at D:\Users\leand\cs2-analyzer\tests\demo-ingestion-pipeline.test.ts:534:17
+    at file:///D:/Users/leand/cs2-analyzer/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+[2026-10-21T00:27:04.381Z] Demo: D:\Users\leand\cs2-analyzer\data\replays\upload_1792542424174_match-error.dem
+Erro: UnknownFile
+Stack: Error: UnknownFile
+    at extractRawDemoWithParser (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:283:31)
+    at processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:1929:27)
+
+[2026-10-21T00:27:04.482Z] Demo: C:\Users\Leandro\AppData\Local\Temp\cs2-demo-pipeline-zUYTAF\furia-vs-aurora-m1-dust2.dem
+Erro: Cannot read properties of undefined (reading 'replay_path')
+Stack: TypeError: Cannot read properties of undefined (reading 'replay_path')
+    at persistMatch (D:\Users\leand\cs2-analyzer\scripts\persist-match.mjs:39:81)
+    at processDemoFile (D:\Users\leand\cs2-analyzer\scripts\process-demo.mjs:2001:17)
+    at D:\Users\leand\cs2-analyzer\tests\demo-ingestion-pipeline.test.ts:718:18
+    at file:///D:/Users/leand/cs2-analyzer/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+[2026-10-21T00:27:04.642Z] Demo: D:\Users\leand\cs2-analyzer\data\replays\upload_1792542424418_furia-vs-aurora-m1-dust2.dem
+Erro: UnknownFile
+Stack: Error: UnknownFile
+    at extractRawDemoWithParser (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:283:31)
+    at processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:1929:27)
+

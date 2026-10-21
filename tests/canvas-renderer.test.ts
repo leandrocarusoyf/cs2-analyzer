@@ -146,11 +146,11 @@ describe('Canvas 2D Tactical Renderer (canvas-renderer)', () => {
     });
   });
 
-  it('deve aplicar raio de 12px, linha de visão de 18px e cores táticas exatas (#00d2d3 para CT e #ff9f43 para T)', () => {
+  it('deve aplicar raio de 12px, linha de visão de 18px e cores táticas exatas (#3B82F6 para CT e #EAB308 para T)', () => {
     expect(PLAYER_MARKER_RADIUS).toBe(12);
     expect(PLAYER_AIM_LINE_LENGTH).toBe(18);
-    expect(TEAM_COLORS.CT).toBe('#00d2d3');
-    expect(TEAM_COLORS.T).toBe('#ff9f43');
+    expect(TEAM_COLORS.CT).toBe('#3B82F6');
+    expect(TEAM_COLORS.T).toBe('#EAB308');
 
     const ctRender = createMockContext2D();
     const ctPlayer = createSamplePlayer({ percentX: 50, percentY: 50, yaw: 0 });
@@ -165,7 +165,7 @@ describe('Canvas 2D Tactical Renderer (canvas-renderer)', () => {
     );
     expect(ctRender.mocks.moveTo).toHaveBeenCalledWith(512, 512);
     expect(ctRender.mocks.lineTo).toHaveBeenCalledWith(530, 512);
-    expect(ctRender.fillStyles).toContain('#00d2d3');
+    expect(ctRender.fillStyles).toContain('#3B82F6');
     expect(ctRender.mocks.fillText).toHaveBeenCalledWith('1', 512, 512);
 
     const tRender = createMockContext2D();
@@ -185,7 +185,7 @@ describe('Canvas 2D Tactical Renderer (canvas-renderer)', () => {
     );
     expect(tRender.mocks.moveTo).toHaveBeenCalledWith(256, 768);
     expect(tRender.mocks.lineTo).toHaveBeenCalledWith(256, 750);
-    expect(tRender.fillStyles).toContain('#ff9f43');
+    expect(tRender.fillStyles).toContain('#EAB308');
     expect(tRender.mocks.fillText).toHaveBeenCalledWith('6', 256, 768);
   });
 
@@ -200,7 +200,7 @@ describe('Canvas 2D Tactical Renderer (canvas-renderer)', () => {
     drawPlayer(deadRender.ctx, deadPlayer, 3, 'CT');
 
     expect(deadRender.alphas).toContain(DEAD_PLAYER_OPACITY);
-    expect(deadRender.strokeStyles).toContain('#00d2d3');
+    expect(deadRender.strokeStyles).toContain('#3B82F6');
     expect(deadRender.mocks.fillText).not.toHaveBeenCalled();
   });
 

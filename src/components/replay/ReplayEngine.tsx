@@ -19,7 +19,6 @@ import {
   SMOKE_DURATION_SECONDS,
 } from '../../lib/replay/constants.ts';
 import {
-  FALLBACK_PLAYERS_MANIFEST,
   FALLBACK_WEAPONS_MANIFEST,
   fetchAndDecompressReplay,
 } from '../../lib/replay/decompress.ts';
@@ -113,11 +112,11 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
   const team1Name =
     matchData?.team1 ??
     replayPayload?.teams?.team1?.name ??
-    'FURIA';
+    '—';
   const team2Name =
     matchData?.team2 ??
     replayPayload?.teams?.team2?.name ??
-    'Aurora';
+    '—';
 
   const playersManifest: readonly PlayerManifestEntry[] = useMemo(() => {
     if (replayPayload?.playersManifest && replayPayload.playersManifest.length > 0) {
@@ -131,7 +130,7 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
         initialTeam: (p.team === 'CT' || p.team === matchData.team1 ? 'CT' : 'T') as TeamSide,
       }));
     }
-    return FALLBACK_PLAYERS_MANIFEST;
+    return [];
   }, [replayPayload?.playersManifest, matchData]);
 
   const weaponsManifest: readonly WeaponManifestEntry[] =
@@ -159,15 +158,13 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
   const endTick = activeRound?.endTick ?? 1000;
 
   const team1Score =
-    (activeRound as any)?.tScore ??
-    matchData?.score_t1 ??
     replayPayload?.teams?.team1?.score ??
-    13;
+    matchData?.score_t1 ??
+    0;
   const team2Score =
-    (activeRound as any)?.ctScore ??
-    matchData?.score_t2 ??
     replayPayload?.teams?.team2?.score ??
-    10;
+    matchData?.score_t2 ??
+    0;
 
   // Interpolação precisa alimentada diretamente pelos snapshots do round
   const interpolatedPlayers = useMemo(() => {
@@ -185,8 +182,12 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
       framesToUse,
       tickToUse,
       mapName,
+      Object.fromEntries(playersManifest.map(p => {
+        const swapped = roundNumber <= 24 ? roundNumber > 12 : Math.floor((roundNumber - 25) / 3) % 2 === 1;
+        return [String(p.id), { id: p.id, name: p.name, steamId: p.steamId, team: swapped ? (p.initialTeam === 'CT' ? 'T' : 'CT') : p.initialTeam }];
+      })),
     );
-  }, [activeRound?.tacticalFrames, activeRound?.frames, activeRound?.startTick, playback.currentTick, mapName]);
+  }, [activeRound?.tacticalFrames, activeRound?.frames, activeRound?.startTick, playback.currentTick, mapName, playersManifest, roundNumber]);
 
   const {
     playerMoneyById,
@@ -487,7 +488,7 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
   return (
     <section
       aria-labelledby="replayer-heading"
-      className="h-screen max-h-screen overflow-hidden flex flex-col p-2 sm:p-2.5 bg-[#0B0E0F] select-none gap-2"
+      className="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden flex flex-col p-2 sm:p-2.5 bg-[#0B0E0F] select-none gap-2"
     >
       <MatchHeaderHUD
         matchId={matchId}
@@ -500,6 +501,7 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
         totalRounds={rounds.length}
         currentTick={playback.currentTick}
         startTick={startTick}
+        freezeEndTick={(activeRound as any)?.freezeEndTick}
         tickrate={tickrate}
         bombState={(activeBomb?.state as BombLifecycleState) ?? null}
         bombPlantTick={bombPlantTick}
@@ -520,12 +522,12 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
             Descompactando .bin.gz e interpolando vetores de movimento 2D
           </div>
         </div>
-      ) : (
+      ) : !replayPayload ? (<div role="alert" className="p-8 text-zinc-400">Replay indisponível. Verifique a ingestão desta partida.</div>) : (
         <>
-          <div className="flex-1 min-h-0 flex gap-2 sm:gap-2.5 overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-2 sm:gap-2.5 lg:overflow-hidden">
             {/* Viewport Tático Central */}
-            <div className="flex-1 min-h-0 min-w-0 flex items-center justify-center relative overflow-hidden rounded-[2px] border border-[#1F2629] bg-[#0B0E0F] p-1">
-              <div className="relative h-full max-h-full max-w-full aspect-square flex items-center justify-center">
+            <div className="h-[calc(100vw-2rem)] shrink-0 lg:h-auto lg:flex-1 min-h-0 min-w-0 flex items-center justify-center relative overflow-hidden rounded-[2px] border border-[#1F2629] bg-[#0B0E0F] p-1" style={{ containerType: "size" }}>
+              <div className="relative flex items-center justify-center" style={{ width: "min(100cqw, 100cqh)", height: "min(100cqw, 100cqh)" }}>
                 {/* Camada Z-20: Killfeed */}
                 <LiveKillfeed
                   kills={activeKills}
@@ -545,6 +547,7 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
                   players={interpolatedPlayers}
                   playersManifest={playersManifest}
                   roundNumber={roundNumber}
+                  trajectories={(activeRound as any)?.trajectories?.length ? (activeRound as any).trajectories : ((activeRound as any)?.utility || []).filter((u:any)=>Array.isArray(u[8])).map((u:any)=>({id:`${u[0]}-${u[7]}`,type:u[1],points:u[8].map((p:any)=>({tick:p[0],x:p[1],y:p[2],z:p[3]}))}))}
                   utilities={activeUtilities}
                   bomb={activeBomb}
                   recentDeaths={recentDeaths}
@@ -580,7 +583,7 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
           <div
             aria-label="Controles de Timeline e Rounds"
             data-testid="timeline-controls"
-            className="h-12 sm:h-14 max-h-14 px-3 py-1 bg-[#111618] border border-[#1F2629] rounded-[2px] flex items-center justify-between gap-3 text-white select-none shrink-0"
+            className="min-h-14 overflow-x-auto px-3 py-1 bg-[#111618] border border-[#1F2629] rounded-[2px] flex items-center justify-between gap-3 text-white select-none shrink-0"
           >
             <PlaybackControls
               isPlaying={playback.isPlaying}

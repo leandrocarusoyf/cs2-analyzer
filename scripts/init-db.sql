@@ -52,3 +52,9 @@ CREATE INDEX IF NOT EXISTS idx_match_maps_match_id ON match_maps (match_id);
 CREATE INDEX IF NOT EXISTS idx_player_stats_match_id ON player_stats (match_id);
 CREATE INDEX IF NOT EXISTS idx_player_stats_steamid ON player_stats (player_steamid);
 
+ALTER TABLE match_maps ADD COLUMN IF NOT EXISTS map_key TEXT;
+ALTER TABLE match_maps ADD COLUMN IF NOT EXISTS map_number INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE match_maps ADD COLUMN IF NOT EXISTS replay_path TEXT;
+ALTER TABLE match_maps ADD COLUMN IF NOT EXISTS demo_path TEXT;
+ALTER TABLE match_maps ADD COLUMN IF NOT EXISTS demo_hash TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_map_identity ON match_maps(match_id, map_key);

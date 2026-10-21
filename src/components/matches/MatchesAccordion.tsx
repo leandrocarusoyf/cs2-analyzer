@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { MatchWithDetails, MatchMapDetail } from '../../lib/queries/matches.ts';
 import { DynamicTeamLogo } from '../common/DynamicTeamLogo.tsx';
 
@@ -20,9 +21,9 @@ function getMapThumbnail(raw: string): string {
 }
 
 function formatGroupDate(dateVal: Date | string | undefined | null): string {
-  if (!dateVal) return 'Sun Sep 20 2026';
+  if (!dateVal) return 'Data indisponível';
   const d = new Date(dateVal);
-  if (isNaN(d.getTime())) return 'Sun Sep 20 2026';
+  if (isNaN(d.getTime())) return 'Data indisponível';
   return d.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -32,6 +33,15 @@ function formatGroupDate(dateVal: Date | string | undefined | null): string {
 }
 
 export function MatchesAccordion({ initialMatches }: MatchesAccordionProps) {
+  const router = useRouter();
+  const [matchDate, setMatchDate] = useState('');
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState('');
+  async function deleteMatch(id: string) {
+    setDeleting(id); setDeleteError('');
+    try { const res=await fetch(`/api/matches/${id}`,{method:'DELETE'}); if(!res.ok) throw new Error((await res.json()).error); router.refresh(); }
+    catch(e) { setDeleteError(e instanceof Error ? e.message : 'Falha ao excluir'); } finally {setDeleting(null);}
+  }
   const [activeTab, setActiveTab] = useState<'your' | 'private' | 'public'>('public');
   const [selectedMap, setSelectedMap] = useState<string>('all');
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
@@ -53,6 +63,7 @@ export function MatchesAccordion({ initialMatches }: MatchesAccordionProps) {
       return;
     }
 
+    if (!matchDate) {setUploadStatus('error');setUploadMessage('Informe a data da partida antes de enviar a demo.');return;}
     setUploadStatus('uploading');
     setUploadMessage(
       files.length > 1
@@ -62,6 +73,7 @@ export function MatchesAccordion({ initialMatches }: MatchesAccordionProps) {
 
     try {
       const formData = new FormData();
+      formData.append('playedAt', `${matchDate}T12:00:00.000Z`);
       for (const file of files) {
         formData.append('files', file);
       }
@@ -76,6 +88,7 @@ export function MatchesAccordion({ initialMatches }: MatchesAccordionProps) {
         throw new Error(data.error || 'Falha no processamento da demo');
       }
 
+      router.refresh();
       setUploadStatus('success');
       setUploadMessage(
         data.message ||
@@ -153,6 +166,8 @@ export function MatchesAccordion({ initialMatches }: MatchesAccordionProps) {
 
   return (
     <div className="w-full max-w-[1360px] mx-auto space-y-4 select-none font-sans text-white">
+      {deleteError && <p role="alert" className="text-red-400">{deleteError}</p>}
+      <label className="flex items-center gap-3 text-xs text-zinc-400">Data da partida<input type="date" value={matchDate} onChange={e=>setMatchDate(e.target.value)} className="border border-border-subtle bg-surface px-3 py-2 font-mono tabular-nums text-zinc-200"/></label>
       {/* 1. Header Tabs: Your Matches | Private Demos | Public Demos */}
       <div className="flex items-center gap-8 border-b border-[#1F2629] pb-0 text-sm">
         <button
@@ -530,14 +545,14 @@ export function MatchesAccordion({ initialMatches }: MatchesAccordionProps) {
                               {/* Right: Actions */}
                               <div className="flex items-center gap-2">
                                 <Link
-                                  href={`/matches/${match.id}`}
+                                  href={`/matches/${mapItem.id}`}
                                   className="rounded-[2px] border border-[#1F2629] bg-[#0B0E0F] px-2.5 py-1 text-xs font-mono font-medium text-[#9BA8B0] hover:text-white hover:border-[#6B7A82] transition-colors"
                                 >
                                   Overview
                                 </Link>
 
                                 <Link
-                                  href={`/replayer/${match.id}`}
+                                  href={`/replayer/${mapItem.id}`}
                                   className="flex items-center gap-1.5 rounded-[2px] border border-[#00FFA3]/60 bg-[#00FFA3]/10 px-3 py-1 text-xs font-mono font-bold text-[#00FFA3] hover:bg-[#00FFA3] hover:text-[#0B0E0F] transition-all"
                                 >
                                   <svg
@@ -554,6 +569,9 @@ export function MatchesAccordion({ initialMatches }: MatchesAccordionProps) {
                         })}
                       </div>
                     )}
+                    <div className="flex justify-end border-t border-border-subtle px-4 py-2">
+                      <button type="button" disabled={deleting===match.id} onClick={()=>deleteMatch(match.id)} className="text-xs text-zinc-400 hover:text-red-400 disabled:opacity-50">{deleting===match.id?'Excluindo…':'Excluir série e arquivos'}</button>
+                    </div>
                   </article>
                 );
               })}

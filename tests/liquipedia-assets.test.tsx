@@ -122,35 +122,8 @@ describe('Fallback visual states', () => {
   });
 });
 
-describe('Liquipedia & Local Assets component integration', () => {
-  afterEach(() => {
-    cleanup();
-    vi.restoreAllMocks();
-  });
-
-  it('TabIntro resolve o avatar do jogador via liquipedia.getPlayerProfile ou asset local', async () => {
-    const spy = vi.spyOn(liquipedia, 'getPlayerProfile').mockResolvedValue({
-      playerNickname: 'KSCERATO',
-      teamSlug: 'FURIA',
-      avatarUrl: '/players/kscerato.png',
-      fetchedAt: Date.now(),
-    });
-
-    render(<TabIntro />);
-    expect(spy).toHaveBeenCalledWith('kscerato', 'FURIA Esports');
-    // Aguarda atualização de estado
-    await screen.findByAltText('kscerato profile picture');
-  });
-
-  it('RecentPerformanceChart renderiza os logos instantaneamente com caminhos locais', async () => {
-    render(<RecentPerformanceChart />);
-    const liquidLogo = await screen.findAllByAltText('Liquid logo');
-    expect(liquidLogo.length).toBeGreaterThanOrEqual(1);
-    expect(liquidLogo[0].getAttribute('src')).toBe('/teams/liquid.svg');
-
-    const fazeLogo = await screen.findAllByAltText('FaZe logo');
-    expect(fazeLogo.length).toBeGreaterThanOrEqual(1);
-    expect(fazeLogo[0].getAttribute('src')).toBe('/teams/faze.svg');
-  });
+describe('Empty analytics do not fabricate players', () => {
+ afterEach(()=>cleanup());
+ it('requests a selection instead of a fixed player',()=>{render(<TabIntro/>);expect(screen.getByText(/Selecione um jogador/)).toBeTruthy();});
+ it('does not render fake opponent logos',()=>{render(<RecentPerformanceChart telemetryData={[]}/>);expect(screen.queryByAltText('Liquid logo')).toBeNull();});
 });
-

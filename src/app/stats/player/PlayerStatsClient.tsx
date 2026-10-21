@@ -47,7 +47,7 @@ export function PlayerStatsClient({ initialPerformance }: PlayerStatsClientProps
     searchParams?.get('targetPlayerId') ||
     initialPerformance?.steamId ||
     initialPerformance?.nickname ||
-    '76561198058500492';
+    '';
 
   const [performance, setPerformance] = React.useState<PlayerPerformanceResult | null>(
     initialPerformance ?? null,
@@ -67,7 +67,7 @@ export function PlayerStatsClient({ initialPerformance }: PlayerStatsClientProps
     fetch(`/api/stats/player/${encodeURIComponent(selectedPlayerId)}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (isMounted && data) {
+        if (isMounted) {
           setPerformance(data);
         }
       })
@@ -78,6 +78,12 @@ export function PlayerStatsClient({ initialPerformance }: PlayerStatsClientProps
     };
   }, [selectedPlayerId, initialPerformance]);
 
+  const [breakdowns,setBreakdowns] = React.useState<any>(null);
+  React.useEffect(()=>{
+    const controller=new AbortController();setBreakdowns(null);
+    if(selectedPlayerId) fetch(`/api/stats/player/${encodeURIComponent(selectedPlayerId)}/breakdowns`,{signal:controller.signal}).then(r=>r.ok?r.json():null).then(setBreakdowns).catch(()=>{});
+    return ()=>controller.abort();
+  },[selectedPlayerId]);
   const rawTab = currentParams.get('tab');
   const activeTab: PlayerStatsTabId =
     rawTab && VALID_TAB_IDS.has(rawTab as PlayerStatsTabId)
@@ -180,7 +186,7 @@ export function PlayerStatsClient({ initialPerformance }: PlayerStatsClientProps
         {activeTab === 'intro' && (
           <TabIntro
             overview={mappedOverview}
-            telemetryData={performance?.telemetry}
+            telemetryData={performance?.telemetry} buyTypes={breakdowns?.buyTypes}
           />
         )}
         {activeTab === 'roles' && (
@@ -189,9 +195,9 @@ export function PlayerStatsClient({ initialPerformance }: PlayerStatsClientProps
             matchesCount={performance?.matchesCount ?? 1}
           />
         )}
-        {activeTab === 'weapons' && <TabWeapons />}
-        {activeTab === 'buy_types' && <TabBuyTypes />}
-        {activeTab === 'maps' && <TabMaps />}
+        {activeTab === 'weapons' && <TabWeapons rows={breakdowns?.weapons}/>}
+        {activeTab === 'buy_types' && <TabBuyTypes rows={breakdowns?.buyTypes}/>}
+        {activeTab === 'maps' && <TabMaps rows={breakdowns?.maps}/>}
       </div>
     </section>
   );

@@ -9,7 +9,7 @@ let execMockOutput: { err: any; stdout: string; stderr: string } = {
 
 vi.mock('node:child_process', async (importOriginal) => {
   const actual: any = await importOriginal();
-  const mockExec = (cmd: any, options: any, callback: any) => {
+  const mockExec = (cmd: any, args: any, options: any, callback: any) => {
     const cb = typeof options === 'function' ? options : callback;
     if (cb) {
       cb(execMockOutput.err, { stdout: execMockOutput.stdout, stderr: execMockOutput.stderr });
@@ -18,8 +18,8 @@ vi.mock('node:child_process', async (importOriginal) => {
   };
   return {
     ...actual,
-    default: { ...actual.default, exec: mockExec },
-    exec: mockExec,
+    default: { ...actual.default, execFile: mockExec },
+    execFile: mockExec,
   };
 });
 
@@ -27,6 +27,7 @@ vi.mock('node:fs/promises', async (importOriginal) => {
   const actual: any = await importOriginal();
   return {
     ...actual,
+    utimes: vi.fn().mockResolvedValue(undefined),
     mkdir: vi.fn().mockResolvedValue(undefined),
     writeFile: vi.fn().mockResolvedValue(undefined),
   };
@@ -40,7 +41,7 @@ function createMockUploadRequest(file: any): NextRequest {
     method: 'POST',
   });
   const mockFormData = {
-    get: (key: string) => (key === 'file' ? file : null),
+    get: (key: string) => (key === 'file' ? file : key === 'playedAt' ? '2026-10-18T12:00:00Z' : null),
   };
   req.formData = vi.fn().mockResolvedValue(mockFormData as any);
   return req;
@@ -146,7 +147,7 @@ Round 1: Vitality venceu
     });
     req.formData = vi.fn().mockResolvedValue({
       getAll: (key: string) => (key === 'files' ? [file1, file2] : []),
-      get: () => null,
+      get: (key:string) => key==='playedAt'?'2026-10-18T12:00:00Z':null,
     } as any);
 
     execMockOutput = {

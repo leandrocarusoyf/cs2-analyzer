@@ -1,0 +1,17 @@
+
+ RUN  v3.2.7 D:/Users/leand/cs2-analyzer
+
+ ✓ tests/sidebar.test.tsx (2 tests) 167ms
+stderr | tests/replayer-ui.test.tsx > Replayer Tactical UI (TeamRosterPanel, TimelineControls, KillFeed) > deve renderizar o layout do replayer sem crash para a partida canônica 54e43847-2490-4751-9981-831bf7cf367c
+[ReplayEngine] Aviso ao carregar metadados: [TypeError: RequestInit: Expected signal ("AbortSignal {}") to be an instance of AbortSignal.]
+
+stderr | tests/replayer-ui.test.tsx > Replayer Tactical UI (TeamRosterPanel, TimelineControls, KillFeed) > deve permitir alternar ferramentas no TelestratorLayer e acionar velocidades 0.25x a 4x
+[ReplayEngine] Aviso ao carregar metadados: [TypeError: RequestInit: Expected signal ("AbortSignal {}") to be an instance of AbortSignal.]
+
+ ✓ tests/replayer-ui.test.tsx (8 tests) 270ms
+
+ Test Files  2 passed (2)
+      Tests  10 passed (10)
+   Start at  01:32:32
+   Duration  2.41s (transform 271ms, setup 0ms, collect 1.01s, tests 437ms, environment 1.64s, prepare 907ms)
+

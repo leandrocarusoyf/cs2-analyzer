@@ -32,18 +32,7 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
 
   const [registeredPlayers, setRegisteredPlayers] = React.useState<
     Array<{ steamId: string; nickname: string; team: string }>
-  >([
-    { steamId: '76561198058500492', nickname: 'KSCERATO', team: 'FURIA' },
-    { steamId: '76561197960690195', nickname: 'FalleN', team: 'FURIA' },
-    { steamId: '76561198164970560', nickname: 'yuurih', team: 'FURIA' },
-    { steamId: '76561198134401925', nickname: 'YEKINDAR', team: 'FURIA' },
-    { steamId: '76561198200982290', nickname: 'molodoy', team: 'FURIA' },
-    { steamId: '76561198044118796', nickname: 'XANTARES', team: 'Aurora' },
-    { steamId: '76561198855375325', nickname: 'Jimpphat', team: 'Aurora' },
-    { steamId: '76561198812513923', nickname: 'Wicadia', team: 'Aurora' },
-    { steamId: '76561198083485506', nickname: 'woxic', team: 'Aurora' },
-    { steamId: '76561198057282432', nickname: 'kyxsan', team: 'Aurora' },
-  ]);
+  >([]);
 
   React.useEffect(() => {
     fetch('/api/players')
@@ -69,7 +58,7 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
       );
       if (match) return match.steamId;
     }
-    return registeredPlayers[0]?.steamId || '76561198058500492';
+    return registeredPlayers[0]?.steamId || '';
   }, [currentParams, filterState.targetPlayerId, registeredPlayers]);
 
   const handlePlayerChange = (event: React.ChangeEvent<HTMLSelectElement>) => {

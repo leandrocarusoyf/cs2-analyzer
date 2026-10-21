@@ -3,11 +3,6 @@
 import React, { useMemo, useState } from 'react';
 import type { RecentMatchTelemetry } from '../../types/stats.ts';
 import { OpponentLogo } from './OpponentLogo.tsx';
-import {
-  MOCK_RECENT_TELEMETRY,
-  getSavedRecentTelemetry,
-} from '../../data/recent-performance-mock.ts';
-
 export type TacticalSideFilter = 'BOTH' | 'T' | 'CT';
 export type MetricKey = 'hltv' | 'adr' | 'kd' | 'kpr' | 'udr' | 'kast';
 
@@ -112,47 +107,11 @@ function buildCubicPath(points: { x: number; y: number }[]): string {
 export function RecentPerformanceChart({
   telemetryData,
 }: RecentPerformanceChartProps) {
+  const gradientId = React.useId().replace(/:/g, '');
   const [sideFilter, setSideFilter] = useState<TacticalSideFilter>('BOTH');
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>('hltv');
   const [hoveredPoint, setHoveredPoint] = useState<HoveredPointInfo | null>(null);
-  const [dbData, setDbData] = useState<RecentMatchTelemetry[] | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    if (!telemetryData && typeof window !== 'undefined') {
-      fetch('/api/stats/player/76561198058500492')
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (isMounted && data?.telemetry && data.telemetry.length > 0) {
-            setDbData(data.telemetry);
-          }
-        })
-        .catch(() => {});
-    }
-    return () => {
-      isMounted = false;
-    };
-  }, [telemetryData]);
-
-  // Garante os 10 registros de partidas consumindo partidas salvas no banco + histórico local
-  const matches = useMemo(() => {
-    if (telemetryData && telemetryData.length > 0) {
-      return telemetryData.slice(-10);
-    }
-    if (dbData && dbData.length > 0) {
-      const merged = getSavedRecentTelemetry(
-        dbData.map((t) => ({
-          matchId: t.matchId,
-          demoHash: t.matchId,
-          savedAt: new Date().toISOString(),
-          recentTelemetryEntry: t,
-        })),
-      );
-      return merged.slice(-10);
-    }
-    const source = getSavedRecentTelemetry();
-    return (source.length > 0 ? source : MOCK_RECENT_TELEMETRY).slice(-10);
-  }, [telemetryData, dbData]);
+  const matches = useMemo(() => (telemetryData || []).slice(-10), [telemetryData]);
 
   const config = METRIC_CONFIGS[selectedMetric];
 
@@ -268,10 +227,10 @@ export function RecentPerformanceChart({
   return (
     <div
       data-testid="recent-performance-chart-container"
-      className="w-full h-[370px] bg-[#0E1214] border border-[#1B2226] rounded-[2px] p-4 pb-3 flex flex-col justify-between select-none"
+      className="w-full min-h-[370px] bg-[#0E1214] border border-[#1B2226] rounded-[2px] p-4 pb-3 flex flex-col justify-between select-none"
     >
       {/* 2. CABEÇALHO DE CONTROLES E FILTROS REATIVOS (h-7 flex items-center justify-between mb-4) */}
-      <div className="h-7 flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         {/* Lado Esquerdo — Seletores de Lado Tático (BOTH, T, CT) */}
         <div className="flex items-center gap-1.5" role="group" aria-label="Filtro de lado tático">
           {/* BOTH */}
@@ -295,7 +254,7 @@ export function RecentPerformanceChart({
             onClick={() => setSideFilter('T')}
             className={`h-[26px] px-2.5 rounded-[2px] text-[10px] font-bold font-mono uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00FFA3] ${
               sideFilter === 'T'
-                ? 'bg-[#26160A] border border-[#4A2A14] text-[#FF8C00]'
+                ? 'bg-[#26160A] border border-[#4A2A14] text-[#EAB308]'
                 : 'bg-transparent border border-[#1B2226] text-text-secondary hover:text-text-primary'
             }`}
           >
@@ -352,6 +311,7 @@ export function RecentPerformanceChart({
           aria-label="Recent match performance telemetry chart"
           className="w-full h-full overflow-visible"
         >
+          <defs>{[['ct','#3B82F6'],['t','#EAB308'],['overall','#00FFA3']].map(([key,color])=><linearGradient key={key} id={`${gradientId}-${key}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity="0.22"/><stop offset="100%" stopColor={color} stopOpacity="0.01"/></linearGradient>)}</defs>
           {/* Linhas Horizontais de Escala (6 patamares) */}
           {config.ticks.map((tickVal) => {
             const y = getY(tickVal);
@@ -362,7 +322,8 @@ export function RecentPerformanceChart({
                   y1={y}
                   x2={paddingLeft + chartAreaWidth}
                   y2={y}
-                  stroke="#192024"
+                  stroke="#252B30"
+                  strokeDasharray="2 5"
                   strokeWidth="1"
                 />
                 {/* Rótulo Numérico do Eixo Y à Direita */}
@@ -413,6 +374,7 @@ export function RecentPerformanceChart({
           {/* Curva Azul: CT (visível em BOTH e CT) */}
           {(sideFilter === 'BOTH' || sideFilter === 'CT') && (
             <g data-testid="telemetry-series-ct">
+              {ctPoints.length > 1 && <path d={`${ctPath} L ${ctPoints.at(-1)!.x},${paddingTop+chartAreaHeight} L ${ctPoints[0].x},${paddingTop+chartAreaHeight} Z`} fill={`url(#${gradientId}-ct)`} />}
               <path
                 d={ctPath}
                 fill="none"
@@ -476,10 +438,11 @@ export function RecentPerformanceChart({
           {/* Curva Laranja: TR (visível em BOTH e T) */}
           {(sideFilter === 'BOTH' || sideFilter === 'T') && (
             <g data-testid="telemetry-series-t">
+              {tPoints.length > 1 && <path d={`${tPath} L ${tPoints.at(-1)!.x},${paddingTop+chartAreaHeight} L ${tPoints[0].x},${paddingTop+chartAreaHeight} Z`} fill={`url(#${gradientId}-t)`} />}
               <path
                 d={tPath}
                 fill="none"
-                stroke="#F97316"
+                stroke="#EAB308"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -493,7 +456,7 @@ export function RecentPerformanceChart({
                       cy={pt.y}
                       r={isHovered ? 5.5 : 4.5}
                       fill="#0E1214"
-                      stroke="#F97316"
+                      stroke="#EAB308"
                       strokeWidth={isHovered ? 2.5 : 2}
                       className="transition-all duration-150"
                     />
@@ -539,6 +502,7 @@ export function RecentPerformanceChart({
           {/* Linha Branca: Overall Match Performance (apenas em BOTH) */}
           {sideFilter === 'BOTH' && (
             <g data-testid="telemetry-series-overall">
+              {overallPoints.length > 1 && <path d={`${overallPath} L ${overallPoints.at(-1)!.x},${paddingTop+chartAreaHeight} L ${overallPoints[0].x},${paddingTop+chartAreaHeight} Z`} fill={`url(#${gradientId}-overall)`} />}
               <path
                 d={overallPath}
                 fill="none"

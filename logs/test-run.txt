@@ -1,0 +1,5 @@
+
+> cs2-analyzer@0.1.0 test
+> vitest run --reporter=json --outputFile=logs/test-results.json
+
+JSON report written to D:/Users/leand/cs2-analyzer/logs/test-results.json

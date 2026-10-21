@@ -1,13 +1,15 @@
 // Pipeline automatizado de ingestão de demos (.dem -> PostgreSQL Local + .bin.gz + Limpeza Absoluta de Disco)
 // Uso programático: import { processDemoFile } from './process-demo.mjs'
 // Uso via CLI: node scripts/process-demo.mjs <caminho-do-arquivo.dem>
-import { readFile, writeFile, unlink, access, mkdir, appendFile } from 'node:fs/promises';
+import { readFile, writeFile, unlink, access, mkdir, appendFile, stat, copyFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import pg from 'pg';
+import { analyzeSpatial, sideForRound } from './spatial-analysis.mjs';
+import { persistMatch } from './persist-match.mjs';
 import {
   syncMatchAssets,
   normalizeTeamSlug,
@@ -16,7 +18,6 @@ import {
 
 const { Pool } = pg;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DEFAULT_STORE_PATH = path.resolve(__dirname, '..', 'src', 'data', 'ingested-matches.json');
 const DEFAULT_DATABASE_URL =
   process.env.DATABASE_URL ||
   'postgresql://cs2admin:cs2secret@localhost:5432/cs2_analytics';
@@ -113,8 +114,9 @@ export function extractMapIdentifier(filePathOrName) {
  * o mesmo ID de série sem colisões aleatórias (retornando UUID RFC 4122 válido).
  */
 export function generateDeterministicSeriesId({ playedAt, team1, team2 }) {
-  const dateObj = new Date(playedAt || Date.now());
-  const validDate = Number.isNaN(dateObj.getTime()) ? new Date() : dateObj;
+  const dateObj = new Date(playedAt);
+  if (!playedAt || Number.isNaN(dateObj.getTime())) throw new Error('Data da partida inválida');
+  const validDate = dateObj;
   const yyyy = String(validDate.getUTCFullYear());
   const mm = String(validDate.getUTCMonth() + 1).padStart(2, '0');
   const dd = String(validDate.getUTCDate()).padStart(2, '0');
@@ -149,8 +151,9 @@ export function buildTaxonomyPath({
   team2,
   baseDir = './data/replays',
 }) {
-  const dateObj = new Date(playedAt || Date.now());
-  const validDate = Number.isNaN(dateObj.getTime()) ? new Date() : dateObj;
+  const dateObj = new Date(playedAt);
+  if (!playedAt || Number.isNaN(dateObj.getTime())) throw new Error('Data da partida inválida');
+  const validDate = dateObj;
 
   const yyyy = String(validDate.getUTCFullYear());
   const mm = String(validDate.getUTCMonth() + 1).padStart(2, '0');
@@ -221,8 +224,8 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
       samplingRate: parsed.samplingRate ?? 4,
       format: parsed.format || 'BO1',
       playedAt: parsed.playedAt ?? new Date().toISOString(),
-      teamCtName: parsed.teamCtName ?? 'FURIA',
-      teamTName: parsed.teamTName ?? 'NAVI',
+      teamCtName: parsed.teamCtName ?? '',
+      teamTName: parsed.teamTName ?? '',
       players: Array.isArray(parsed.players) && parsed.players.length > 0
         ? parsed.players
         : [
@@ -545,46 +548,6 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
 
 
     // 3. Mapeamento Preciso de Times e Lados:
-    const KNOWN_ROSTERS = {
-      FURIA: new Set([
-        '76561198058500492',
-        '76561198012345678',
-        '76561198000000001',
-        '76561197960690195',
-        '76561198164970560',
-        '76561198134401925',
-        '76561198200982290',
-        'kscerato',
-        'fallen',
-        'yuurih',
-        'yekindar',
-        'molodoy',
-        'chelo',
-        'skullz',
-        'art',
-        'drop',
-        'saffee',
-      ]),
-      Aurora: new Set([
-        '76561198044118796',
-        '76561198083485506',
-        '76561198812513923',
-        '76561198855375325',
-        '76561198057282432',
-        'xantares',
-        'woxic',
-        'wicadia',
-        'jimpphat',
-        'kyxsan',
-        'lack1',
-        'kensi',
-        'norwi',
-        'deko',
-        'r3salt',
-        'clax',
-      ]),
-    };
-
     const clanCountsBySteamId = new Map();
     const playerNameBySteamId = new Map();
     const liveTicksBySteamId = new Map();
@@ -630,9 +593,6 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
 
     const resolvePlayerTeam = (steamId, name) => {
       const sId = String(steamId || '').trim();
-      const n = String(name || '').toLowerCase().trim();
-      if (KNOWN_ROSTERS.FURIA.has(sId) || KNOWN_ROSTERS.FURIA.has(n)) return 'FURIA';
-      if (KNOWN_ROSTERS.Aurora.has(sId) || KNOWN_ROSTERS.Aurora.has(n)) return 'Aurora';
       const clanCounts = clanCountsBySteamId.get(sId);
       if (clanCounts && clanCounts.size > 0) {
         let bestClan = '';
@@ -643,8 +603,6 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
             bestClan = c;
           }
         }
-        if (/furia/i.test(bestClan)) return 'FURIA';
-        if (/aurora/i.test(bestClan)) return 'Aurora';
         return bestClan;
       }
       return null;
@@ -656,26 +614,10 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
       if (t) teamCounts.set(t, (teamCounts.get(t) ?? 0) + 1);
     }
 
-    let team1Name = 'FURIA';
-    let team2Name = 'Aurora';
-
-    if (teamCounts.has('FURIA')) {
-      team1Name = 'FURIA';
-      let other = [...teamCounts.keys()].find((k) => k !== 'FURIA');
-      team2Name = other || (header.team_t_name && header.team_t_name !== 'NAVI' ? header.team_t_name : 'Aurora');
-    } else if (header.team_ct_name && header.team_t_name) {
-      team1Name = header.team_ct_name;
-      team2Name = header.team_t_name;
-    } else {
-      const detected = [...teamCounts.keys()];
-      if (detected.length >= 2) {
-        team1Name = detected[0];
-        team2Name = detected[1];
-      } else {
-        team1Name = header.team_ct_name || 'FURIA';
-        team2Name = header.team_t_name || 'NAVI';
-      }
-    }
+    const detected = [...teamCounts.entries()].sort((a,b)=>b[1]-a[1]).map(([name])=>name);
+    const team1Name = detected[0] || header.team_ct_name;
+    const team2Name = detected[1] || header.team_t_name;
+    if (!team1Name || !team2Name || team1Name === team2Name) throw new Error('Demo sem identificação dos dois times.');
 
     // Determina o lado inicial (CT ou T) da Equipe 1 no Round 1
     const round1EndTick = Number(roundEndList[0]?.tick ?? Infinity);
@@ -1416,7 +1358,7 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
       tickrate: Number(header.tickrate ?? 64),
       samplingRate: 4,
       format: 'BO1',
-      playedAt: '2026-10-18T03:28:53.895Z',
+      playedAt: header.match_date || header.played_at || null,
       teamCtName: team1Name,
       teamTName: team2Name,
       team1StartingSide,
@@ -1550,7 +1492,7 @@ export function computeMatchPlayerMetrics(rawDemo) {
       const pStats = statsByPlayer.get(String(p.steamId));
       if (!pStats) continue;
 
-      const currentSide = isSecondHalf ? (p.team === 'CT' ? 'T' : 'CT') : p.team;
+      const currentSide = sideForRound(p.team, round.roundNumber);
       const sideBucket = currentSide === 'CT' ? pStats.ct : pStats.t;
 
       const rKills = killsByPlayerInRound.get(p.steamId) ?? 0;
@@ -1669,7 +1611,9 @@ export function buildMatchPackageAndRecord(rawDemo) {
   const demoHash = String(rawDemo.demoHash || '').trim();
   if (!demoHash) throw new Error('Demo inválida: demoHash ausente.');
 
-  const mapName = VALID_MAPS.has(rawDemo.map) ? rawDemo.map : 'de_mirage';
+  if (!VALID_MAPS.has(rawDemo.map)) throw new Error('Mapa não suportado');
+  if (!rawDemo.teamCtName || !rawDemo.teamTName) throw new Error('Times ausentes na demo');
+  const mapName = rawDemo.map;
   const tickrate = Number(rawDemo.tickrate) > 0 ? Number(rawDemo.tickrate) : 64;
   const samplingRate = Math.max(1, Math.round(Number(rawDemo.samplingRate ?? 4)));
   const rounds = rawDemo.rounds ?? [];
@@ -1683,9 +1627,7 @@ export function buildMatchPackageAndRecord(rawDemo) {
 
   for (const r of rounds) {
     const isSecondHalf = r.roundNumber >= MR12_HALFTIME_ROUND;
-    const team1CurrentSide = isSecondHalf
-      ? (team1StartingSide === 'CT' ? 'T' : 'CT')
-      : team1StartingSide;
+    const team1CurrentSide = sideForRound(team1StartingSide, r.roundNumber);
     if (r.winnerSide === team1CurrentSide) scoreCt++;
     else scoreT++;
     allDuels.push(...(r.duels ?? []));
@@ -1730,8 +1672,8 @@ export function buildMatchPackageAndRecord(rawDemo) {
     demo_hash: demoHash,
     map_name: mapName,
     played_at: rawDemo.playedAt ?? new Date().toISOString(),
-    team_ct_name: rawDemo.teamCtName ?? 'FURIA',
-    team_t_name: rawDemo.teamTName ?? 'NAVI',
+    team_ct_name: rawDemo.teamCtName ?? '',
+    team_t_name: rawDemo.teamTName ?? '',
     score_ct: scoreCt,
     score_t: scoreT,
     rounds_count: rounds.length,
@@ -1757,47 +1699,7 @@ export function buildMatchPackageAndRecord(rawDemo) {
   };
 
   const normalizedRounds = rounds.map((r, idx) => {
-    let roundFrames = Array.isArray(r.frames) && r.frames.length > 0 ? r.frames : null;
-    if (!roundFrames) {
-      const sTick = Number.isFinite(r.startTick) ? r.startTick : idx * 2000 + 1000;
-      const eTick = Number.isFinite(r.endTick) ? r.endTick : sTick + 1500;
-      const startP = (rawDemo.players ?? []).map((p, pIdx) => [
-        pIdx + 1,
-        -1200 + pIdx * 180,
-        -400 + pIdx * 140,
-        -200,
-        (pIdx * 36) % 360,
-        100,
-        100,
-        1,
-        1,
-        0,
-        0,
-        p.team === 'CT' ? 16 : 7,
-        0,
-        15,
-      ]);
-      const endP = (rawDemo.players ?? []).map((p, pIdx) => [
-        pIdx + 1,
-        -1000 + pIdx * 180,
-        -200 + pIdx * 140,
-        -200,
-        (pIdx * 36 + 45) % 360,
-        pIdx === 5 ? 0 : 85,
-        90,
-        1,
-        pIdx === 5 ? 0 : 1,
-        0,
-        0,
-        p.team === 'CT' ? 16 : 7,
-        0,
-        15,
-      ]);
-      roundFrames = [
-        [sTick, startP],
-        [eTick, endP],
-      ];
-    }
+    const roundFrames = Array.isArray(r.frames) ? r.frames : [];
 
     const rawKills = Array.isArray(r.kills) ? r.kills : (Array.isArray(r.events?.kills) ? r.events.kills : []);
     const killsTuples = rawKills.map((k) => {
@@ -1913,12 +1815,12 @@ export function buildMatchPackageAndRecord(rawDemo) {
     tickrate,
     samplingRate,
     map: mapName,
-    team1Name: rawDemo.teamCtName ?? 'FURIA',
-    team2Name: rawDemo.teamTName ?? 'Aurora',
+    team1Name: rawDemo.teamCtName ?? '',
+    team2Name: rawDemo.teamTName ?? '',
     team1StartingSide,
     teams: {
-      team1: { name: rawDemo.teamCtName ?? 'FURIA', score: scoreCt },
-      team2: { name: rawDemo.teamTName ?? 'Aurora', score: scoreT },
+      team1: { name: rawDemo.teamCtName ?? '', score: scoreCt },
+      team2: { name: rawDemo.teamTName ?? '', score: scoreT },
     },
     playersManifest: (rawDemo.players ?? []).map((p, idx) => ({
       id: idx + 1,
@@ -1937,181 +1839,6 @@ export function buildMatchPackageAndRecord(rawDemo) {
 /**
  * Grava a partida nas tabelas matches, match_maps e player_stats do PostgreSQL local.
  */
-async function persistToPostgres(dbClientOrPool, { matchRecord, rawDemo, playerStats, replayPath, targetMatchId, mapIdentifier }) {
-  let matchId = targetMatchId;
-  if (!matchId) {
-    matchId = generateDeterministicSeriesId({
-      playedAt: matchRecord.played_at,
-      team1: matchRecord.team_ct_name,
-      team2: matchRecord.team_t_name,
-    });
-  }
-
-  // Se houver registro anterior com o mesmo demo_hash sob outro id,
-  // remove o antigo para evitar violação da constraint UNIQUE(demo_hash)
-  try {
-    const existingByHash = await dbClientOrPool.query(
-      'SELECT id FROM matches WHERE demo_hash = $1 LIMIT 1;',
-      [matchRecord.demo_hash],
-    );
-    if (existingByHash.rows && existingByHash.rows.length > 0 && existingByHash.rows[0].id !== matchId) {
-      await dbClientOrPool.query('DELETE FROM matches WHERE id = $1;', [existingByHash.rows[0].id]);
-    }
-  } catch {}
-
-  // Consulta mapas existentes da série
-  let existingMaps = [];
-  try {
-    const mapsRes = await dbClientOrPool.query(
-      'SELECT id, map_name, rounds_t1, rounds_t2 FROM match_maps WHERE match_id = $1;',
-      [matchId],
-    );
-    existingMaps = mapsRes.rows || [];
-  } catch {}
-
-  const mapNum = mapIdentifier ? parseInt(mapIdentifier.replace(/\D/g, ''), 10) : 1;
-  const otherMaps = existingMaps.filter((m) => m.map_name !== matchRecord.map_name);
-  const totalMapsCount = otherMaps.length + 1;
-  const isSeries = totalMapsCount >= 2 || mapNum >= 2;
-  const seriesFormat = (totalMapsCount >= 4 || mapNum >= 4)
-    ? 'MD5'
-    : (isSeries ? 'MD3' : (rawDemo.format || 'BO1'));
-
-  const winner =
-    matchRecord.score_ct > matchRecord.score_t
-      ? matchRecord.team_ct_name
-      : matchRecord.score_t > matchRecord.score_ct
-      ? matchRecord.team_t_name
-      : 'DRAW';
-
-  // 1. matches com UPSERT (ON CONFLICT (id) DO UPDATE SET ...)
-  const matchSql = `
-    INSERT INTO matches (match_date, team1, team2, format, score_t1, score_t2, winner, replay_path, demo_hash, id)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    ON CONFLICT (id) DO UPDATE SET
-      match_date = EXCLUDED.match_date,
-      team1 = EXCLUDED.team1,
-      team2 = EXCLUDED.team2,
-      format = EXCLUDED.format,
-      score_t1 = EXCLUDED.score_t1,
-      score_t2 = EXCLUDED.score_t2,
-      winner = EXCLUDED.winner,
-      replay_path = EXCLUDED.replay_path,
-      demo_hash = COALESCE(matches.demo_hash, EXCLUDED.demo_hash)
-    RETURNING id;
-  `;
-  const matchValues = [
-    matchRecord.played_at,
-    matchRecord.team_ct_name,
-    matchRecord.team_t_name,
-    seriesFormat,
-    matchRecord.score_ct,
-    matchRecord.score_t,
-    winner,
-    replayPath,
-    matchRecord.demo_hash,
-    matchId,
-  ];
-
-  const matchRes = await dbClientOrPool.query(matchSql, matchValues);
-  const persistedMatchId = matchRes.rows[0]?.id || matchId;
-
-  // Limpa registros anteriores APENAS deste mapa específico caso seja um reprocessamento,
-  // preservando todos os demais mapas da série (ex: m1 ao processar m2)
-  try {
-    const existingCurrentMap = await dbClientOrPool.query(
-      'SELECT id FROM match_maps WHERE match_id = $1 AND map_name = $2 LIMIT 1;',
-      [persistedMatchId, matchRecord.map_name],
-    );
-    if (existingCurrentMap.rows && existingCurrentMap.rows.length > 0) {
-      const oldMapId = existingCurrentMap.rows[0].id;
-      await dbClientOrPool.query('DELETE FROM player_stats WHERE map_id = $1;', [oldMapId]);
-      await dbClientOrPool.query('DELETE FROM match_maps WHERE id = $1;', [oldMapId]);
-    }
-  } catch {}
-
-  // 2. match_maps
-  const mapSql = `
-    INSERT INTO match_maps (match_id, map_name, rounds_t1, rounds_t2, duration)
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING id;
-  `;
-  const mapValues = [
-    persistedMatchId,
-    matchRecord.map_name,
-    matchRecord.score_ct,
-    matchRecord.score_t,
-    Math.round((matchRecord.rounds_count * 115)), // ~115s média por round
-  ];
-
-  const mapRes = await dbClientOrPool.query(mapSql, mapValues);
-  const mapId = mapRes.rows[0]?.id || null;
-
-  // 3. player_stats
-  for (const p of playerStats) {
-    const statsSql = `
-      INSERT INTO player_stats (
-        match_id, map_id, player_steamid, nickname, team,
-        rating, adr, kast, kills, deaths, assists, ttd, ttk, fsp, metrics_json
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);
-    `;
-    const teamName =
-      p.teamName ??
-      (p.initialTeam === (rawDemo.team1StartingSide || 'CT')
-        ? matchRecord.team_ct_name
-        : matchRecord.team_t_name);
-    const statsValues = [
-      persistedMatchId,
-      mapId,
-      p.steamId,
-      p.name,
-      teamName,
-      p.metrics.hltv.overall,
-      p.metrics.adr.overall,
-      p.metrics.kast.overall,
-      p.kills,
-      p.deaths,
-      p.assists,
-      p.ttd ?? null, // média individual (ms); null só se sem duelos válidos
-      p.ttk ?? null,
-      p.fsp ?? null,
-      p.metricsJson,
-    ];
-    await dbClientOrPool.query(statsSql, statsValues);
-  }
-
-  // 4. Se a série tem múltiplos mapas (ou m2/m3 foi processado), recalcula contagem de mapas e atualiza formato para MD3/MD5
-  try {
-    const allFinalMaps = await dbClientOrPool.query(
-      'SELECT rounds_t1, rounds_t2 FROM match_maps WHERE match_id = $1;',
-      [persistedMatchId],
-    );
-    const finalCount = allFinalMaps.rows.length;
-    if (finalCount >= 2 || mapNum >= 2) {
-      let finalT1Wins = 0;
-      let finalT2Wins = 0;
-      for (const m of allFinalMaps.rows) {
-        if (m.rounds_t1 > m.rounds_t2) finalT1Wins++;
-        else if (m.rounds_t2 > m.rounds_t1) finalT2Wins++;
-      }
-      const finalWinner =
-        finalT1Wins > finalT2Wins
-          ? matchRecord.team_ct_name
-          : finalT2Wins > finalT1Wins
-          ? matchRecord.team_t_name
-          : null;
-      const finalFormat = finalCount >= 4 ? 'MD5' : 'MD3';
-      await dbClientOrPool.query(
-        'UPDATE matches SET format = $1, score_t1 = $2, score_t2 = $3, winner = $4 WHERE id = $5;',
-        [finalFormat, finalT1Wins, finalT2Wins, finalWinner, persistedMatchId],
-      );
-    }
-  } catch {}
-
-  return persistedMatchId;
-}
-
 /**
  * Atualiza o store JSON local consumido pela interface web.
  */
@@ -2153,13 +1880,17 @@ export async function processDemoFile(demFilePath, options = {}) {
 
   const resolvedDemPath = path.resolve(demFilePath);
   let localPool = null;
-  const keepDemFile = Boolean(options.keepDemFile);
+  const keepDemFile = options.keepDemFile !== false;
+  let transactionClient = null;
+  let committed = false;
 
   try {
     await access(resolvedDemPath);
     const fileBuffer = await readFile(resolvedDemPath);
     const demoparser = await loadDemoParser2(options.demoparser);
     const rawDemo = await extractRawDemoWithParser(resolvedDemPath, fileBuffer, demoparser);
+    rawDemo.playedAt = options.playedAt || rawDemo.playedAt || (await stat(resolvedDemPath)).mtime.toISOString();
+    rawDemo.format = options.format || rawDemo.format;
 
     const { packageData, matchRecord } = buildMatchPackageAndRecord(rawDemo);
 
@@ -2194,12 +1925,17 @@ export async function processDemoFile(demFilePath, options = {}) {
     packageData.id = targetMatchId;
     packageData.matchId = targetMatchId;
     const playerStats = computeMatchPlayerMetrics(rawDemo);
+    for (const player of playerStats) {
+      const manifest = packageData.playersManifest.find(p=>p.steamId===player.steamId);
+      const spatial = analyzeSpatial(packageData, manifest);
+      player.metricsJson = JSON.stringify({...JSON.parse(player.metricsJson), roles:spatial.roles, spatial});
+    }
 
     // 1. Gera o caminho e grava o arquivo de replay compactado (.bin.gz level: 9)
     // Destino estrito: data/replays/YYYY/DD-MM-YYYY/TimeA_vs_TimeB/
     const baseReplaysDir = options.replaysBaseDir || './data/replays';
     const taxonomy = buildTaxonomyPath({
-      demFilePath: resolvedDemPath,
+      demFilePath: `${mapIdentifier || matchRecord.map_name}-${matchRecord.demo_hash}.dem`,
       playedAt: matchRecord.played_at,
       team1: matchRecord.team_ct_name,
       team2: matchRecord.team_t_name,
@@ -2213,35 +1949,37 @@ export async function processDemoFile(demFilePath, options = {}) {
     const rawJson = JSON.stringify(packageData);
     const compressedReplay = gzipSync(Buffer.from(rawJson, 'utf8'), { level: 9 });
 
-    // Salva arquivos no diretório encadeado da série (sem pastas UUID soltas)
-    await writeFile(fullReplayPath, compressedReplay);
-    await writeFile(path.join(fullReplayDir, `${originalBaseName}.json`), rawJson, 'utf8');
-
-    if (mapIdentifier) {
-      await writeFile(path.join(fullReplayDir, `${mapIdentifier}.bin.gz`), compressedReplay);
-      await writeFile(path.join(fullReplayDir, `${mapIdentifier}.json`), rawJson, 'utf8');
-    }
-
-    await writeFile(path.join(fullReplayDir, 'replay.bin.gz'), compressedReplay);
-    await writeFile(path.join(fullReplayDir, 'match.json'), rawJson, 'utf8');
-
-    matchRecord.replay_storage_path = taxonomy.filePath;
-
-    // 2. Gravação no PostgreSQL local (matches, match_maps, player_stats)
+    let obsoleteFiles = [];
     let matchId = targetMatchId;
-    if (!options.skipDb && dbClient) {
-      matchId = await persistToPostgres(dbClient, {
-        matchRecord,
-        rawDemo,
-        playerStats,
-        replayPath: taxonomy.filePath,
-        targetMatchId,
-        mapIdentifier,
+    if (dbClient) {
+      transactionClient = typeof dbClient.connect === 'function' ? await dbClient.connect() : dbClient;
+      await transactionClient.query('BEGIN');
+      await transactionClient.query('SELECT pg_advisory_xact_lock(hashtext($1))', [targetMatchId]);
+      const previous = await transactionClient.query('SELECT replay_path,demo_path FROM match_maps WHERE match_id=$1 AND (map_key=$2 OR (map_key IS NULL AND map_name=$3))', [targetMatchId,mapIdentifier || matchRecord.map_name,matchRecord.map_name]);
+      obsoleteFiles = previous.rows.flatMap(r=>[r.replay_path,r.demo_path]).filter(Boolean);
+    }
+    await writeFile(fullReplayPath, compressedReplay);
+    const demoPath = fullReplayPath.replace(/\.bin\.gz$/, '.dem');
+    if (path.resolve(demoPath) !== resolvedDemPath) await copyFile(resolvedDemPath, demoPath);
+    matchRecord.replay_storage_path = taxonomy.filePath;
+    if (transactionClient) {
+      matchId = await persistMatch(transactionClient, {
+        matchRecord, rawDemo, playerStats, replayPath: taxonomy.filePath,
+        demoPath: path.relative(process.cwd(), demoPath), targetMatchId, mapIdentifier,
       });
+      await transactionClient.query('COMMIT');
+      committed = true;
+      for (const oldFile of obsoleteFiles) {
+        const oldPath = path.resolve(oldFile);
+        const relative = path.relative(path.resolve(baseReplaysDir),oldPath);
+        if (relative && !relative.startsWith('..') && !path.isAbsolute(relative) && oldPath !== fullReplayPath && oldPath !== demoPath) {
+          await unlink(oldPath).catch(e=>{if(e.code!=='ENOENT')console.warn('Arquivo antigo pendente de limpeza:',oldPath);});
+        }
+      }
     }
 
     // 3. Atualiza store JSON consumido pela UI
-    const focusPlayerName = (options.focusPlayerName ?? 'kscerato').toLowerCase();
+    const focusPlayerName = (options.focusPlayerName ?? '').toLowerCase();
     const focusPlayer =
       playerStats.find((p) => p.name.toLowerCase() === focusPlayerName) ?? playerStats[0];
 
@@ -2256,7 +1994,7 @@ export async function processDemoFile(demFilePath, options = {}) {
     const mapShort = matchRecord.map_name.replace(/^de_/i, '').toUpperCase();
     const playedDate = new Date(matchRecord.played_at);
     const dateLabel = Number.isNaN(playedDate.getTime())
-      ? '17/10'
+      ? '—'
       : `${String(playedDate.getUTCDate()).padStart(2, '0')}/${String(
           playedDate.getUTCMonth() + 1,
         ).padStart(2, '0')}`;
@@ -2277,18 +2015,11 @@ export async function processDemoFile(demFilePath, options = {}) {
       opponentScore: oppScore,
       score: `${focusTeamScore} - ${oppScore}`,
       result: matchResult,
-      metrics: focusPlayer?.metrics ?? {
-        hltv: { overall: 1.0, ct: 1.0, t: 1.0 },
-        adr: { overall: 75.0, ct: 75.0, t: 75.0 },
-        kd: { overall: 1.0, ct: 1.0, t: 1.0 },
-        kpr: { overall: 0.7, ct: 0.7, t: 0.7 },
-        udr: { overall: 5.0, ct: 5.0, t: 5.0 },
-        kast: { overall: 70.0, ct: 70.0, t: 70.0 },
-      },
+      metrics: focusPlayer?.metrics ?? null,
     };
 
     const storeFilePath =
-      options.storeFilePath === undefined ? DEFAULT_STORE_PATH : options.storeFilePath;
+      options.storeFilePath ?? null;
 
     await updateLocalStore(storeFilePath, {
       matchId,
@@ -2298,7 +2029,7 @@ export async function processDemoFile(demFilePath, options = {}) {
     });
 
     // 4. Hook de download/sincronização de assets (On-Demand)
-    const assets = await syncMatchAssets(
+    const assets = options.skipAssets ? {teams:[],players:[]} : await syncMatchAssets(
       {
         teamCtName: matchRecord.team_ct_name,
         teamTName: matchRecord.team_t_name,
@@ -2323,6 +2054,7 @@ export async function processDemoFile(demFilePath, options = {}) {
       mapIdentifier,
     };
   } catch (err) {
+    if (transactionClient && !committed) await transactionClient.query('ROLLBACK').catch(() => {});
     try {
       const logDir = options.logsDir || path.resolve('./logs');
       await mkdir(logDir, { recursive: true });
@@ -2334,10 +2066,11 @@ export async function processDemoFile(demFilePath, options = {}) {
     }
     throw err;
   } finally {
+    transactionClient?.release?.();
     if (localPool) {
       await localPool.end().catch(() => {});
     }
-    if (!keepDemFile) {
+    if (!keepDemFile && committed) {
       try {
         await unlink(resolvedDemPath);
       } catch {
@@ -2360,7 +2093,7 @@ if (isMain) {
     console.error('Uso: node scripts/process-demo.mjs <caminho-do-arquivo.dem> [--keep-dem]');
     process.exit(1);
   }
-  processDemoFile(targetDem, { keepDemFile })
+  processDemoFile(targetDem, { keepDemFile, playedAt: process.env.DEMO_PLAYED_AT, format: process.env.DEMO_FORMAT })
     .then((result) => {
       console.log(
         JSON.stringify(

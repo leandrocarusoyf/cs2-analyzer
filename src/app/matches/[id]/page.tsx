@@ -1,6 +1,7 @@
 import React from 'react';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getRecentMatches } from '../../../lib/queries/matches.ts';
+import { getMatchById } from '../../../lib/queries/matches.ts';
 import { PlayerStatsTable, type PlayerStatRow } from '../../../components/stats/PlayerStatsTable.tsx';
 
 export interface MatchOverviewPageProps {
@@ -11,16 +12,16 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
   const resolvedParams = await params;
   const matchId = resolvedParams.id;
 
-  const matches = await getRecentMatches(20);
-  const currentMatch = matches.find((m) => m.id === matchId || m.demo_hash === matchId) || matches[0];
-
-  const mapName = currentMatch?.map_name || 'de_inferno';
-  const team1 = currentMatch?.team1 || 'FURIA';
-  const team2 = currentMatch?.team2 || 'Aurora';
-  const score1 = currentMatch?.score_t1 ?? 13;
-  const score2 = currentMatch?.score_t2 ?? 10;
-  const winner = currentMatch?.winner || 'FURIA';
-  const roundsCount = currentMatch?.rounds_count || score1 + score2;
+  const currentMatch = await getMatchById(matchId);
+  if (!currentMatch) notFound();
+  const mapName = currentMatch.map_name || '—';
+  const team1 = currentMatch.team1;
+  const team2 = currentMatch.team2;
+  const selectedMap = currentMatch.maps?.find(m=>m.id===matchId);
+  const score1 = selectedMap?.rounds_t1 ?? currentMatch.score_t1;
+  const score2 = selectedMap?.rounds_t2 ?? currentMatch.score_t2;
+  const winner = currentMatch.winner;
+  const roundsCount = selectedMap ? score1+score2 : currentMatch.rounds_count || 0;
 
   // KPIs agregados dos duelos
   const players: PlayerStatRow[] = (currentMatch?.players || []).map((p) => {
@@ -62,8 +63,8 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
   const fspList = players.map((p) => p.fsp).filter((v): v is number => typeof v === 'number');
 
   const avgTtd = ttdList.length > 0 ? Math.round(ttdList.reduce((a, b) => a + b, 0) / ttdList.length) : null;
-  const avgTtk = ttkList.length > 0 ? Math.round(ttkList.reduce((a, b) => a + b, 0) / ttkList.length) : 237;
-  const avgFsp = fspList.length > 0 ? Number((fspList.reduce((a, b) => a + b, 0) / fspList.length).toFixed(1)) : 99.3;
+  const avgTtk = ttkList.length > 0 ? Math.round(ttkList.reduce((a, b) => a + b, 0) / ttkList.length) : null;
+  const avgFsp = fspList.length > 0 ? Number((fspList.reduce((a, b) => a + b, 0) / fspList.length).toFixed(1)) : null;
 
   return (
     <section aria-labelledby="match-overview-heading" className="space-y-4 select-none">
@@ -133,7 +134,7 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
             First Shot Precision (FSP)
           </span>
           <p className="mt-1 text-2xl font-mono font-bold text-[#00FFA3] tabular-nums">
-            {avgFsp !== null ? `${avgFsp.toFixed(1)}%` : '—'}
+            {avgFsp !== null ? `${(avgFsp?.toFixed(1) ?? '—')}%` : '—'}
           </p>
           <div className="mt-2 h-1 w-full bg-[#0B0E0F] border border-[#1F2629]">
             <div className="h-full bg-[#00FFA3]" style={{ width: `${Math.min(100, avgFsp || 0)}%` }} />
@@ -149,7 +150,7 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
             title={`Estatísticas Individuais — ${team1} vs ${team2}`}
             team1Name={team1}
             team2Name={team2}
-            winnerTeam={winner}
+            winnerTeam={winner ?? undefined}
             totalRounds={roundsCount}
           />
         </div>

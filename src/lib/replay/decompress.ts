@@ -39,18 +39,7 @@ const GZIP_MAGIC_BYTE_0 = 0x1f;
 const GZIP_MAGIC_BYTE_1 = 0x8b;
 const CHUNK_YIELD_BYTE_THRESHOLD = 256 * 1024;
 
-export const FALLBACK_PLAYERS_MANIFEST: readonly PlayerManifestEntry[] = [
-  { id: 1, steamId: '76561198044118796', name: 'XANTARES', initialTeam: 'CT' },
-  { id: 2, steamId: '76561197960690195', name: 'FalleN', initialTeam: 'T' },
-  { id: 3, steamId: '76561198164970560', name: 'yuurih', initialTeam: 'T' },
-  { id: 4, steamId: '76561198058500492', name: 'KSCERATO', initialTeam: 'T' },
-  { id: 5, steamId: '76561198134401925', name: 'YEKINDAR', initialTeam: 'T' },
-  { id: 6, steamId: '76561198057282432', name: 'kyxsan', initialTeam: 'CT' },
-  { id: 7, steamId: '76561198855375325', name: 'Jimpphat', initialTeam: 'CT' },
-  { id: 8, steamId: '76561198200982290', name: 'molodoy', initialTeam: 'T' },
-  { id: 9, steamId: '76561198083485506', name: 'woxic', initialTeam: 'CT' },
-  { id: 10, steamId: '76561198812513923', name: 'Wicadia', initialTeam: 'CT' },
-];
+export const FALLBACK_PLAYERS_MANIFEST: readonly PlayerManifestEntry[] = [];
 
 export const FALLBACK_WEAPONS_MANIFEST: readonly WeaponManifestEntry[] = [
   { id: 1, name: 'weapon_deagle' },
@@ -238,15 +227,15 @@ export function normalizeReplayPayload(
     Array.isArray(rawJson.playersManifest) && rawJson.playersManifest.length > 0
       ? rawJson.playersManifest.map((p: any, idx: number) => ({
           id: Number(p.id ?? idx + 1),
-          steamId: String(p.steamId ?? p.steamid ?? `7656119800000000${idx + 1}`),
-          name: String(p.name ?? p.nickname ?? `Player ${idx + 1}`),
+          steamId: String(p.steamId ?? p.steamid ?? ''),
+          name: String(p.name ?? p.nickname ?? String(p.steamId ?? p.steamid ?? '')),
           initialTeam: String(p.initialTeam || p.teamSide || p.team || '').toUpperCase().includes('CT') ? 'CT' : 'T',
         }))
       : Array.isArray(rawJson.roster) && rawJson.roster.length > 0
       ? rawJson.roster.map((r: any, idx: number) => ({
           id: Number(r.id ?? idx + 1),
-          steamId: String(r.steamId ?? r.steamid ?? `7656119800000000${idx + 1}`),
-          name: String(r.nickname ?? r.name ?? `Player ${idx + 1}`),
+          steamId: String(r.steamId ?? r.steamid ?? ''),
+          name: String(r.nickname ?? r.name ?? String(r.steamId ?? r.steamid ?? '')),
           initialTeam: String(r.teamSide || r.initialTeam || r.team || '').toUpperCase().includes('CT') ? 'CT' : 'T',
         }))
       : [...FALLBACK_PLAYERS_MANIFEST];
@@ -308,7 +297,7 @@ export function normalizeReplayPayload(
     steamId: p.steamId,
     nickname: p.name,
     teamSide: p.initialTeam === 'CT' ? 'CT' : 'TERRORIST',
-    initialClan: p.initialTeam === 'CT' ? (rawJson.teams?.team2?.name ?? 'Aurora') : (rawJson.teams?.team1?.name ?? 'FURIA'),
+    initialClan: p.initialTeam === 'CT' ? (rawJson.teams?.team2?.name ?? '—') : (rawJson.teams?.team1?.name ?? '—'),
   }));
 
   const rawRounds = Array.isArray(rawJson.rounds) ? rawJson.rounds : [];
@@ -753,8 +742,8 @@ export function normalizeReplayPayload(
   }
 
   const teams = rawJson.teams ?? {
-    team1: { name: rawJson.team1Name ?? 'FURIA', score: team1Score || 13 },
-    team2: { name: rawJson.team2Name ?? 'Aurora', score: team2Score || 10 },
+    team1: { name: rawJson.team1Name ?? '—', score: team1Score },
+    team2: { name: rawJson.team2Name ?? '—', score: team2Score },
   };
 
   return {
@@ -857,8 +846,8 @@ export function normalizePlayerTuple(
 
       return {
         id,
-        name: resolvedMeta?.name || `Player ${id}`,
-        team: resolvedMeta?.team || team,
+        name: resolvedMeta?.name || String(id),
+        team,
         x,
         y,
         z,
@@ -906,7 +895,7 @@ export function normalizePlayerTuple(
 
       return {
         id,
-        name: resolvedMeta?.name || `Player ${id}`,
+        name: resolvedMeta?.name || String(id),
         team: resolvedMeta?.team || 'CT',
         x,
         y,
@@ -951,7 +940,7 @@ export function normalizePlayerTuple(
 
     return {
       id,
-      name: resolvedMeta?.name || `Player ${id}`,
+      name: resolvedMeta?.name || String(id),
       team: resolvedMeta?.team || 'CT',
       x,
       y,
@@ -1007,7 +996,7 @@ export function normalizePlayerTuple(
 
   return {
     id,
-    name: obj.name || resolvedMeta?.name || `Player ${id}`,
+    name: obj.name || resolvedMeta?.name || String(id),
     team: resolvedMeta?.team || team,
     x,
     y,

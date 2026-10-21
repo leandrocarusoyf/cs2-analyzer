@@ -38,10 +38,10 @@ function formatClockMMSS(totalSeconds: number): string {
 export function MatchHeaderHUD({
   matchId,
   mapName,
-  team1Name = 'FURIA',
-  team1Score = 13,
-  team2Name = 'Aurora',
-  team2Score = 10,
+  team1Name = '—',
+  team1Score = 0,
+  team2Name = '—',
+  team2Score = 0,
   currentRoundNumber,
   totalRounds,
   currentTick,
@@ -103,7 +103,7 @@ export function MatchHeaderHUD({
   return (
     <header
       data-testid="match-header-hud"
-      className="h-11 min-h-[42px] max-h-[44px] flex items-center justify-between border-b border-[#1F2629] px-2.5 bg-[#0B0E0F] shrink-0 gap-2"
+      className="min-h-[44px] py-2 flex flex-wrap items-center justify-between border-b border-[#1F2629] px-2.5 bg-[#0B0E0F] shrink-0 gap-2"
     >
       {/* Esquerda: Identificação da Partida e Mapa */}
       <div className="flex items-center gap-2 min-w-0">
@@ -114,9 +114,9 @@ export function MatchHeaderHUD({
         <span className="text-[#1F2629] hidden sm:inline">•</span>
         <h1
           id="replayer-heading"
-          className="text-[12px] sm:text-[13px] font-mono font-bold text-white uppercase truncate"
+          className="text-[12px] sm:text-[13px] font-sans font-semibold text-white truncate"
         >
-          Partida #{matchId} ({mapName})
+          {team1Name} vs {team2Name} — {mapName.replace(/^de_/, '')}
         </h1>
         <span className="rounded-[2px] border border-[#00FFA3]/30 bg-[#00FFA3]/10 px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#00FFA3] shrink-0">
           HUD TÁTICO
@@ -129,7 +129,7 @@ export function MatchHeaderHUD({
         className="flex items-center gap-2 sm:gap-3 shrink-0"
       >
         <div className="flex items-center gap-1.5 rounded-[2px] border border-[#1F2629] bg-[#111618] px-2.5 py-1 font-mono text-xs">
-          <span className="font-bold text-[#EA580C] uppercase">{team1Name}</span>
+          <span className="font-bold text-[#EAB308] uppercase">{team1Name}</span>
           <span className="font-black text-white tabular-nums">{team1Score}</span>
           <span className="text-[#6B7A82] text-[10px]">x</span>
           <span className="font-black text-white tabular-nums">{team2Score}</span>

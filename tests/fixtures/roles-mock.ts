@@ -3,7 +3,7 @@ import type {
   RadarAxisPoint,
   RoleComparisonDTO,
   RoleDetailRow,
-} from '../types/roles.ts';
+} from '../../src/types/roles.ts';
 
 export const CANONICAL_RADAR_AXES = [
   'HLTV Rating',

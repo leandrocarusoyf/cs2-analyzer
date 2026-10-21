@@ -45,7 +45,7 @@ export function buildMR12TeamBlocks(
   teamScoreCt?: number,
   teamScoreT?: number,
 ): [TeamBlockDescriptor, TeamBlockDescriptor] {
-  const isPostHalftime = roundNumber >= 13;
+  const isPostHalftime = roundNumber <= 24 ? roundNumber >= 13 : Math.floor((roundNumber - 25) / 3) % 2 === 1;
 
   const stateById = new Map<number, any>();
   for (const state of playerStates) {
@@ -88,12 +88,11 @@ export function buildMR12TeamBlocks(
       weaponName = 'AK47';
     }
 
-    const isPistolRound = roundNumber === 1 || roundNumber === 13;
-    const defaultFallbackMoney = isPistolRound ? 800 : 4200;
+    const defaultFallbackMoney = 0;
     const money = playerMoneyById[manifest.id] ?? liveState?.money ?? defaultFallbackMoney;
     const hasDefuser =
       currentSide === 'CT'
-        ? (playerDefusersById[manifest.id] ?? liveState?.hasDefuser ?? true)
+        ? (playerDefusersById[manifest.id] ?? liveState?.hasDefuser ?? false)
         : false;
 
     const row: RosterPlayerRowData = {
@@ -125,8 +124,8 @@ export function buildMR12TeamBlocks(
     p.playerNumber = idx + 6;
   });
 
-  const ctScore = teamScoreCt ?? (roundNumber >= 13 ? 7 : Math.min(roundNumber - 1, 6));
-  const tScore = teamScoreT ?? (roundNumber >= 13 ? 6 : Math.max(0, roundNumber - 1 - ctScore));
+  const ctScore = teamScoreCt ?? 0;
+  const tScore = teamScoreT ?? 0;
 
   const ctBlock: TeamBlockDescriptor = {
     side: 'CT',
@@ -224,7 +223,7 @@ export function TeamRosterSidebar({
     block: TeamBlockDescriptor,
     position: 'top' | 'bottom',
   ) => {
-    const canonicalColor = block.side === 'CT' ? '#2563EB' : '#EA580C';
+    const canonicalColor = block.side === 'CT' ? '#2563EB' : '#EAB308';
 
     return (
       <div
@@ -271,7 +270,7 @@ export function TeamRosterSidebar({
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span
                       style={{ backgroundColor: canonicalColor }}
-                      className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[2px] text-[9px] font-mono font-black text-white"
+                      className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[2px] text-[10px] font-mono font-black text-white"
                     >
                       {player.playerNumber}
                     </span>
@@ -281,7 +280,7 @@ export function TeamRosterSidebar({
                     {player.isAlive && callout && (
                       <span
                         data-testid={`roster-callout-${player.playerId}`}
-                        className="px-1 py-0.2 rounded-[1px] bg-[#0B0E0F] border border-[#1F2629] text-[8px] font-mono text-[#94A3B8] truncate max-w-[58px]"
+                        className="px-1 py-0.2 rounded-[1px] bg-[#0B0E0F] border border-[#1F2629] text-[10px] font-mono text-[#94A3B8] truncate max-w-[58px]"
                         title={`Setor: ${callout}`}
                       >
                         {callout}
@@ -322,7 +321,7 @@ export function TeamRosterSidebar({
                     )}
                     {player.side === 'T' && hasC4 && (
                       <span
-                        className="px-1 rounded-[1px] bg-[#FACC15]/20 border border-[#FACC15] text-[8px] font-mono font-black text-[#FACC15] leading-tight"
+                        className="px-1 rounded-[1px] bg-[#FACC15]/20 border border-[#FACC15] text-[10px] font-mono font-black text-[#FACC15] leading-tight"
                         title="Portador da C4"
                       >
                         C4
@@ -410,7 +409,7 @@ export function TeamRosterSidebar({
   return (
     <aside
       aria-label="Painel Lateral de Equipes"
-      className="w-[250px] sm:w-[265px] shrink-0 flex flex-col gap-2.5 justify-center select-none overflow-y-auto"
+      className="w-full lg:w-[265px] shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-2.5 justify-start select-none lg:overflow-y-auto"
     >
       {renderTeamBlock(topBlock, 'top')}
       {renderTeamBlock(bottomBlock, 'bottom')}

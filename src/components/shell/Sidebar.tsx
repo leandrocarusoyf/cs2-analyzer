@@ -111,7 +111,7 @@ export const SHELL_NAV_GROUPS: readonly NavGroup[] = Object.freeze([
     items: [
       {
         label: '2D Replayer',
-        href: '/replayer/54e43847-2490-4751-9981-831bf7cf367c',
+        href: '/matches',
         matchPrefix: '/replayer',
         badge: '2D',
         Icon: ReplayerIcon,
@@ -158,7 +158,7 @@ export function Sidebar({ defaultCollapsed = false }: SidebarProps) {
       aria-label="Navegação Tática Principal"
       data-collapsed={collapsed ? 'true' : 'false'}
       className={`min-h-screen bg-surface border-r border-border-subtle flex flex-col justify-between select-none ${
-        collapsed ? 'w-16 min-w-16' : 'w-[215px] min-w-[215px]'
+        collapsed ? 'w-16 min-w-16' : 'hidden md:flex w-[215px] min-w-[215px]'
       }`}
     >
       <div>
@@ -260,17 +260,17 @@ export function Sidebar({ defaultCollapsed = false }: SidebarProps) {
         {!collapsed ? (
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 bg-canvas border border-border-subtle rounded-[2px] flex items-center justify-center text-xs font-mono font-bold text-accent">
-              KS
+              CS
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-semibold text-text-primary truncate">KSCERATO</div>
-              <div className="text-[10px] font-mono text-text-secondary truncate">76561198058500492</div>
+              <div className="text-xs font-semibold text-text-primary truncate">Análise local</div>
+              <div className="text-[10px] font-mono text-text-secondary truncate">Demos importadas</div>
             </div>
           </div>
         ) : (
           <div className="flex justify-center">
             <div className="w-7 h-7 bg-canvas border border-border-subtle rounded-[2px] flex items-center justify-center text-xs font-mono font-bold text-accent">
-              KS
+              CS
             </div>
           </div>
         )}

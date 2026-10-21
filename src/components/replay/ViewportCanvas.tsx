@@ -194,7 +194,7 @@ export const ViewportCanvas: React.FC<ViewportCanvasProps> = ({
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const minDimension = Math.floor(Math.min(rect.width, rect.height || rect.width));
-      const size = Math.max(400, minDimension);
+      const size = Math.max(1, minDimension);
 
       setCanvasSize({ width: size, height: size });
     };
@@ -348,7 +348,7 @@ export const ViewportCanvas: React.FC<ViewportCanvasProps> = ({
           ctx.arc(gx, gy, 16, 0, Math.PI * 2);
           ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
           ctx.fill();
-          ctx.strokeStyle = '#f97316';
+          ctx.strokeStyle = '#EAB308';
           ctx.lineWidth = 2;
           ctx.stroke();
         }
@@ -549,7 +549,7 @@ export const ViewportCanvas: React.FC<ViewportCanvasProps> = ({
       }
 
       // 5.6 Círculo Oficial do Jogador CT/TR
-      const teamBg = isCT ? '#2563eb' : '#d97706';
+      const teamBg = isCT ? '#2563eb' : '#EAB308';
       const teamBorder = isSelected ? '#ffffff' : isCT ? '#93c5fd' : '#fde68a';
 
       ctx.beginPath();
@@ -565,7 +565,9 @@ export const ViewportCanvas: React.FC<ViewportCanvasProps> = ({
       ctx.font = 'bold 9px Inter, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(i + 1), px, py);
+      const sidePlayers = playersManifest.filter(m => players.find(p=>String(p.id)===String(m.id))?.team === p.team);
+      const playerNumber = (isCT ? 1 : 6) + sidePlayers.findIndex(m=>String(m.id)===String(p.id));
+      ctx.fillText(String(playerNumber), px, py);
 
       // 5.7 Nome do Jogador e Arma Ativa
       const displayName = p.name ? p.name.slice(0, 10) : 'P' + (i + 1);
@@ -673,7 +675,7 @@ export const ViewportCanvas: React.FC<ViewportCanvasProps> = ({
     <div
       ref={containerRef}
       className={
-        'relative flex items-center justify-center w-full h-full bg-slate-950 overflow-hidden rounded-xl shadow-2xl border border-slate-800 ' +
+        'relative flex items-center justify-center w-full h-full bg-slate-950 overflow-hidden rounded-[2px] border border-slate-800 ' +
         className
       }
     >

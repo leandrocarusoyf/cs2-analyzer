@@ -8,8 +8,8 @@ export const DEAD_PLAYER_OPACITY = 0.35 as const;
 export const DIFFERENT_FLOOR_OPACITY = 0.25 as const;
 
 export const TEAM_COLORS: Readonly<Record<TeamSide, string>> = Object.freeze({
-  CT: '#00d2d3',
-  T: '#ff9f43',
+  CT: '#3B82F6',
+  T: '#EAB308',
 });
 
 export type BombRenderState = 'carried' | 'planting' | 'planted' | 'defusing';
@@ -132,7 +132,7 @@ export function drawBomb(
 
   const colorByState: Record<BombRenderState, string> = {
     carried: '#facc15',
-    planting: '#f97316',
+    planting: '#EAB308',
     planted: '#ef4444',
     defusing: '#38bdf8',
   };
@@ -162,7 +162,7 @@ export function drawBomb(
 
 /**
  * Camadas 2 e 3 (Jogadores Vivos e Eliminados):
- * - Jogador vivo: círculo preenchido (raio 12px) em #00d2d3 (CT) ou #ff9f43 (T),
+ * - Jogador vivo: círculo preenchido (raio 12px) em #3B82F6 (CT) ou #EAB308 (T),
  *   vetor de mira de 18px a partir do centro e número centralizado.
  * - Jogador em outro andar vertical (de_nuke com activeLayer diferente de player.currentFloor):
  *   opacidade reduzida para 0.25 e anel tracejado com indicador '▲' (acima) ou '▼' (abaixo).

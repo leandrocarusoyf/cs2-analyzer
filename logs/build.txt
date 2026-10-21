@@ -1,0 +1,47 @@
+
+> cs2-analyzer@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.28
+   - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 18.1s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/11) ...
+   Generating static pages (2/11) 
+   Generating static pages (5/11) 
+   Generating static pages (8/11) 
+ ✓ Generating static pages (11/11)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                    Size  First Load JS
+┌ ○ /                                         154 B         103 kB
+├ ○ /_not-found                               154 B         103 kB
+├ ƒ /api/demos/upload                         154 B         103 kB
+├ ƒ /api/leaderboards                         154 B         103 kB
+├ ƒ /api/liquipedia                           154 B         103 kB
+├ ƒ /api/matches                              154 B         103 kB
+├ ƒ /api/matches/[id]                         154 B         103 kB
+├ ƒ /api/players                              154 B         103 kB
+├ ƒ /api/replays/[id]                         154 B         103 kB
+├ ƒ /api/stats/player/[steamId]               154 B         103 kB
+├ ƒ /api/stats/player/[steamId]/breakdowns    154 B         103 kB
+├ ƒ /api/stats/player/[steamId]/spatial       154 B         103 kB
+├ ƒ /api/stats/roles                          154 B         103 kB
+├ ○ /leaderboards                           3.21 kB         106 kB
+├ ƒ /matches                                5.64 kB         112 kB
+├ ƒ /matches/[id]                           4.93 kB         111 kB
+├ ƒ /replayer/[id]                          36.1 kB         142 kB
+└ ƒ /stats/player                           15.3 kB         118 kB
++ First Load JS shared by all                103 kB
+  ├ chunks/255-b1e2483a7e02feee.js          46.6 kB
+  ├ chunks/4bd1b696-c023c6e3521b1417.js     54.2 kB
+  └ other shared chunks (total)             1.99 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

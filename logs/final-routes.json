@@ -1,0 +1,50 @@
+[
+  {
+    "path": "/api/players",
+    "status": 200
+  },
+  {
+    "path": "/api/matches",
+    "status": 200
+  },
+  {
+    "path": "/api/matches/8a43e933-20bf-4bf6-b14a-f2cf6214e30c",
+    "status": 200
+  },
+  {
+    "path": "/api/replays/8a43e933-20bf-4bf6-b14a-f2cf6214e30c",
+    "status": 200
+  },
+  {
+    "path": "/api/stats/player/76561197960690195",
+    "status": 200
+  },
+  {
+    "path": "/api/stats/player/76561197960690195/breakdowns",
+    "status": 200
+  },
+  {
+    "path": "/api/stats/player/76561197960690195/spatial",
+    "status": 200
+  },
+  {
+    "path": "/api/stats/roles",
+    "status": 200
+  },
+  {
+    "path": "/matches",
+    "status": 200
+  },
+  {
+    "path": "/leaderboards",
+    "status": 200
+  },
+  {
+    "path": "/stats/player",
+    "status": 200
+  },
+  {
+    "path": "/replayer/8a43e933-20bf-4bf6-b14a-f2cf6214e30c",
+    "status": 200
+  }
+]

@@ -1,5 +1,5 @@
-import type { RecentMatchTelemetry } from '../types/stats.ts';
-import ingestedMatchesRaw from './ingested-matches.json';
+import type { RecentMatchTelemetry } from '../../src/types/stats.ts';
+import ingestedMatchesRaw from '../../src/data/ingested-matches.json';
 
 export interface IngestedMatchStoreEntry {
   matchId: string;

@@ -5,6 +5,7 @@ import { TeamRosterSidebar as TeamRosterPanel } from '../src/components/replay/T
 import { RoundCarousel as TimelineControls, type RoundSummaryItem } from '../src/components/replay/RoundCarousel.tsx';
 import { LiveKillfeed as KillFeed } from '../src/components/replay/LiveKillfeed.tsx';
 import ReplayerPage from '../src/app/replayer/[id]/page.tsx';
+import { normalizeReplayPayload } from '../src/lib/replay/decompress.ts';
 import type { PlayerManifestEntry } from '../src/types/replay.ts';
 import type { InterpolatedPlayerState } from '../src/types/replayer-engine.ts';
 
@@ -32,6 +33,7 @@ const SAMPLE_PLAYER_STATES: InterpolatedPlayerState[] =
     hp: 100,
     armor: 100,
     hasHelmet: true,
+    hasDefuser: p.initialTeam === 'CT',
     isAlive: true,
     activeWeaponId: 7,
     isDefusing: false,
@@ -39,6 +41,9 @@ const SAMPLE_PLAYER_STATES: InterpolatedPlayerState[] =
     flashDuration: 0,
     ping: 15,
   }));
+
+const replayFixture={map:'de_inferno',teams:{team1:{name:'Alpha',score:1},team2:{name:'Beta',score:0}},playersManifest:SAMPLE_PLAYERS_MANIFEST,rounds:[{roundNumber:1,startTick:1,endTick:128,winnerSide:'CT',frames:[[1,SAMPLE_PLAYERS_MANIFEST.map(p=>[p.id,0,0,0,0,100,100,0,1,0,0,7,0,0])]]}]};
+vi.mock('../src/lib/replay/decompress.ts',async(importOriginal)=>{const actual:any=await importOriginal();return {...actual,fetchAndDecompressReplay:async()=>actual.normalizeReplayPayload(replayFixture,'test')};});
 
 describe('Replayer Tactical UI (TeamRosterPanel, TimelineControls, KillFeed)', () => {
   afterEach(() => {
@@ -79,7 +84,7 @@ describe('Replayer Tactical UI (TeamRosterPanel, TimelineControls, KillFeed)', (
     expect(bottomBlockRound14.textContent).toContain('Equipe CT');
   });
 
-  it('deve renderizar os botões de round com as cores temáticas do lado vencedor (#2563EB para CT e #EA580C para TR)', () => {
+  it('deve renderizar os botões de round com as cores temáticas do lado vencedor (#2563EB para CT e #EAB308 para TR)', () => {
     const rounds: RoundSummaryItem[] = [
       {
         roundNumber: 1,
@@ -131,7 +136,7 @@ describe('Replayer Tactical UI (TeamRosterPanel, TimelineControls, KillFeed)', (
     expect(round1Btn.getAttribute('data-active')).toBe('true');
 
     expect(round2Btn.getAttribute('data-winner-side')).toBe('T');
-    expect(round2Btn.getAttribute('data-winner-color')).toBe('#EA580C');
+    expect(round2Btn.getAttribute('data-winner-color')).toBe('#EAB308');
     expect(round2Btn.getAttribute('data-active')).toBe('false');
 
     fireEvent.click(round2Btn);
@@ -227,7 +232,7 @@ describe('Replayer Tactical UI (TeamRosterPanel, TimelineControls, KillFeed)', (
     });
 
     const heading = screen.getByRole('heading', {
-      name: /Partida #54e43847-2490-4751-9981-831bf7cf367c/i,
+      name: /Alpha vs Beta/i,
     });
     expect(heading).toBeTruthy();
     expect(screen.getByTestId('kill-feed')).toBeTruthy();

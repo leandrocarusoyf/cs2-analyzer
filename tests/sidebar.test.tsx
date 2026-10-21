@@ -39,7 +39,7 @@ describe('Sidebar Component Integration (EDGE/Skybox Design System)', () => {
     const leaderboardsLink = screen.getByRole('link', { name: /leaderboards/i });
 
     expect(matchesLink.getAttribute('href')).toBe('/matches');
-    expect(replayerLink.getAttribute('href')).toBe('/replayer/54e43847-2490-4751-9981-831bf7cf367c');
+    expect(replayerLink.getAttribute('href')).toBe('/matches');
     expect(statsLink.getAttribute('href')).toBe('/stats/player');
     expect(leaderboardsLink.getAttribute('href')).toBe('/leaderboards');
 

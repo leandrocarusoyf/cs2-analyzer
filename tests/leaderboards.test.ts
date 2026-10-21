@@ -1,15 +1,19 @@
 import React from 'react';
-import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import {MOCK_LEADERBOARD_PLAYERS} from './fixtures/leaderboards.ts';
 import LeaderboardsPage from '../src/app/leaderboards/page.tsx';
 
 describe('Leaderboards Page & Tactical Telemetry Grid (Edge/Skybox)', () => {
+  beforeEach(()=>{vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,json:async()=>({players:MOCK_LEADERBOARD_PLAYERS})}));});
   afterEach(() => {
+    vi.unstubAllGlobals();
     cleanup();
   });
 
-  it('deve renderizar a tabela com 15 atletas profissionais por padrão ordenados por HLTV desc', () => {
+  it('deve renderizar a tabela com 15 atletas profissionais por padrão ordenados por HLTV desc', async () => {
     render(React.createElement(LeaderboardsPage));
+    await waitFor(()=>expect(screen.getAllByTestId('leaderboard-row')).toHaveLength(15));
 
     // 1. Título com prefixo slash neon
     expect(screen.getByRole('heading', { level: 1, name: /leaderboards/i })).toBeTruthy();
@@ -28,8 +32,9 @@ describe('Leaderboards Page & Tactical Telemetry Grid (Edge/Skybox)', () => {
     expect(rows[1].getAttribute('data-rank')).toBe('2');
   });
 
-  it('deve alternar a ordenação por clique nos cabeçalhos da tabela (ex: ADR e K/D)', () => {
+  it('deve alternar a ordenação por clique nos cabeçalhos da tabela (ex: ADR e K/D)', async () => {
     render(React.createElement(LeaderboardsPage));
+    await waitFor(()=>expect(screen.getAllByTestId('leaderboard-row')).toHaveLength(15));
 
     const adrHeader = screen.getByTestId('th-sort-adr');
 
@@ -56,8 +61,9 @@ describe('Leaderboards Page & Tactical Telemetry Grid (Edge/Skybox)', () => {
     expect(screen.getByTestId('cell-kd-zywoo').textContent).toBe('1.42');
   });
 
-  it('deve filtrar os dados e métricas ao selecionar um mapa específico (ex: Inferno)', () => {
+  it('deve filtrar os dados e métricas ao selecionar um mapa específico (ex: Inferno)', async () => {
     render(React.createElement(LeaderboardsPage));
+    await waitFor(()=>expect(screen.getAllByTestId('leaderboard-row')).toHaveLength(15));
 
     // Verificar métricas padrão gerais de ZywOo antes do filtro
     expect(screen.getByTestId('cell-rounds-zywoo').textContent).toBe('780');
@@ -77,8 +83,9 @@ describe('Leaderboards Page & Tactical Telemetry Grid (Edge/Skybox)', () => {
     expect(screen.getByTestId('cell-hltv-donk').textContent).toBe('1.35');
   });
 
-  it('deve filtrar por função (Role) e busca textual por jogador', () => {
+  it('deve filtrar por função (Role) e busca textual por jogador', async () => {
     render(React.createElement(LeaderboardsPage));
+    await waitFor(()=>expect(screen.getAllByTestId('leaderboard-row')).toHaveLength(15));
 
     // 1. Filtrar por função AWP (ZywOo, m0NESY, sh1ro, broky)
     const awpPill = screen.getByTestId('filter-role-AWP');

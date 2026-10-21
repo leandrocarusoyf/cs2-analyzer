@@ -1,4 +1,4 @@
-import { pool, query } from '../db.ts';
+import { query } from '../db.ts';
 import type { RecentMatchTelemetry } from '../../types/stats.ts';
 import type { LeaderboardPlayer, PlayerMapStats } from '../../data/leaderboards-data.ts';
 
@@ -27,6 +27,8 @@ export interface MatchMapDetail {
   rounds_t1: number;
   rounds_t2: number;
   duration?: number;
+  replay_path?: string | null;
+  map_number?: number;
   pick_type?: string | null;
   pick_team?: string | null;
 }
@@ -92,9 +94,9 @@ function normalizeTeamSlug(name: string): string {
 }
 
 function formatDate(dateVal: Date | string | undefined | null): string {
-  if (!dateVal) return '18/10';
+  if (!dateVal) return '—';
   const d = new Date(dateVal);
-  if (isNaN(d.getTime())) return '18/10';
+  if (isNaN(d.getTime())) return '—';
   const day = String(d.getUTCDate()).padStart(2, '0');
   const month = String(d.getUTCMonth() + 1).padStart(2, '0');
   return `${day}/${month}`;
@@ -142,10 +144,10 @@ export async function getRecentMatches(limit = 10): Promise<MatchWithDetails[]> 
         rounds_t2,
         duration,
         pick_type,
-        pick_team
+        pick_team, replay_path, map_number
       FROM match_maps
       WHERE match_id = ANY($1::uuid[])
-      ORDER BY id ASC;
+      ORDER BY map_number ASC;
     `;
     const mapsRes = await query(mapsSql, [matchIds]);
     const mapsRows = mapsRes?.rows ?? [];
@@ -154,6 +156,8 @@ export async function getRecentMatches(limit = 10): Promise<MatchWithDetails[]> 
     for (const mm of mapsRows) {
       const list = mapsByMatch.get(mm.match_id) || [];
       list.push({
+        replay_path: mm.replay_path,
+        map_number: mm.map_number,
         id: mm.id,
         map_name: mm.map_name,
         rounds_t1: Number(mm.rounds_t1 || 0),
@@ -247,7 +251,7 @@ export async function getRecentMatches(limit = 10): Promise<MatchWithDetails[]> 
         bans: parsedBans,
         maps: matchMaps,
         map_id: primaryMap?.id || null,
-        map_name: primaryMap?.map_name || 'de_inferno',
+        map_name: primaryMap?.map_name || null,
         rounds_t1: primaryMap?.rounds_t1,
         rounds_t2: primaryMap?.rounds_t2,
         duration: primaryMap?.duration,
@@ -283,7 +287,7 @@ export async function getMatchById(id: string): Promise<MatchWithDetails | null>
         m.event_name,
         m.bans
       FROM matches m
-      WHERE m.id::text = $1 OR m.demo_hash = $1
+      WHERE m.id::text = $1 OR m.demo_hash = $1 OR m.id=(SELECT match_id FROM match_maps WHERE id::text=$1)
       LIMIT 1;
     `;
     const matchRes = await query(matchSql, [id]);
@@ -305,14 +309,16 @@ export async function getMatchById(id: string): Promise<MatchWithDetails | null>
         rounds_t2,
         duration,
         pick_type,
-        pick_team
+        pick_team, replay_path, map_number
       FROM match_maps
       WHERE match_id = $1::uuid
-      ORDER BY id ASC;
+      ORDER BY map_number ASC;
     `;
     const mapsRes = await query(mapsSql, [matchUuid]);
     const mapsRows = mapsRes?.rows ?? [];
     const maps: MatchMapDetail[] = mapsRows.map((mm) => ({
+      replay_path: mm.replay_path,
+      map_number: mm.map_number,
       id: mm.id,
       map_name: mm.map_name,
       rounds_t1: Number(mm.rounds_t1 || 0),
@@ -322,7 +328,7 @@ export async function getMatchById(id: string): Promise<MatchWithDetails | null>
       pick_team: mm.pick_team || null,
     }));
 
-    const primaryMap = maps[0];
+    const primaryMap = maps.find(m=>m.id===id) || maps[0];
 
     const playersSql = `
       SELECT 
@@ -399,12 +405,12 @@ export async function getMatchById(id: string): Promise<MatchWithDetails | null>
       bans: parsedBans,
       maps,
       map_id: primaryMap?.id || null,
-      map_name: primaryMap?.map_name || 'de_inferno',
+      map_name: primaryMap?.map_name || null,
       rounds_t1: primaryMap?.rounds_t1,
       rounds_t2: primaryMap?.rounds_t2,
       duration: primaryMap?.duration,
       rounds_count: totalRoundsCount,
-      players,
+      players: maps.some(m=>m.id===id) ? players.filter(p=>p.map_id===id) : players,
     };
   } catch (err) {
     console.error('[getMatchById] Database error, returning fallback:', err);
@@ -444,10 +450,10 @@ export async function getPlayerPerformance(
         m.score_t1,
         m.score_t2,
         m.winner,
-        mm.map_name
+        mm.map_name, mm.rounds_t1, mm.rounds_t2, mm.id AS replay_id
       FROM player_stats ps
       JOIN matches m ON ps.match_id = m.id
-      LEFT JOIN match_maps mm ON ps.map_id = mm.id OR ps.match_id = mm.match_id
+      LEFT JOIN match_maps mm ON ps.map_id = mm.id
       WHERE ps.player_steamid = $1 OR LOWER(ps.nickname) = LOWER($1)
       ORDER BY m.match_date ASC
       LIMIT $2;
@@ -463,6 +469,7 @@ export async function getPlayerPerformance(
 
     let totalRating = 0;
     let totalAdr = 0;
+    let totalRounds = 0;
     let totalKills = 0;
     let totalDeaths = 0;
     let totalKast = 0;
@@ -474,15 +481,16 @@ export async function getPlayerPerformance(
     const telemetry: RecentMatchTelemetry[] = [];
 
     for (const row of rows) {
-      const rating = row.rating !== null && row.rating !== undefined ? Number(row.rating) : 1.0;
+      const rating = row.rating !== null && row.rating !== undefined ? Number(row.rating) : 0;
       const adr = row.adr !== null && row.adr !== undefined ? Number(row.adr) : 0;
       const kills = Number(row.kills || 0);
       const deaths = Number(row.deaths || 0);
-      const kast = row.kast !== null && row.kast !== undefined ? Number(row.kast) : 70;
+      const kast = row.kast !== null && row.kast !== undefined ? Number(row.kast) : 0;
       const ttd = row.ttd !== null && row.ttd !== undefined ? Number(row.ttd) : null;
       const ttk = row.ttk !== null && row.ttk !== undefined ? Number(row.ttk) : null;
       const fsp = row.fsp !== null && row.fsp !== undefined ? Number(row.fsp) : null;
 
+      totalRounds += Number(row.rounds_t1 || 0) + Number(row.rounds_t2 || 0);
       totalRating += rating;
       totalAdr += adr;
       totalKills += kills;
@@ -493,11 +501,11 @@ export async function getPlayerPerformance(
       if (fsp !== null) fspSamples.push(fsp);
 
       const isTeam1 = row.team === row.team1;
-      const teamScore = isTeam1 ? Number(row.score_t1 ?? 0) : Number(row.score_t2 ?? 0);
-      const opponentScore = isTeam1 ? Number(row.score_t2 ?? 0) : Number(row.score_t1 ?? 0);
+      const teamScore = isTeam1 ? Number(row.rounds_t1 ?? row.score_t1 ?? 0) : Number(row.rounds_t2 ?? row.score_t2 ?? 0);
+      const opponentScore = isTeam1 ? Number(row.rounds_t2 ?? row.score_t2 ?? 0) : Number(row.rounds_t1 ?? row.score_t1 ?? 0);
       const opponentTeam = isTeam1 ? (row.team2 ?? 'Opponent') : (row.team1 ?? 'Opponent');
       const opponentSlug = normalizeTeamSlug(opponentTeam);
-      const isWinner = row.winner === row.team || teamScore > opponentScore;
+      const isWinner = teamScore > opponentScore;
       const result: 'W' | 'L' = isWinner ? 'W' : 'L';
       const cleanMap = (row.map_name || 'de_inferno').replace('de_', '').toUpperCase();
 
@@ -537,9 +545,9 @@ export async function getPlayerPerformance(
           t: Number(safeKd?.t ?? (deaths > 0 ? Number((kills / deaths).toFixed(2)) : kills)),
         },
         kpr: {
-          overall: Number(safeKpr?.overall ?? Number((kills / 23).toFixed(2))),
-          ct: Number(safeKpr?.ct ?? Number((kills / 23).toFixed(2))),
-          t: Number(safeKpr?.t ?? Number((kills / 23).toFixed(2))),
+          overall: Number(safeKpr?.overall ?? Number((kills / Math.max(1, Number(row.rounds_t1)+Number(row.rounds_t2))).toFixed(2))),
+          ct: Number(safeKpr?.ct ?? Number((kills / Math.max(1, Number(row.rounds_t1)+Number(row.rounds_t2))).toFixed(2))),
+          t: Number(safeKpr?.t ?? Number((kills / Math.max(1, Number(row.rounds_t1)+Number(row.rounds_t2))).toFixed(2))),
         },
         udr: {
           overall: Number(safeUdr?.overall ?? 0),
@@ -556,7 +564,7 @@ export async function getPlayerPerformance(
       const dateStr = formatDate(row.match_date);
 
       history.push({
-        matchId: row.match_id,
+        matchId: row.replay_id || row.match_id,
         mapName: row.map_name || 'de_inferno',
         date: dateStr,
         opponent: opponentTeam,
@@ -572,7 +580,7 @@ export async function getPlayerPerformance(
       });
 
       telemetry.push({
-        matchId: row.match_id,
+        matchId: row.replay_id || row.match_id,
         mapName: cleanMap,
         opponentTeam,
         opponentSlug,
@@ -590,8 +598,8 @@ export async function getPlayerPerformance(
     const avgRating = Number((totalRating / n).toFixed(2));
     const avgAdr = Number((totalAdr / n).toFixed(1));
     const avgKd = totalDeaths > 0 ? Number((totalKills / totalDeaths).toFixed(2)) : totalKills;
-    const avgKpr = Number((totalKills / (n * 23)).toFixed(2));
-    const avgDpr = Number((totalDeaths / (n * 23)).toFixed(2));
+    const avgKpr = Number((totalKills / Math.max(1, totalRounds)).toFixed(2));
+    const avgDpr = Number((totalDeaths / Math.max(1, totalRounds)).toFixed(2));
     const avgKast = Number((totalKast / n).toFixed(1));
 
     const avgTtd = ttdSamples.length > 0 ? Math.round(ttdSamples.reduce((a, b) => a + b, 0) / ttdSamples.length) : null;
@@ -677,16 +685,16 @@ export async function getLeaderboardPlayersFromDb(): Promise<LeaderboardPlayer[]
 
       for (const row of playerRows) {
         const rounds = Number(row.rounds) || 23;
-        const rating = Number(row.rating) || 1.0;
-        const adr = Number(row.adr) || 80.0;
-        const kast = Number(row.kast) || 70.0;
+        const rating = Number(row.rating) || 0;
+        const adr = Number(row.adr) || 0;
+        const kast = Number(row.kast) || 0;
         const kills = Number(row.kills) || 0;
         const deaths = Number(row.deaths) || 0;
 
         const metrics = typeof row.metrics_json === 'string'
           ? (() => { try { return JSON.parse(row.metrics_json); } catch { return {}; } })()
           : (row.metrics_json || {});
-        const udr = Number(metrics?.udr?.overall ?? metrics?.general?.udr ?? 5.5);
+        const udr = Number(metrics?.udr?.overall ?? metrics?.general?.udr ?? 0);
 
         totalRounds += rounds;
         totalRatingWeight += rating * rounds;
@@ -726,7 +734,7 @@ export async function getLeaderboardPlayersFromDb(): Promise<LeaderboardPlayer[]
       const weightedAdr = count === 1 ? Number(latest.adr) : Number((totalAdrWeight / totalRounds).toFixed(1));
       const weightedKast = count === 1 ? Number(latest.kast) : Number((totalKastWeight / totalRounds).toFixed(1));
       const weightedUdr = count === 1
-        ? Number((typeof latest.metrics_json === 'object' ? latest.metrics_json?.udr?.overall : 5.5) || 5.5)
+        ? Number((typeof latest.metrics_json === 'object' ? latest.metrics_json?.udr?.overall : 0) || 0)
         : Number((totalUdrWeight / totalRounds).toFixed(1));
       const overallKd = totalDeaths > 0 ? Number((totalKills / totalDeaths).toFixed(2)) : totalKills;
       const overallKpr = Number((totalKills / totalRounds).toFixed(2));
@@ -737,22 +745,11 @@ export async function getLeaderboardPlayersFromDb(): Promise<LeaderboardPlayer[]
       const parsedLatestMetrics = typeof latest.metrics_json === 'string'
         ? (() => { try { return JSON.parse(latest.metrics_json); } catch { return {}; } })()
         : (latest.metrics_json || {});
-      const tRole = parsedLatestMetrics?.roles?.t || (nickname.toLowerCase().includes('lurk') ? 'T Lurk' : overallKpr > 0.8 ? 'T Entry' : 'T Allround');
-      const ctRole = parsedLatestMetrics?.roles?.ct || (nickname.toLowerCase().includes('anchor') ? 'CT Anchor' : 'CT Rotation');
-
+      const tRole = parsedLatestMetrics?.roles?.t || 'Sem classificação';
+      const ctRole = parsedLatestMetrics?.roles?.ct || 'Sem classificação';
       let roleCategory: 'AWP' | 'Entry' | 'Rifler' | 'Anchor' | 'Support' | 'Lurk' = 'Rifler';
-      const nickLow = nickname.toLowerCase();
-      if (nickLow === 'fallen' || nickLow === 'woxic' || nickLow === 'zywoo' || nickLow === 'm0nesy' || nickLow === 'broky' || nickLow === 'sh1ro') {
-        roleCategory = 'AWP';
-      } else if (nickLow === 'yekindar' || nickLow === 'xantares' || tRole.includes('Entry') || overallKpr >= 0.82) {
-        roleCategory = 'Entry';
-      } else if (tRole.includes('Lurk')) {
-        roleCategory = 'Lurk';
-      } else if (ctRole.includes('Anchor')) {
-        roleCategory = 'Anchor';
-      } else if (tRole.includes('Support')) {
-        roleCategory = 'Support';
-      }
+      if (tRole.includes('Lurk')) roleCategory = 'Lurk';
+      else if (ctRole.includes('Anchor')) roleCategory = 'Anchor';
 
       result.push({
         id: steamId,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { getPlayerPerformance } from '../../../lib/queries/matches.ts';
+import { getPlayerPerformance, getAllRegisteredPlayers } from '../../../lib/queries/matches.ts';
 import type { PlayerPerformanceResult } from '../../../types/stats.ts';
 import PlayerStatsClient from './PlayerStatsClient.tsx';
 
@@ -16,7 +16,8 @@ export default async function PlayerPage(props: {
       (typeof resolvedParams?.steamId === 'string' && resolvedParams.steamId) ||
       (typeof resolvedParams?.player === 'string' && resolvedParams.player) ||
       (typeof resolvedParams?.targetPlayerId === 'string' && resolvedParams.targetPlayerId) ||
-      '76561198058500492';
+      (await getAllRegisteredPlayers())[0]?.steamId || '';
+    if (!selectedPlayerId) return <div className="p-8 text-zinc-400">Importe uma demo para analisar os jogadores.</div>;
 
     performanceData = await getPlayerPerformance(selectedPlayerId);
   } catch (error: unknown) {

@@ -61,37 +61,5 @@ describe('RoleDetailsModal & Role Interactivity', () => {
     });
   });
 
-  it('2. INTERATIVIDADE NAS ROLES (TABINTRO): clicar no card de Role #1 abre o modal', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        role: 'Inferno A Rotation',
-        map: 'de_inferno',
-        count: 1,
-        players: [
-          {
-            steamId: '76561198855375325',
-            nickname: 'Jimpphat',
-            team: 'Aurora',
-            rating: 1.46,
-            adr: 116.5,
-            kast: 85.0,
-            kd: 1.67,
-            ctRole: 'Inferno A Rotation',
-            tRole: 'Mirage B Lurk',
-          },
-        ],
-      }),
-    });
-
-    render(<TabIntro />);
-
-    const roleBtn = screen.getByLabelText(/Inspecionar detalhes da função Inferno A Rotation/i);
-    fireEvent.click(roleBtn);
-
-    await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeTruthy();
-      expect(screen.getByText(/Comparativo de Atletas na Função • de_inferno/i)).toBeTruthy();
-    });
-  });
+  it('não inventa uma role sem telemetria',()=>{render(<TabIntro/>);expect(screen.getByText(/Selecione um jogador/)).toBeTruthy();});
 });

@@ -1,243 +1,76 @@
-import React from 'react';
-import { describe, it, expect, afterAll, vi } from 'vitest';
-import { render, screen, cleanup, act } from '@testing-library/react';
-import { pool, query, closeDbPool } from '../src/lib/db.ts';
-import { getRecentMatches, getPlayerPerformance, getMatchById } from '../src/lib/queries/matches.ts';
-import { GET as replayRouteHandler } from '../src/app/api/replays/[id]/route.ts';
-import { GET as matchesRouteHandler } from '../src/app/api/matches/[id]/route.ts';
-import ReplayerPage from '../src/app/replayer/[id]/page.tsx';
-import { PlayerStatsTable } from '../src/components/stats/PlayerStatsTable.tsx';
-import { TabIntro } from '../src/components/stats/TabIntro.tsx';
-import zlib from 'node:zlib';
-
-describe('Integração PostgreSQL Local, Queries e Streaming de Telemetria (.bin.gz)', () => {
-  afterAll(async () => {
-    cleanup();
-    await closeDbPool();
-  });
-
-  it('1. CONFIGURAÇÃO DE ACESSO AO BANCO: Conecta com sucesso ao PostgreSQL local usando pool singleton', async () => {
-    expect(pool).toBeDefined();
-    const res = await query('SELECT 1 as connected;');
-    expect(res.rows).toHaveLength(1);
-    expect(res.rows[0].connected).toBe(1);
-  });
-
-  it('2. QUERIES DE PARTIDAS: getRecentMatches() retorna a partida FURIA 13 x 10 Aurora (de_inferno) com 23 rounds', async () => {
-    const matches = await getRecentMatches(10);
-    expect(matches.length).toBeGreaterThan(0);
-
-    const furiaMatch = matches.find(
-      (m) =>
-        (m.team1 === 'FURIA' && m.team2 === 'Aurora') ||
-        (m.team1 === 'Aurora' && m.team2 === 'FURIA'),
-    );
-
-    expect(furiaMatch).toBeDefined();
-    expect(furiaMatch?.winner).toBe('FURIA');
-    expect(furiaMatch?.score_t1).toBe(13);
-    expect(furiaMatch?.score_t2).toBe(10);
-    expect(furiaMatch?.map_name).toBe('de_inferno');
-    expect(furiaMatch?.rounds_count).toBe(23);
-    expect(furiaMatch?.players).toHaveLength(10);
-  });
-
-  it('2.1 QUERY INDIVIDUAL DE PARTIDA: getMatchById() retorna a partida FURIA 13 x 10 Aurora pelo ID e demo_hash', async () => {
-    const matchId = '54e43847-2490-4751-9981-831bf7cf367c';
-    const match = await getMatchById(matchId);
-    expect(match).not.toBeNull();
-    expect(match?.team1).toBe('FURIA');
-    expect(match?.team2).toBe('Aurora');
-    expect(match?.score_t1).toBe(13);
-    expect(match?.score_t2).toBe(10);
-    expect(match?.map_name).toBe('de_inferno');
-    expect(match?.replay_path).toContain('furia-vs-aurora-m2-inferno.bin.gz');
-    expect(match?.players).toHaveLength(10);
-  });
-
-  it('2.2 ROTA DE METADADOS: /api/matches/[id] responde com JSON 200 e dados completos do PostgreSQL', async () => {
-    const matchId = '54e43847-2490-4751-9981-831bf7cf367c';
-    const req = new Request(`http://localhost:3000/api/matches/${matchId}`);
-    const res = await matchesRouteHandler(req, {
-      params: Promise.resolve({ id: matchId }),
-    });
-
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.match).toBeDefined();
-    expect(body.match.team1).toBe('FURIA');
-    expect(body.match.team2).toBe('Aurora');
-    expect(body.match.map_name).toBe('de_inferno');
-    expect(body.match.players).toHaveLength(10);
-  });
-
-  it('2. QUERIES DE PARTIDAS: getPlayerPerformance() extrai o histórico do KSCERATO e metrics_json consolidado (CT, TR, Overall)', async () => {
-    const ksceratoSteamId = '76561198058500492';
-    const perf = await getPlayerPerformance(ksceratoSteamId);
-
-    expect(perf).not.toBeNull();
-    expect(perf?.nickname).toBe('KSCERATO');
-    expect(perf?.team).toBe('FURIA');
-    expect(perf?.currentRating).toBe(1.22);
-    expect(perf?.adr).toBe(113.7);
-    expect(perf?.ttd).toBeNull();
-    expect(perf?.ttk).toBe(327);
-    expect(perf?.fsp).toBe(100);
-
-    // Validação de métricas consolidadas (CT, TR, Overall)
-    expect(perf?.telemetry.length).toBeGreaterThan(0);
-    const lastTelemetry = perf?.telemetry[perf.telemetry.length - 1];
-    expect(lastTelemetry?.opponentTeam).toBe('Aurora');
-    expect(lastTelemetry?.mapName).toBe('INFERNO');
-    expect(lastTelemetry?.score).toBe('13 - 10');
-    expect(lastTelemetry?.result).toBe('W');
-
-    const metrics = lastTelemetry?.metrics;
-    expect(metrics?.hltv.overall).toBe(1.22);
-    expect(metrics?.hltv.ct).toBe(0.95);
-    expect(metrics?.hltv.t).toBe(1.47);
-
-    expect(metrics?.adr.overall).toBe(113.7);
-    expect(metrics?.adr.ct).toBe(85.7);
-    expect(metrics?.adr.t).toBe(139.3);
-  });
-
-  it('3. ROTA DE STREAMING DA TELEMETRIA 2D: /api/replays/[id] envia o stream do .bin.gz com cabeçalhos gzip e octet-stream', async () => {
-    const matchId = '54e43847-2490-4751-9981-831bf7cf367c';
-    const req = new Request(`http://localhost:3000/api/replays/${matchId}`);
-    const res = await replayRouteHandler(req, {
-      params: Promise.resolve({ id: matchId }),
-    });
-
-    expect(res.status).toBe(200);
-    expect(res.headers.get('Content-Type')).toBe('application/octet-stream');
-    expect(res.headers.get('Content-Encoding')).toBeNull();
-
-    const arrayBuffer = await res.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    expect(buffer.length).toBeGreaterThan(0);
-
-    // Descompressão do buffer para verificar integridade do payload
-    const decompressedJson = JSON.parse(zlib.gunzipSync(buffer).toString('utf8'));
-    expect(decompressedJson.map).toBe('de_inferno');
-    expect(decompressedJson.rounds).toHaveLength(23);
-    expect(decompressedJson.playersManifest).toHaveLength(10);
-  });
-
-  it('3.1 TESTE DE PONTA A PONTA: /replayer/54e43847-2490-4751-9981-831bf7cf367c renderiza mapa, 10 jogadores, granadas e KillFeed sem erro de runtime', async () => {
-    const matchId = '54e43847-2490-4751-9981-831bf7cf367c';
-    const req = new Request(`http://localhost:3000/api/replays/${matchId}`);
-    const res = await replayRouteHandler(req, {
-      params: Promise.resolve({ id: matchId }),
-    });
-    const arrayBuffer = await res.arrayBuffer();
-    const decompressedJson = JSON.parse(zlib.gunzipSync(Buffer.from(arrayBuffer)).toString('utf8'));
-
-    const fetchSpy = vi.spyOn(global, 'fetch').mockImplementation((url: any) => {
-      if (String(url).includes(matchId)) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(decompressedJson),
-        } as Response);
-      }
-      return Promise.reject(new Error(`Unexpected url: ${url}`));
-    });
-
-    try {
-      await act(async () => {
-        render(
-          <React.Suspense fallback={null}>
-            <ReplayerPage params={Promise.resolve({ id: matchId })} />
-          </React.Suspense>,
-        );
-      });
-
-      // Elementos essenciais do Replayer tático 2D
-      expect(screen.getByTestId('radar-canvas')).toBeTruthy();
-      expect(screen.getByTestId('kill-feed')).toBeTruthy();
-      expect(screen.getByTestId('roster-block-top')).toBeTruthy();
-      expect(screen.getByTestId('roster-block-bottom')).toBeTruthy();
-
-      // Timeline deve conter os 23 rounds da partida FURIA 13 x 10 Aurora
-      expect(screen.getByTestId('round-btn-23')).toBeTruthy();
-
-      // Cores dos rounds: CT (#2563EB) e TR (#EA580C)
-      const btnRound1 = screen.getByTestId('round-btn-1'); // T venceu (FURIA)
-      const btnRound2 = screen.getByTestId('round-btn-2'); // CT venceu (Aurora)
-      const btnRound13 = screen.getByTestId('round-btn-13'); // CT venceu (FURIA)
-      const btnRound14 = screen.getByTestId('round-btn-14'); // T venceu (Aurora)
-      const btnRound23 = screen.getByTestId('round-btn-23'); // CT venceu (FURIA fecha 13x10)
-
-      expect(btnRound1.getAttribute('data-winner-color')).toBe('#EA580C');
-      expect(btnRound2.getAttribute('data-winner-color')).toBe('#2563EB');
-      expect(btnRound13.getAttribute('data-winner-color')).toBe('#2563EB');
-      expect(btnRound14.getAttribute('data-winner-color')).toBe('#EA580C');
-      expect(btnRound23.getAttribute('data-winner-color')).toBe('#2563EB');
-
-      // Jogadores da demo oficial de_inferno devem estar no documento
-      expect(screen.getByText('KSCERATO')).toBeTruthy();
-      expect(screen.getByText('XANTARES')).toBeTruthy();
-    } finally {
-      fetchSpy.mockRestore();
-    }
-  });
-
-  it('4. TRATAMENTO DE VALORES NULOS (TTD): PlayerStatsTable exibe um traço "—" quando ttd for null', () => {
-    const samplePlayers = [
-      {
-        steamId: '76561198058500492',
-        nickname: 'KSCERATO',
-        team: 'FURIA',
-        rating: 1.22,
-        kd: 1.23,
-        adr: 113.7,
-        kast: 65.2,
-        ttk: 327,
-        ttd: null,
-        fsp: 100,
-        kills: 16,
-        deaths: 13,
-      },
-      {
-        steamId: '76561198044118796',
-        nickname: 'XANTARES',
-        team: 'Aurora',
-        rating: 1.29,
-        kd: 1.31,
-        adr: 85.6,
-        kast: 82.6,
-        ttk: 184,
-        ttd: null,
-        fsp: 100,
-        kills: 17,
-        deaths: 13,
-      },
-    ];
-
-    render(<PlayerStatsTable players={samplePlayers} />);
-
-    // Ambos os jogadores possuem ttd null, deve renderizar o traço "—"
-    const ksceratoTtdCell = screen.getByTestId('player-ttd-76561198058500492');
-    const xantaresTtdCell = screen.getByTestId('player-ttd-76561198044118796');
-
-    expect(ksceratoTtdCell.textContent?.trim()).toBe('—');
-    expect(xantaresTtdCell.textContent?.trim()).toBe('—');
-
-    // Foco em TTK, FSP, Rating e K/D
-    const row = screen.getByTestId('player-row-76561198058500492');
-    expect(row.textContent).toContain('327 ms');
-    expect(row.textContent).toContain('100.0%');
-    expect(row.textContent).toContain('1.22');
-    expect(row.textContent).toContain('1.23');
-  });
-
-  it('4. TRATAMENTO DE VALORES NULOS (TTD): TabIntro exibe "—" para TTD nulo e destaca a partida real FURIA 13 x 10 Aurora', () => {
-    render(<TabIntro />);
-
-    const ttdElement = screen.getByTestId('player-ttd');
-    expect(ttdElement.textContent?.trim()).toBe('—');
-
-    // Exibe o placar e confronto real
-    expect(screen.getByText('FURIA 13 x 10 Aurora')).toBeTruthy();
-  });
+// @vitest-environment node
+import {beforeAll,afterAll,describe,it,expect,vi} from 'vitest';
+import {mkdir,writeFile,readFile,readdir,rm,access} from 'node:fs/promises';
+import path from 'node:path';
+import {randomUUID} from 'node:crypto';
+import pg from 'pg';
+import {processDemoFile,generateDeterministicSeriesId} from '../scripts/process-demo.mjs';
+import {analyzeSpatial,sideForRound} from '../scripts/spatial-analysis.mjs';
+import {normalizeReplayPayload} from '../src/lib/replay/decompress.ts';
+import {interpolateSnapshotFrames} from '../src/lib/replay/interpolation.ts';
+let testPool:pg.Pool;
+vi.mock('../src/lib/db.ts',()=>({pool:{connect:()=>testPool.connect()},query:(sql:string,values:any[])=>testPool.query(sql,values)}));
+import {DELETE,GET as metadata} from '../src/app/api/matches/[id]/route.ts';
+import {GET as replayRoute} from '../src/app/api/replays/[id]/route.ts';
+import {getMatchById,getPlayerPerformance} from '../src/lib/queries/matches.ts';
+const schema=`test_refactor_${randomUUID().replaceAll('-','')}`;
+const dir=path.resolve('data/replays',schema);
+const base={map:'de_inferno',playedAt:'2026-01-02T12:00:00Z',teamCtName:'Test Alpha',teamTName:'Test Beta',team1StartingSide:'CT',players:[{steamId:'1001',name:'Alpha',team:'CT',teamName:'Test Alpha'},{steamId:'1002',name:'Beta',team:'T',teamName:'Test Beta'}],rounds:[{roundNumber:1,startTick:0,freezeEndTick:0,endTick:4096,winnerSide:'CT',kills:[{tick:3000,killerSteamId:'1001',victimSteamId:'1002',weaponId:7}],damages:[{tick:3000,attackerSteamId:'1001',victimSteamId:'1002',damage:100,weaponId:7}],frames:Array.from({length:55},(_,i)=>[i*64,[[1,400,2800,100,0,100,0,0,1,0,0,7,0,0],[2,500,1000,100,0,100,0,0,1,0,0,7,0,0]]])}]};
+let seriesId='';let mapId='';
+async function ingest(name:string,overrides={}) {
+ const file=path.join(dir,name);await writeFile(file,JSON.stringify({...base,...overrides}));
+ return processDemoFile(file,{pgPool:testPool,replaysBaseDir:dir,skipAssets:true,logsDir:dir});
+}
+beforeAll(async()=>{
+ const url=process.env.DATABASE_URL || 'postgresql://cs2admin:cs2secret@localhost:5432/cs2_analytics';
+ const admin=new pg.Pool({connectionString:url});await admin.query(`CREATE SCHEMA ${schema}`);await admin.end();
+ testPool=new pg.Pool({connectionString:url,options:`-c search_path=${schema},public`});
+ await testPool.query(await readFile('scripts/init-db.sql','utf8'));await mkdir(dir,{recursive:true});
+});
+afterAll(async()=>{await testPool.query(`DROP SCHEMA ${schema} CASCADE`);await testPool.end();await rm(dir,{recursive:true,force:true});});
+describe('Ingestion and deletion with isolated PostgreSQL tables',()=>{
+ it('uses a deterministic identity independent of team order',()=>{
+  expect(generateDeterministicSeriesId({playedAt:base.playedAt,team1:base.teamCtName,team2:base.teamTName})).toBe(generateDeterministicSeriesId({playedAt:base.playedAt,team1:base.teamTName,team2:base.teamCtName}));
+ });
+ it('groups maps, replaces duplicates, and keeps one row per player per map',async()=>{
+  const first=await ingest('series-m1-inferno.dem');seriesId=first.matchId;
+  await ingest('series-m2-mirage.dem',{map:'de_mirage'});
+  const before=(await testPool.query('SELECT id FROM match_maps WHERE map_number=1')).rows[0].id;
+  await ingest('new-upload-m1-inferno.dem');
+  expect((await testPool.query('SELECT * FROM matches')).rows).toHaveLength(1);
+  const maps=(await testPool.query('SELECT * FROM match_maps ORDER BY map_number')).rows;
+  expect(maps).toHaveLength(2);expect(maps[0].id).toBe(before);mapId=maps[0].id;
+  expect((await testPool.query('SELECT * FROM player_stats')).rows).toHaveLength(4);
+  const parent=await getMatchById(seriesId);expect(parent?.format).toBe('BO3');expect(parent?.score_t1).toBe(2);
+  const performance=await getPlayerPerformance('1001');expect(performance?.history).toHaveLength(2);expect(performance?.kpr).toBe(1);
+  expect((await readdir(path.dirname(maps[0].replay_path))).filter(f=>f.endsWith('.bin.gz'))).toHaveLength(2);
+ });
+ it('selects map-specific metadata and binary replay and binds names/sides',async()=>{
+  const res=await metadata(new Request('http://localhost'),{params:Promise.resolve({id:mapId})});expect(res.status).toBe(200);
+  const match=(await res.json()).match;expect(match.players).toHaveLength(2);
+  const response=await replayRoute(new Request('http://localhost?format=json'),{params:Promise.resolve({id:mapId})});expect(response.status).toBe(200);
+  const replay=normalizeReplayPayload(await response.json(),mapId);
+  const meta=Object.fromEntries(replay.playersManifest.map(p=>[String(p.id),{id:p.id,name:p.name,team:p.initialTeam}]));
+  const players=interpolateSnapshotFrames(replay.rounds[0].tacticalFrames,100,'de_inferno',meta);
+  expect(players.map(p=>p.name)).toEqual(['Alpha','Beta']);expect(players.map(p=>p.team)).toEqual(['CT','T']);
+ });
+ it('preserves the source demo and database on a failed transaction',async()=>{
+  const file=path.join(dir,'failure.dem');await writeFile(file,JSON.stringify(base));
+  const client={query:vi.fn(async(sql:string)=>{if(sql.includes('INSERT INTO matches'))throw new Error('simulated database failure');return {rows:[]}})};
+  await expect(processDemoFile(file,{dbClient:client,replaysBaseDir:dir,logsDir:dir,skipAssets:true})).rejects.toThrow('simulated');
+  await expect(access(file)).resolves.toBeUndefined();expect(client.query.mock.calls.some(([sql])=>sql==='ROLLBACK')).toBe(true);
+ });
+ it('infers roles from live positions and ignores dead/freeze samples',()=>{
+  const replay={map:'de_inferno',tickrate:64,rounds:base.rounds};const spatial=analyzeSpatial(replay,{id:1,steamId:'1001',name:'Alpha',initialTeam:'CT'});
+  expect(spatial.roles.ct).toBe('Inferno B Anchor');expect(spatial.totalSamples).toBe(41);
+  expect(sideForRound('CT',13)).toBe('T');expect(sideForRound('CT',25)).toBe('CT');expect(sideForRound('CT',28)).toBe('T');
+ });
+ it('rejects traversal and physically removes the registered series files',async()=>{
+  const bad=await DELETE(new Request('http://localhost'),{params:Promise.resolve({id:'../secret'})});expect(bad.status).toBe(400);
+  const files=(await testPool.query('SELECT replay_path,demo_path FROM match_maps')).rows.flatMap(r=>[r.replay_path,r.demo_path]);
+  const res=await DELETE(new Request('http://localhost'),{params:Promise.resolve({id:seriesId})});expect(res.status).toBe(200);
+  expect((await testPool.query('SELECT * FROM matches')).rows).toHaveLength(0);expect((await testPool.query('SELECT * FROM player_stats')).rows).toHaveLength(0);
+  for(const file of files)await expect(access(file)).rejects.toThrow();
+  expect((await replayRoute(new Request('http://localhost'),{params:Promise.resolve({id:mapId})})).status).toBe(404);
+ });
 });

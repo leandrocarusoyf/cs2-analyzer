@@ -9,7 +9,7 @@ export interface ReplayerPageProps {
 
 export default function ReplayerPage({ params }: ReplayerPageProps) {
   const resolved = use(params);
-  const matchId = resolved?.id ?? '54e43847-2490-4751-9981-831bf7cf367c';
+  const matchId = resolved.id;
 
   return <ReplayEngine matchId={matchId} />;
 }

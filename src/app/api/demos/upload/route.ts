@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'node:fs/promises';
+import { writeFile, mkdir, utimes } from 'node:fs/promises';
 import path from 'node:path';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
-const execAsync = promisify(exec);
+const execAsync = promisify(execFile);
 
 export const maxDuration = 300; // 5 minutos para processamento de demos grandes
 
@@ -16,6 +16,8 @@ function extractMapNumber(filename: string): number {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
+    const playedAtInput = formData.get('playedAt');
+    if (typeof playedAtInput !== 'string' || !Number.isFinite(Date.parse(playedAtInput))) return NextResponse.json({error:'Informe uma data válida para a partida.'},{status:400});
 
     // Suporte a arquivos múltiplos ('files') ou arquivo único ('file'), com fallback para get()
     const filesList: File[] = [];
@@ -74,16 +76,17 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(arrayBuffer);
       await writeFile(tempFilePath, buffer);
 
-      const command = `node "${scriptPath}" "${tempFilePath}"`;
-      const { stdout } = await execAsync(command, {
+      const playedAt = playedAtInput;
+      await utimes(tempFilePath, new Date(playedAt), new Date(playedAt));
+      const { stdout } = await execAsync(process.execPath, [scriptPath, tempFilePath], {
         maxBuffer: 10 * 1024 * 1024,
-        env: { ...process.env },
+        env: { ...process.env, DEMO_PLAYED_AT: playedAt, DEMO_FORMAT: String(formData.get('format') || (filesList.length > 3 ? 'BO5' : filesList.length > 1 ? 'BO3' : 'BO1')) },
       });
 
       let parsedResult: any = null;
       try {
         const lastBrace = stdout.lastIndexOf('}');
-        const firstBrace = stdout.lastIndexOf('{', lastBrace);
+        const firstBrace = stdout.indexOf('{');
         if (firstBrace !== -1 && lastBrace !== -1) {
           parsedResult = JSON.parse(stdout.substring(firstBrace, lastBrace + 1));
         } else {

@@ -17,12 +17,12 @@
   --color-ct-hover: #3B82F6;
   --color-ct-bg: #0F1E2E;
   --color-ct-border: #1E3A5F;
-  --color-tr: #FF8C00;
-  --color-tr-hover: #F97316;
+  --color-tr: #EAB308;
+  --color-tr-hover: #FACC15;
   --color-tr-bg: #26160A;
   --color-tr-border: #3D2411;
   --color-text-primary: #FFFFFF;
-  --color-text-secondary: #7E8F98;
+  --color-text-secondary: #A1A1AA;
   --color-text-muted: #9BA8B0;
   --color-text-dim: #4B5563;
   --color-status-win: #00FFA3;
@@ -66,4 +66,15 @@ html, body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #2A3439;
+}
+
+@layer base {
+  html { color-scheme: dark; }
+  body { @apply font-sans antialiased; }
+  :focus-visible { @apply outline outline-2 outline-offset-2 outline-ct; }
+  button:disabled { @apply cursor-not-allowed opacity-50; }
+  td { @apply font-mono tabular-nums; }
+}
+@layer components {
+  .metric-label { @apply text-[10px] font-medium uppercase tracking-wider text-zinc-400; }
 }
