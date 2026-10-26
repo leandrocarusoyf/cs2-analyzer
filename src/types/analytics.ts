@@ -23,7 +23,6 @@ export interface PlayerOverviewStats {
   kastPct: number;
   ttd?: number | null;
   ttk?: number | null;
-  fsp?: number | null;
   recentRatingHistory: Array<{ matchId: string; date: string; rating: number }>;
 }
 

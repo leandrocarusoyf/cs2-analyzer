@@ -167,7 +167,7 @@ export function Sidebar({ defaultCollapsed = false }: SidebarProps) {
           {!collapsed ? (
             <div className="flex items-start justify-between">
               <div>
-                <Link href="/stats/player" className="block group">
+                <Link href="/" className="cursor-pointer block group select-none transition-all duration-200 p-1.5 -m-1.5 rounded-[2px] border border-transparent hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(0,240,255,0.25)]">
                   <span className="text-[25px] font-black italic tracking-tighter text-white leading-none group-hover:text-accent transition-colors block">
                     CS2 ANALYZER
                   </span>

@@ -1,0 +1,592 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700;800&amp;family=Oxanium:wght@700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "outline": "#849396", "surface-container-high": "#272a31", "tertiary-fixed-dim": "#ffb690", "tertiary-fixed": "#ffdbca", "surface-container-low": "#191c22", "error": "#ffb4ab", "on-primary": "#00363d", "on-tertiary": "#552100", "on-surface": "#e1e2eb", "on-primary-fixed": "#001f24", "tertiary": "#ffe9df", "on-secondary-container": "#e6ecff", "error-container": "#93000a", "on-background": "#e1e2eb", "tertiary-container": "#ffc4a6", "outline-variant": "#3b494c", "on-tertiary-container": "#953f00", "inverse-on-surface": "#2e3037", "secondary-fixed": "#d8e2ff", "secondary": "#adc6ff", "surface-variant": "#32353c", "primary-fixed-dim": "#00daf3", "on-secondary": "#002e6a", "secondary-container": "#0566d9", "on-tertiary-fixed": "#341100", "primary": "#c3f5ff", "inverse-surface": "#e1e2eb", "surface-container": "#1d2026", "secondary-fixed-dim": "#adc6ff", "on-surface-variant": "#bac9cc", "surface-container-highest": "#32353c", "on-tertiary-fixed-variant": "#783200", "on-primary-fixed-variant": "#004f58", "primary-container": "#00e5ff", "surface-container-lowest": "#0b0e14", "surface-bright": "#363940", "on-secondary-fixed-variant": "#004395", "surface-tint": "#00daf3", "on-secondary-fixed": "#001a42", "background": "#10131a", "surface": "#10131a", "on-error-container": "#ffdad6", "on-error": "#690005", "surface-dim": "#10131a", "on-primary-container": "#00626e", "inverse-primary": "#006875", "primary-fixed": "#9cf0ff" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "margin": "1rem", "space-lg": "1.25rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "gutter": "0.75rem", "space-xl": "2rem", "space-md": "0.75rem" }, "fontFamily": { "display-xl": [ "Inter" ], "stat-mono-md": [ "JetBrains Mono" ], "benchmark-label": [ "JetBrains Mono" ], "card-header": [ "Inter" ], "screen-title": [ "Inter" ], "body-md": [ "Inter" ], "stat-display": [ "JetBrains Mono" ], "hud-timer": [ "JetBrains Mono" ], "body-sm": [ "Inter" ] }, "fontSize": { "display-xl": [ "48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "stat-mono-md": [ "14px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "benchmark-label": [ "11px", { "lineHeight": "14px", "fontWeight": "400" } ], "card-header": [ "13px", { "lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "600" } ], "screen-title": [ "18px", { "lineHeight": "24px", "letterSpacing": "0.05em", "fontWeight": "700" } ], "body-md": [ "14px", { "lineHeight": "20px", "fontWeight": "400" } ], "stat-display": [ "32px", { "lineHeight": "36px", "letterSpacing": "-0.03em", "fontWeight": "700" } ], "hud-timer": [ "18px", { "lineHeight": "22px", "fontWeight": "700" } ], "body-sm": [ "12px", { "lineHeight": "16px", "fontWeight": "400" } ] } } } };</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between py-space-lg px-space-md shadow-[0_1px_8px_rgba(0,0,0,0.35)]"><div class="flex flex-col gap-space-xl"><div class="flex items-center gap-space-sm px-space-sm"><div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container shadow-[0_0_12px_rgba(0,229,255,0.4)]"><span class="material-symbols-outlined text-[20px]">radar</span></div><div class="flex flex-col"><span class="font-screen-title text-screen-title tracking-wider text-on-surface leading-none">CS2 <span class="text-primary-container">ANALYZER</span></span><span class="font-benchmark-label text-benchmark-label text-outline uppercase tracking-widest">TACTICAL HUD</span></div></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-bold shadow-[0_0_16px_rgba(0,229,255,0.3)]"><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg transition-colors bg-primary-container text-on-primary-container font-bold shadow-[0_0_16px_rgba(0,229,255,0.3)]" data-path="home" href="#"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="">Home</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg font-card-header text-card-header text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="match-history" href="#"><span class="material-symbols-outlined text-[20px]">history</span><span class="">Match History</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg font-card-header text-card-header text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="2d-replayer" href="#"><span class="material-symbols-outlined text-[20px]">play_circle</span><span class="">2D Replayer</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg font-card-header text-card-header text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="player-stats" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span><span class="">Player Stats</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg font-card-header text-card-header text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="leaderboards" href="#"><span class="material-symbols-outlined text-[20px]">military_tech</span><span class="">Leaderboards</span></a></nav></div><div class="bg-surface-container-low rounded-lg p-space-md flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-benchmark-label text-benchmark-label text-outline uppercase tracking-wider">SYSTEM TELEMETRY</span><span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-container opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-primary-container"></span></span></div><div class="flex items-center justify-between font-stat-mono-md text-stat-mono-md"><span class="text-on-surface-variant">PARSER ENGINE</span><span class="text-primary-container">128-TICK</span></div><div class="flex items-center justify-between font-stat-mono-md text-stat-mono-md"><span class="text-on-surface-variant">LATENCY</span><span class="text-on-surface">14ms</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl z-40 flex items-center justify-end px-gutter shadow-[0_1px_8px_rgba(0,0,0,0.25)]"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs"></div><div class="h-6 w-px bg-surface-container-high"></div><button class="w-8 h-8 rounded bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span></button><div class="relative flex items-center"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-primary-container ring-2 ring-surface"></span></div></div></header><main class="relative pt-16 bg-surface w-full px-gutter min-h-screen"><div class="flex flex-col w-full pb-space-xl">
+<!-- HUD Top Ribbon: Breadcrumb & Realtime Heartbeat -->
+<div class="flex items-center justify-between py-space-sm mb-space-sm">
+<div class="flex items-center gap-space-sm">
+
+<span class="text-outline-variant font-stat-mono-md text-stat-mono-md">/</span>
+<h1 class="font-screen-title text-screen-title text-on-surface tracking-wider uppercase flex items-center gap-space-xs">Home</h1>
+</div>
+
+</div>
+<!-- SECTION 1: LIVE & UPCOMING MATCHES CAROUSEL -->
+<section class="flex flex-col gap-space-sm mb-space-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="w-1 h-3.5 bg-primary-container rounded"></span>
+<h2 class="font-card-header text-card-header tracking-wider uppercase text-on-surface">LIVE &amp; UPCOMING MATCHES</h2>
+<span class="px-1.5 py-0.5 rounded-full bg-error-container text-on-error-container font-benchmark-label text-benchmark-label font-bold">2 LIVE</span>
+</div>
+<a class="group flex items-center gap-1 font-benchmark-label text-benchmark-label uppercase text-primary-container hover:text-primary transition-colors tracking-widest" href="#">
+<span class="">VER TODOS</span>
+<span class="material-symbols-outlined text-[14px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Card 1: FURIA vs NAVI (LIVE) -->
+<div class="relative group bg-surface-container-low hover:bg-surface-container transition-all duration-200 rounded-xl p-space-md shadow-md flex flex-col justify-between overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-error via-primary-container to-transparent opacity-80"></div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant uppercase tracking-wider truncate max-w-[140px]">ESL PRO LEAGUE S20</span>
+<span class="flex items-center gap-1 px-2 py-0.5 rounded bg-error-container text-on-error-container font-stat-mono-md text-benchmark-label font-bold uppercase shadow-[0_0_10px_rgba(239,68,68,0.35)]">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
+            LIVE
+          </span>
+</div>
+<div class="flex items-center justify-between py-space-xs">
+<!-- Team A -->
+<div class="flex items-center gap-space-sm flex-1 min-w-0">
+<div class="w-9 h-9 rounded bg-surface-container-highest flex items-center justify-center font-stat-mono-md text-stat-mono-md font-bold text-on-surface shadow-inner relative flex-shrink-0">
+              FUR
+              <span class="absolute -bottom-1 -right-1 text-[10px]">🇧🇷</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-card-header text-card-header text-on-surface truncate font-bold">FURIA</span>
+<span class="font-benchmark-label text-benchmark-label text-outline">#1 SA</span>
+</div>
+</div>
+<!-- Series Score -->
+<div class="flex flex-col items-center px-space-md">
+<div class="flex items-center gap-2 font-stat-display text-hud-timer font-bold text-on-surface tracking-wider">
+<span class="text-primary-container">1</span>
+<span class="text-outline-variant font-body-sm">:</span>
+<span class="text-on-surface-variant">0</span>
+</div>
+<span class="font-benchmark-label text-benchmark-label text-primary-container tracking-wider uppercase">BO3</span>
+</div>
+<!-- Team B -->
+<div class="flex items-center gap-space-sm flex-1 justify-end min-w-0">
+<div class="flex flex-col items-end min-w-0">
+<span class="font-card-header text-card-header text-on-surface truncate font-bold">NAVI</span>
+<span class="font-benchmark-label text-benchmark-label text-outline">#2 EU</span>
+</div>
+<div class="w-9 h-9 rounded bg-surface-container-highest flex items-center justify-center font-stat-mono-md text-stat-mono-md font-bold text-tertiary-container shadow-inner relative flex-shrink-0">
+              NAV
+              <span class="absolute -bottom-1 -right-1 text-[10px]">🇺🇦</span>
+</div>
+</div>
+</div>
+<!-- Sub Breakdown -->
+<div class="mt-space-sm pt-space-xs flex items-center justify-between font-stat-mono-md text-benchmark-label bg-surface-container-lowest/70 px-space-sm py-1 rounded">
+<div class="flex items-center gap-1.5 text-on-surface-variant truncate">
+<span class="text-outline">M1 Mirage:</span>
+<span class="text-primary">13-9</span>
+<span class="text-outline-variant">•</span>
+<span class="text-outline">M2 Nuke:</span>
+<span class="text-tertiary-fixed-dim font-bold animate-pulse">7-4 [T]</span>
+</div>
+<span class="material-symbols-outlined text-primary-container text-[14px]">sensors</span>
+</div>
+</div>
+<!-- Card 2: MIBR vs FaZe (LIVE) -->
+<div class="relative group bg-surface-container-low hover:bg-surface-container transition-all duration-200 rounded-xl p-space-md shadow-md flex flex-col justify-between overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-0.5 bg-error opacity-80"></div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant uppercase tracking-wider truncate max-w-[140px]">BLAST PREMIER FALL</span>
+<span class="flex items-center gap-1 px-2 py-0.5 rounded bg-error-container text-on-error-container font-stat-mono-md text-benchmark-label font-bold uppercase shadow-[0_0_10px_rgba(239,68,68,0.35)]">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
+            LIVE
+          </span>
+</div>
+<div class="flex items-center justify-between py-space-xs">
+<!-- Team A -->
+<div class="flex items-center gap-space-sm flex-1 min-w-0">
+<div class="w-9 h-9 rounded bg-surface-container-highest flex items-center justify-center font-stat-mono-md text-stat-mono-md font-bold text-on-surface shadow-inner relative flex-shrink-0">
+              MBR
+              <span class="absolute -bottom-1 -right-1 text-[10px]">🇧🇷</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-card-header text-card-header text-on-surface truncate font-bold">MIBR</span>
+<span class="font-benchmark-label text-benchmark-label text-outline">#12 WRLD</span>
+</div>
+</div>
+<!-- Series Score -->
+<div class="flex flex-col items-center px-space-md">
+<div class="flex items-center gap-2 font-stat-display text-hud-timer font-bold text-on-surface tracking-wider">
+<span class="text-on-surface">1</span>
+<span class="text-outline-variant font-body-sm">:</span>
+<span class="text-on-surface">1</span>
+</div>
+<span class="font-benchmark-label text-benchmark-label text-secondary tracking-wider uppercase">DECIDER</span>
+</div>
+<!-- Team B -->
+<div class="flex items-center gap-space-sm flex-1 justify-end min-w-0">
+<div class="flex flex-col items-end min-w-0">
+<span class="font-card-header text-card-header text-on-surface truncate font-bold">FaZe</span>
+<span class="font-benchmark-label text-benchmark-label text-outline">#4 WRLD</span>
+</div>
+<div class="w-9 h-9 rounded bg-surface-container-highest flex items-center justify-center font-stat-mono-md text-stat-mono-md font-bold text-error shadow-inner relative flex-shrink-0">
+              FAZ
+              <span class="absolute -bottom-1 -right-1 text-[10px]">🇪🇺</span>
+</div>
+</div>
+</div>
+<!-- Sub Breakdown -->
+<div class="mt-space-sm pt-space-xs flex items-center justify-between font-stat-mono-md text-benchmark-label bg-surface-container-lowest/70 px-space-sm py-1 rounded">
+<div class="flex items-center gap-1.5 text-on-surface-variant truncate">
+<span class="text-tertiary-fixed-dim font-semibold">M3 Inferno:</span>
+<span class="text-on-surface">8 - 11</span>
+<span class="text-outline-variant font-body-sm">|</span>
+<span class="text-secondary">CT ECO</span>
+</div>
+<span class="material-symbols-outlined text-error text-[14px]">local_fire_department</span>
+</div>
+</div>
+<!-- Card 3: Team Liquid vs Complexity (UPCOMING) -->
+<div class="relative group bg-surface-container-low hover:bg-surface-container transition-all duration-200 rounded-xl p-space-md shadow-md flex flex-col justify-between overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-0.5 bg-surface-container-highest"></div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant uppercase tracking-wider truncate max-w-[140px]">IEM RIO 2026</span>
+<span class="flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-primary font-stat-mono-md text-benchmark-label font-bold uppercase">
+<span class="material-symbols-outlined text-[12px]">schedule</span>
+            HOJE, 19:30
+          </span>
+</div>
+<div class="flex items-center justify-between py-space-xs">
+<!-- Team A -->
+<div class="flex items-center gap-space-sm flex-1 min-w-0">
+<div class="w-9 h-9 rounded bg-surface-container-highest flex items-center justify-center font-stat-mono-md text-stat-mono-md font-bold text-secondary shadow-inner relative flex-shrink-0">
+              TL
+              <span class="absolute -bottom-1 -right-1 text-[10px]">🇺🇸</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-card-header text-card-header text-on-surface truncate font-bold">Liquid</span>
+<span class="font-benchmark-label text-benchmark-label text-outline">#9 WRLD</span>
+</div>
+</div>
+<!-- VS Indicator -->
+<div class="flex flex-col items-center px-space-md">
+<span class="font-stat-mono-md text-stat-mono-md font-bold text-outline-variant">VS</span>
+<span class="font-benchmark-label text-benchmark-label text-outline uppercase tracking-wider">BO3</span>
+</div>
+<!-- Team B -->
+<div class="flex items-center gap-space-sm flex-1 justify-end min-w-0">
+<div class="flex flex-col items-end min-w-0">
+<span class="font-card-header text-card-header text-on-surface truncate font-bold">Complexity</span>
+<span class="font-benchmark-label text-benchmark-label text-outline">#14 WRLD</span>
+</div>
+<div class="w-9 h-9 rounded bg-surface-container-highest flex items-center justify-center font-stat-mono-md text-stat-mono-md font-bold text-on-surface shadow-inner relative flex-shrink-0">
+              COL
+              <span class="absolute -bottom-1 -right-1 text-[10px]">🇺🇸</span>
+</div>
+</div>
+</div>
+<!-- Veto Forecast -->
+<div class="mt-space-sm pt-space-xs flex items-center justify-between font-stat-mono-md text-benchmark-label bg-surface-container-lowest/70 px-space-sm py-1 rounded">
+<span class="text-on-surface-variant truncate">Vetos Prováveis: Anubis / Ancient / Dust2</span>
+
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: MAIN BODY GRID (8 COLS / 4 COLS) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- LEFT / CENTER COLUMN: 8 COLS -->
+<div class="lg:col-span-8 flex flex-col gap-space-lg">
+<!-- CARD A: PARTIDA EM DESTAQUE // DETALHES AO VIVO -->
+<div class="relative bg-surface-container-low rounded-xl p-space-lg shadow-xl overflow-hidden flex flex-col gap-space-md"><!-- Ambient subtle glow in top corner -->
+<div class="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-primary-container/10 blur-3xl pointer-events-none"></div>
+<!-- Header Bar -->
+<div class="flex items-center justify-between">
+  <div class="flex items-center gap-space-sm">
+    <span class="material-symbols-outlined text-primary-container text-[20px]">stream</span>
+    <h3 class="font-card-header text-card-header uppercase tracking-wider text-on-surface">PARTIDA EM DESTAQUE // DETALHES AO VIVO</h3>
+  </div>
+  <div class="flex items-center gap-space-xs">
+    <span class="w-2 h-2 rounded-full bg-error animate-ping"></span>
+    <span class="font-benchmark-label text-benchmark-label uppercase text-error font-bold tracking-wider">MAPA 2 EM ANDAMENTO</span>
+  </div>
+</div>
+<!-- Matchup Banner Hero -->
+<div class="rounded-xl p-6 shadow-xl relative overflow-hidden border border-[#1e293b] bg-[#0a0e14] grid grid-cols-1 md:grid-cols-12 items-center gap-4"><div class="col-span-12 md:col-span-5 flex flex-col items-center text-center justify-center gap-2"><div class="flex items-center justify-center gap-2.5"><div class="w-12 h-12 rounded-xl bg-[#161b26] border border-[#263147] p-1.5 flex items-center justify-center shadow-md flex-shrink-0"><svg class="w-full h-full text-cyan-400 drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]" viewBox="0 0 100 100" fill="currentColor"><path d="M88 42c-3-1-12-6-18-2-4 3-8 3-12 1-7-3-12-10-18-15-4-3-10-4-15-3-3 1-5 4-8 5-4 1-9 0-13-2-2-1-3 1-2 3 3 5 8 9 14 11 4 2 9 1 13 0 5-1 10 0 14 3 5 4 10 9 16 11 7 3 15 2 22-1 4-2 8-6 12-9 1-1 0-2-2-3zm-20 8c-4-1-8-1-12 0-3 1-6 2-9 2-4 0-7-2-11-2-5 0-9 2-13 4-2 1-2 3 0 4 3 2 7 2 11 1 5-1 10-1 15 1 4 2 8 2 12 0 3-1 6-3 8-5 1-1 0-1-1-1zm-18 14c-4 1-8 3-12 3-5 0-9-2-14-3-2 0-2 2-1 3 3 3 8 4 13 4 5 0 9-1 13-3 2-1 3-3 1-4z"></path><circle cx="42" cy="35" r="2.5" fill="#00e5ff"></circle></svg></div><span class="px-2 py-0.5 rounded bg-surface-container-high border border-primary-container/30 text-primary-container font-['JetBrains_Mono'] text-benchmark-label font-bold tracking-wider">#1 SA</span></div><div class="font-['Chakra_Petch','Oxanium','Space_Grotesk',sans-serif] text-[26px] font-extrabold text-white tracking-wider uppercase text-center leading-none mt-1">FURIA ESPORTS</div><div class="flex items-center justify-center gap-2 flex-wrap"><span class="font-['JetBrains_Mono'] text-[11px] font-semibold text-slate-300 bg-[#161f2e] border border-[#1e293b] px-2 py-0.5 rounded">BRASIL</span><span class="font-['JetBrains_Mono'] text-[11px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-0.5 rounded">WIN RATE 78% (LAST 10)</span></div><div class=""><span class="font-['JetBrains_Mono'] text-[11px] font-semibold text-amber-300 bg-amber-950/40 border border-amber-500/30 px-2.5 py-0.5 rounded inline-flex items-center gap-1.5">T-SIDE NO NUKE</span></div></div><div class="col-span-12 md:col-span-2 flex flex-col items-center justify-center"><div class="bg-[#111827] border border-[#1e293b] rounded-lg px-4 py-3 flex flex-col items-center gap-1.5 shadow-lg w-full max-w-[160px] mx-auto"><span class="font-['JetBrains_Mono'] text-[10px] font-bold tracking-widest text-[#94a3b8] uppercase">SÉRIE MD3 (BO3)</span><div class="flex items-center justify-center gap-2 font-['JetBrains_Mono'] text-3xl font-extrabold leading-none my-0.5"><span class="text-[#00e5ff] drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">1</span><span class="text-slate-500 text-xl font-normal select-none">-</span><span class="text-white">0</span></div><div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-950/60 border border-red-500/40"><span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span><span class="font-['JetBrains_Mono'] text-[10px] font-bold text-red-400 tracking-wider uppercase">live</span></div></div></div><div class="col-span-12 md:col-span-5 flex flex-col items-center text-center justify-center gap-2"><div class="flex items-center justify-center gap-2.5"><div class="w-12 h-12 rounded-xl bg-[#161b26] border border-[#263147] p-2 flex items-center justify-center shadow-md flex-shrink-0"><svg class="w-full h-full text-yellow-400" viewBox="0 0 100 100" fill="currentColor"><path d="M16 74V26h14l24 32V26h14v48H54L30 42v32H16z" fill="#FFEE00"></path><polygon points="74,26 88,26 88,74 74,74" fill="#FFEE00" opacity="0.9"></polygon></svg></div><span class="px-2 py-0.5 rounded bg-surface-container-high border border-amber-500/30 text-amber-400 font-['JetBrains_Mono'] text-benchmark-label font-bold tracking-wider">#2 EU</span></div><div class="font-['Chakra_Petch','Oxanium','Space_Grotesk',sans-serif] text-[26px] font-extrabold text-white tracking-wider uppercase text-center leading-none mt-1">NATUS VINCERE</div><div class="flex items-center justify-center gap-2 flex-wrap"><span class="font-['JetBrains_Mono'] text-[11px] font-semibold text-slate-300 bg-[#161f2e] border border-[#1e293b] px-2 py-0.5 rounded">UCRÂNIA</span><span class="font-['JetBrains_Mono'] text-[11px] font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-0.5 rounded">WIN RATE 82% (LAST 10)</span></div><div class=""><span class="font-['JetBrains_Mono'] text-[11px] font-semibold text-sky-300 bg-sky-950/40 border border-sky-500/30 px-2.5 py-0.5 rounded inline-flex items-center gap-1.5">CT-SIDE NO NUKE</span></div></div></div>
+<!-- 3 Map Pill Sequence -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
+  <!-- Map 1 -->
+  <div class="bg-surface-container-lowest p-space-sm rounded-lg flex flex-col justify-between">
+    <div class="flex items-center justify-between mb-1">
+      <span class="font-stat-mono-md text-stat-mono-md font-bold text-on-surface">1. DE_MIRAGE</span>
+      <span class="px-1.5 py-0.5 rounded bg-primary-container/20 text-primary-container font-benchmark-label text-benchmark-label font-bold uppercase">FINALIZADO</span>
+    </div>
+    <div class="flex items-center justify-between font-stat-mono-md text-stat-mono-md">
+      <span class="text-on-surface-variant">Placar:</span>
+      <span class="text-primary-container font-bold">FUR 13 - 9 NAV</span>
+    </div>
+    <div class="text-benchmark-label font-benchmark-label text-outline mt-1 flex items-center justify-between">
+      <span class="">Pick: NAVI</span>
+      <span class="text-primary">Vitória FURIA ✓</span>
+    </div>
+  </div>
+  <!-- Map 2 (Active) -->
+  <div class="bg-surface-container-lowest p-space-sm rounded-lg flex flex-col justify-between relative border border-primary-container shadow-[0_0_12px_rgba(0,229,255,0.25)]">
+    <div class="absolute top-0 left-0 bottom-0 w-1 bg-primary-container rounded-l"></div>
+    <div class="flex items-center justify-between mb-1 pl-1">
+      <span class="font-stat-mono-md text-stat-mono-md font-bold text-primary-container">2. DE_NUKE</span>
+      <span class="px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-benchmark-label text-benchmark-label font-bold uppercase animate-pulse">AO VIVO</span>
+    </div>
+    <div class="flex items-center justify-between font-stat-mono-md text-stat-mono-md pl-1">
+      <span class="text-on-surface-variant">Placar:</span>
+      <span class="text-on-surface font-bold">FUR <span class="text-tertiary-fixed">7 - 4</span> NAV</span>
+    </div>
+    <div class="text-benchmark-label font-benchmark-label text-primary pl-1 mt-1 flex items-center justify-between">
+      <span class="">Pick: FURIA</span>
+      <span class="font-semibold text-tertiary-fixed">FURIA no T-Side</span>
+    </div>
+  </div>
+  <!-- Map 3 -->
+  <div class="bg-surface-container-lowest p-space-sm rounded-lg flex flex-col justify-between opacity-70">
+    <div class="flex items-center justify-between mb-1">
+      <span class="font-stat-mono-md text-stat-mono-md font-bold text-outline">3. DE_INFERNO</span>
+      <span class="px-1.5 py-0.5 rounded bg-surface-container-high text-outline font-benchmark-label text-benchmark-label uppercase">SE NECESSÁRIO</span>
+    </div>
+    <div class="flex items-center justify-between font-stat-mono-md text-stat-mono-md">
+      <span class="text-outline">Placar:</span>
+      <span class="text-outline-variant font-bold">0 - 0</span>
+    </div>
+    <div class="text-benchmark-label font-benchmark-label text-outline mt-1 flex items-center justify-between">
+      <span class="">Decider</span>
+      <span class="">Aguardando M2</span>
+    </div>
+  </div>
+</div>
+<!-- Redesigned 2-Slot MVP Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm pt-space-xs">
+  <!-- Card 1: Map 1 MVP (De_Mirage) -->
+  <div class="bg-surface-container-high/60 rounded-lg p-space-sm flex flex-col justify-between gap-space-xs border border-outline-variant/30">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-space-sm min-w-0">
+        <div class="w-10 h-10 rounded bg-surface-container-lowest flex items-center justify-center text-primary-container font-stat-mono-md text-stat-mono-md font-bold shadow flex-shrink-0">
+          👑
+        </div>
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="font-card-header text-card-header font-bold text-on-surface truncate">Gabriel "FalleN" Toledo</span>
+            
+          </div>
+          <span class="font-benchmark-label text-benchmark-label text-primary truncate">DESTAQUE MAPA 1 (DE_MIRAGE)</span>
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-4 gap-1 text-center font-stat-mono-md bg-surface-container-lowest/70 py-1.5 px-space-xs rounded mt-0.5">
+      <div class="flex flex-col">
+        <span class="text-benchmark-label text-outline">FRAGS</span>
+        <span class="text-stat-mono-md font-bold text-primary-container">19-8</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-benchmark-label text-outline">K/D</span>
+        <span class="text-stat-mono-md font-bold text-on-surface">1.58</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-benchmark-label text-outline">ADR</span>
+        <span class="text-stat-mono-md font-bold text-tertiary-fixed">94.6</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-benchmark-label text-outline">RATING</span>
+        <span class="text-stat-mono-md font-bold text-primary">1.35</span>
+      </div>
+    </div>
+  </div>
+  <!-- Card 2: Map 2 Active Placeholder -->
+  <div class="bg-surface-container-high/40 rounded-lg p-space-sm flex flex-col justify-between gap-space-xs border border-outline-variant/30">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-space-sm min-w-0">
+        <div class="w-10 h-10 rounded bg-surface-container-lowest flex items-center justify-center text-outline font-stat-mono-md shadow flex-shrink-0">
+          <span class="material-symbols-outlined text-[20px] text-primary-container animate-spin">sync</span>
+        </div>
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="font-card-header text-card-header font-bold text-on-surface truncate">MAPA 2 // EM DISPUTA</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
+          </div>
+          <span class="font-benchmark-label text-benchmark-label text-outline truncate">Definindo MVP ao término de de_nuke</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center justify-between text-center font-stat-mono-md bg-surface-container-lowest/50 py-2 px-space-md rounded mt-0.5 border border-outline-variant/30">
+      <span class="font-benchmark-label text-benchmark-label text-outline flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-[14px] text-primary-container">radar</span>
+        TELEMETRIA ATIVA
+      </span>
+      <span class="font-benchmark-label text-benchmark-label text-tertiary-fixed font-bold uppercase">
+        ROUND 12 EM PROGRESSO
+      </span>
+    </div>
+  </div>
+</div></div>
+<!-- CARD B: NOTÍCIAS & NOVIDADES -->
+<div class="flex flex-col gap-space-md">
+<!-- Feed Header & Filter Pills -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-1 h-3.5 bg-primary rounded"></span>
+<h2 class="font-card-header text-card-header tracking-wider uppercase text-on-surface font-bold">NOTÍCIAS &amp; NOVIDADES</h2>
+</div>
+<div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+<button class="px-space-sm py-1 rounded bg-primary-container text-on-primary-container font-benchmark-label text-benchmark-label font-bold uppercase tracking-wider">TODOS</button>
+<button class="px-space-sm py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-benchmark-label text-benchmark-label uppercase tracking-wider transition-colors">CAMPEONATOS</button>
+<button class="px-space-sm py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-benchmark-label text-benchmark-label uppercase tracking-wider transition-colors">ATUALIZAÇÕES</button>
+<button class="px-space-sm py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-benchmark-label text-benchmark-label uppercase tracking-wider transition-colors">TRANSFERÊNCIAS</button>
+</div>
+</div>
+<!-- Editorial News Card 1: Major Playoffs -->
+<article class="bg-surface-container-low hover:bg-surface-container transition-all duration-200 rounded-xl overflow-hidden shadow-lg flex flex-col md:flex-row group">
+<div class="md:w-5/12 relative h-48 md:h-auto overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="High-energy celebration photo of the Brazilian CS2 pro squad FURIA lifting a champion trophy under explosive gold confetti, stage pyrotechnics, and vibrant cyan and electric orange arena lights at the Jeunesse Arena, photojournalistic esports photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAM_d6Gf7_4FaKGRwmxVLfYoHntv5iKOZSf0le5b9TW1_X4LkxK9DPryg1TRemd0iWOOaglWGJ58_ZkjoxQkYSlBqaNv2f8DxecyaEEdulfnbjbw3v0B6KP3yKqBJB7djI48Yvz4hU4PDrLj8VezSdQpwsxdftAbTqYRAML5yPjDNtEvi0p25SwWNwx8ggzasiGz0oCBLK7z6fT1y5wwvP5ZcJFeQowJdahJBxNWnyyu5Y-CHT_GpGpg">
+<div class="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-transparent via-surface-container-low/40 to-surface-container-low"></div>
+<span class="absolute top-space-sm left-space-sm px-2 py-0.5 rounded bg-surface-container-lowest/90 backdrop-blur-sm text-primary font-benchmark-label text-benchmark-label font-bold uppercase flex items-center gap-1 shadow">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+              Campeonato
+            </span>
+</div>
+<div class="p-space-md md:p-space-lg flex flex-col justify-between flex-1">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm text-outline font-benchmark-label text-benchmark-label">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">schedule</span>
+                  há 15m
+                </span>
+<span class="">•</span>
+<span class="">MAJOR CHAMPIONSHIP</span>
+</div>
+<h3 class="font-screen-title text-screen-title font-bold text-on-surface group-hover:text-primary-container transition-colors leading-snug">
+                FURIA avança aos playoffs do Major com grande atuação de FalleN
+              </h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2 leading-relaxed">
+                O Professor lidera a equipe brasileira com 24 eliminações no mapa decisivo contra a NAVI e carimba a vaga histórica na Jeunesse Arena sob forte comoção da torcida.
+              </p>
+</div>
+<div class="flex items-center justify-between mt-space-md pt-space-xs">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-stat-mono-md text-benchmark-label text-primary-container bg-surface-container px-2 py-0.5 rounded">#FURIA</span>
+<span class="font-stat-mono-md text-benchmark-label text-outline bg-surface-container px-2 py-0.5 rounded">#Major</span>
+<span class="font-stat-mono-md text-benchmark-label text-outline bg-surface-container px-2 py-0.5 rounded">#Playoffs</span>
+<span class="font-stat-mono-md text-benchmark-label text-outline bg-surface-container px-2 py-0.5 rounded">#FalleN</span>
+</div>
+<div class="flex items-center gap-space-md text-outline font-stat-mono-md text-benchmark-label">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">chat_bubble</span> 84</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">share</span> 312</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Editorial News Card 2: Train Update -->
+<article class="bg-surface-container-low hover:bg-surface-container transition-all duration-200 rounded-xl overflow-hidden shadow-lg flex flex-col md:flex-row group">
+<div class="md:w-5/12 relative h-48 md:h-auto overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Atmospheric dramatic wide shot of CS2 renovated Train map railyard depot, industrial freight train carriages, foggy volumetric depot lighting, rain puddles reflecting electric cyan and amber security fixtures, cinematic source 2 rendering." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCemZWMMvGz4KpitqvEj5dkvrPkOO_XaI1iy5ku_LnfsKl3SKiyeGyNZLxKbaT9s3n_-x2HqG1YrqfFLCkMgY_b7idI6LmtX16iwyPZfQA_VsdCFOVp13pPPU_9Guw-5Mo0EECOIlyTH8Qzl0DnoZrOuZoJwIT0O68x0TxqO7n7bJw-hu4YEYA8WI3mvjgA0sQmtc-zNVGzyKphIJYMZr-0Hnd9JY4EgqLKNXIqdOPcM9eAx5tAtY6ztQ">
+<div class="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-transparent via-surface-container-low/40 to-surface-container-low"></div>
+<span class="absolute top-space-sm left-space-sm px-2 py-0.5 rounded bg-surface-container-lowest/90 backdrop-blur-sm text-primary-container font-benchmark-label text-benchmark-label font-bold uppercase flex items-center gap-1 shadow">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+              Atualização
+            </span>
+</div>
+<div class="p-space-md md:p-space-lg flex flex-col justify-between flex-1">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm text-outline font-benchmark-label text-benchmark-label">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">schedule</span>
+                  há 1h
+                </span>
+<span class="">•</span>
+<span class="">PATCH NOTES // VALVE</span>
+</div>
+<h3 class="font-screen-title text-screen-title font-bold text-on-surface group-hover:text-primary-container transition-colors leading-snug">
+                Atualização do CS2: Mudanças no mapa Train e ajustes de granada
+              </h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2 leading-relaxed">
+                Valve implementa novo skybox no bombsite A, corrige colisões de granadas de fumaça e aprimora áudio espacial nos trens para combater eco excessivo.
+              </p>
+</div>
+<div class="flex items-center justify-between mt-space-md pt-space-xs">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-stat-mono-md text-benchmark-label text-primary-container bg-surface-container px-2 py-0.5 rounded">#Update</span>
+<span class="font-stat-mono-md text-benchmark-label text-outline bg-surface-container px-2 py-0.5 rounded">#de_train</span>
+<span class="font-stat-mono-md text-benchmark-label text-outline bg-surface-container px-2 py-0.5 rounded">#SmokePhysics</span>
+<span class="font-stat-mono-md text-benchmark-label text-outline bg-surface-container px-2 py-0.5 rounded">#Valve</span>
+</div>
+<div class="flex items-center gap-space-md text-outline font-stat-mono-md text-benchmark-label">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">chat_bubble</span> 142</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">share</span> 89</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Read More Button -->
+<div class="flex justify-center mt-space-xs">
+<button class="px-space-xl py-space-sm rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-card-header text-card-header uppercase tracking-wider flex items-center gap-2 transition shadow-sm">
+<span class="">LER MAIS NOTÍCIAS</span>
+<span class="material-symbols-outlined text-[16px] text-primary-container">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: 4 COLS -->
+<div class="lg:col-span-4 flex flex-col gap-space-lg">
+<!-- Top Card: VALVE REGIONAL STANDINGS (SA) -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container text-[20px]">public</span>
+<div>
+<h3 class="font-card-header text-card-header uppercase tracking-wider text-on-surface font-bold">VALVE REGIONAL STANDINGS</h3>
+<span class="font-benchmark-label text-benchmark-label text-outline uppercase">SA REGIONAL • ATUALIZADO HOJE</span>
+</div>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-surface-container text-primary font-benchmark-label text-benchmark-label font-bold">TOP 5</span>
+</div><div class="flex items-center gap-1.5 p-1 bg-surface-container-lowest rounded-lg border border-outline-variant/30"><button class="flex-1 py-1 px-2 rounded bg-primary-container text-on-primary-container font-benchmark-label text-benchmark-label font-bold uppercase transition-all shadow-[0_0_10px_rgba(0,229,255,0.25)] text-center">SA</button><button class="flex-1 py-1 px-2 rounded bg-transparent hover:bg-surface-container text-outline hover:text-on-surface font-benchmark-label text-benchmark-label uppercase transition-colors text-center">EU</button><button class="flex-1 py-1 px-2 rounded bg-transparent hover:bg-surface-container text-outline hover:text-on-surface font-benchmark-label text-benchmark-label uppercase transition-colors text-center">NA</button><button class="flex-1 py-1 px-2 rounded bg-transparent hover:bg-surface-container text-outline hover:text-on-surface font-benchmark-label text-benchmark-label uppercase transition-colors text-center">APAC</button></div>
+<!-- Standings Table / List -->
+<div class="flex flex-col gap-1.5">
+<!-- Rank 1: FURIA -->
+<div class="flex items-center justify-between p-space-sm rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="font-stat-mono-md text-stat-mono-md font-bold text-primary-container w-4 text-center">1</span>
+<div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center font-stat-mono-md text-benchmark-label font-bold text-primary flex-shrink-0">
+                FUR
+              </div>
+<div class="flex flex-col min-w-0">
+<span class="font-card-header text-card-header text-on-surface font-bold truncate">FURIA Esports</span>
+<span class="font-benchmark-label text-benchmark-label text-primary">Major Legends</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm text-right font-stat-mono-md">
+<span class="text-stat-mono-md font-bold text-on-surface">1,942 <span class="text-benchmark-label font-normal text-outline">pts</span></span>
+<span class="px-1.5 py-0.5 rounded bg-primary-container/20 text-primary-container font-benchmark-label text-benchmark-label font-bold">+1 ▲</span>
+</div>
+</div>
+<!-- Rank 2: MIBR -->
+<div class="flex items-center justify-between p-space-sm rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="font-stat-mono-md text-stat-mono-md font-bold text-on-surface-variant w-4 text-center">2</span>
+<div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center font-stat-mono-md text-benchmark-label font-bold text-on-surface flex-shrink-0">
+                MBR
+              </div>
+<div class="flex flex-col min-w-0">
+<span class="font-card-header text-card-header text-on-surface font-bold truncate">MIBR</span>
+<span class="font-benchmark-label text-benchmark-label text-secondary">Major Challengers</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm text-right font-stat-mono-md">
+<span class="text-stat-mono-md font-bold text-on-surface">1,620 <span class="text-benchmark-label font-normal text-outline">pts</span></span>
+<span class="px-1.5 py-0.5 rounded bg-primary-container/20 text-primary-container font-benchmark-label text-benchmark-label font-bold">+1 ▲</span>
+</div>
+</div>
+<!-- Rank 3: Imperial -->
+<div class="flex items-center justify-between p-space-sm rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="font-stat-mono-md text-stat-mono-md font-bold text-on-surface-variant w-4 text-center">3</span>
+<div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center font-stat-mono-md text-benchmark-label font-bold text-tertiary-fixed flex-shrink-0">
+                IMP
+              </div>
+<div class="flex flex-col min-w-0">
+<span class="font-card-header text-card-header text-on-surface font-bold truncate">Imperial Esports</span>
+<span class="font-benchmark-label text-benchmark-label text-outline">Contenders</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm text-right font-stat-mono-md">
+<span class="text-stat-mono-md font-bold text-on-surface">1,510 <span class="text-benchmark-label font-normal text-outline">pts</span></span>
+<span class="px-1.5 py-0.5 rounded bg-error-container/40 text-error font-benchmark-label text-benchmark-label font-bold">-1 ▼</span>
+</div>
+</div>
+<!-- Rank 4: paiN Gaming -->
+<div class="flex items-center justify-between p-space-sm rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="font-stat-mono-md text-stat-mono-md font-bold text-on-surface-variant w-4 text-center">4</span>
+<div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center font-stat-mono-md text-benchmark-label font-bold text-error flex-shrink-0">
+                PNG
+              </div>
+<div class="flex flex-col min-w-0">
+<span class="font-card-header text-card-header text-on-surface font-bold truncate">paiN Gaming</span>
+<span class="font-benchmark-label text-benchmark-label text-outline">Contenders</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm text-right font-stat-mono-md">
+<span class="text-stat-mono-md font-bold text-on-surface">1,435 <span class="text-benchmark-label font-normal text-outline">pts</span></span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-outline font-benchmark-label text-benchmark-label font-bold">=</span>
+</div>
+</div>
+<!-- Rank 5: RED Canids -->
+<div class="flex items-center justify-between p-space-sm rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="font-stat-mono-md text-stat-mono-md font-bold text-on-surface-variant w-4 text-center">5</span>
+<div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center font-stat-mono-md text-benchmark-label font-bold text-on-surface-variant flex-shrink-0">
+                RED
+              </div>
+<div class="flex flex-col min-w-0">
+<span class="font-card-header text-card-header text-on-surface font-bold truncate">RED Canids</span>
+<span class="font-benchmark-label text-benchmark-label text-outline">RMR Qualified</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm text-right font-stat-mono-md">
+<span class="text-stat-mono-md font-bold text-on-surface">1,280 <span class="text-benchmark-label font-normal text-outline">pts</span></span>
+<span class="px-1.5 py-0.5 rounded bg-primary-container/20 text-primary-container font-benchmark-label text-benchmark-label font-bold">+2 ▲</span>
+</div>
+</div>
+</div>
+<a class="text-center font-benchmark-label text-benchmark-label uppercase text-primary-container hover:text-primary transition-colors tracking-widest pt-space-xs" href="#">
+          Ver tabela completa (Top 30) ➔
+        </a>
+</div>
+<!-- Middle Card: PARTICIPAR DO ANALYZER // UPLOAD DEMO -->
+<div class="relative bg-surface-container-low rounded-xl p-space-lg shadow-xl flex flex-col gap-space-sm overflow-hidden group">
+<!-- Glowing animated pulse backdrop -->
+<div class="absolute -inset-0.5 bg-gradient-to-r from-primary-container/20 to-secondary-container/20 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300 pointer-events-none"></div>
+<div class="relative flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-card-header text-card-header uppercase tracking-wider text-primary-container font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">file_upload</span>
+              PARTICIPAR DO ANALYZER
+            </span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-outline font-stat-mono-md text-benchmark-label">PARSER v2.4</span>
+</div>
+<!-- Dropzone Container -->
+<div class="bg-surface-container rounded-lg p-space-lg flex flex-col items-center text-center cursor-pointer hover:bg-surface-container-high transition group/drop">
+<div class="w-12 h-12 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary-container mb-space-sm shadow-[0_0_16px_rgba(0,229,255,0.25)] group-hover/drop:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[26px]">cloud_upload</span>
+</div>
+<span class="font-card-header text-card-header font-bold text-on-surface group-hover/drop:text-primary-container transition-colors uppercase">
+              UPLOAD .DEM (DRAG-AND-DROP)
+            </span>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-xs mt-1 mb-space-md">
+              Arraste seu arquivo .dem do CS2 (Matchmaking, Gamers Club, FACEIT) ou selecione para análise de sub-tick automatizada instantânea.
+            </p>
+<button class="px-space-lg py-space-sm rounded bg-primary-container text-on-primary-container font-card-header text-card-header font-bold hover:brightness-110 shadow-[0_0_12px_rgba(0,229,255,0.3)] transition w-full">
+              SELECIONAR ARQUIVO
+            </button>
+</div>
+<!-- Badges -->
+<div class="flex items-center justify-center gap-space-xs font-benchmark-label text-benchmark-label text-outline uppercase tracking-wider">
+<span class="px-1.5 py-0.5 rounded bg-surface-container">GC</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container">MM</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container">FACEIT 128-TICK &amp; SUB-TICK</span>
+</div>
+</div>
+</div>
+<!-- Bottom Card: BUSCAR JOGADOR / TIME -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-lg flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container text-[18px]">search</span>
+<h3 class="font-card-header text-card-header uppercase tracking-wider text-on-surface font-bold">BUSCAR JOGADOR / TIME</h3>
+</div>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-outline font-body-sm text-body-sm rounded-lg pl-9 pr-space-md py-space-sm focus:outline-none focus:bg-surface-container transition-colors" placeholder="Digite nick, Steam ID ou time (ex: FalleN, donk, s1mple)..." type="text">
+<span class="material-symbols-outlined text-outline text-[18px] absolute left-2.5 top-1/2 -translate-y-1/2">
+            manage_search
+          </span>
+</div>
+<!-- Quick Suggestions -->
+<div class="flex flex-col gap-1 pt-1">
+<span class="font-benchmark-label text-benchmark-label uppercase text-outline">BUSCAS POPULARES:</span>
+<div class="flex flex-wrap gap-1.5">
+<button class="px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-primary font-stat-mono-md text-benchmark-label transition">donk</button>
+<button class="px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-primary-container font-stat-mono-md text-benchmark-label transition">FalleN</button>
+<button class="px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-stat-mono-md text-benchmark-label transition">m0NESY</button>
+<button class="px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-stat-mono-md text-benchmark-label transition">ZywOo</button>
+<button class="px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-tertiary font-stat-mono-md text-benchmark-label transition">FURIA</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div>
+
+
+
+</body></html>

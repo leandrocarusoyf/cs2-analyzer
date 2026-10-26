@@ -41,7 +41,6 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
       assists: p.assists,
       ttd: p.ttd,
       ttk: p.ttk,
-      fsp: p.fsp,
       k2: gen.k2 ?? 0,
       k3: gen.k3 ?? 0,
       k4: gen.k4 ?? 0,
@@ -50,7 +49,7 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
       crosshairPlacement: aim.crosshairPlacement ?? null,
       headAccuracy: aim.headAccuracy ?? null,
       hsKillPct: aim.hsKillPct ?? null,
-      firstBullet: aim.firstBullet ?? (p.fsp !== undefined && p.fsp !== null ? Math.round(p.fsp) : null),
+      firstBullet: aim.firstBullet ?? null,
       sprayAccuracy: aim.sprayAccuracy ?? null,
       counterStrafing: aim.counterStrafing ?? null,
       accuracyAll: aim.accuracyAll ?? null,
@@ -60,11 +59,9 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
 
   const ttdList = players.map((p) => p.ttd).filter((v): v is number => typeof v === 'number');
   const ttkList = players.map((p) => p.ttk).filter((v): v is number => typeof v === 'number');
-  const fspList = players.map((p) => p.fsp).filter((v): v is number => typeof v === 'number');
 
   const avgTtd = ttdList.length > 0 ? Math.round(ttdList.reduce((a, b) => a + b, 0) / ttdList.length) : null;
   const avgTtk = ttkList.length > 0 ? Math.round(ttkList.reduce((a, b) => a + b, 0) / ttkList.length) : null;
-  const avgFsp = fspList.length > 0 ? Number((fspList.reduce((a, b) => a + b, 0) / fspList.length).toFixed(1)) : null;
 
   return (
     <section aria-labelledby="match-overview-heading" className="space-y-4 select-none">
@@ -100,8 +97,8 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
         </div>
       </div>
 
-      {/* Grid de 3 KPIs Globais */}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      {/* Grid de KPIs Globais */}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {/* Global Avg TTD: Traço '—' quando null */}
         <div className="rounded-[2px] border border-[#1F2629] bg-[#111618] p-4">
           <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#6B7A82]">
@@ -127,19 +124,6 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
             <div className="h-full bg-[#2979FF]" style={{ width: '60%' }} />
           </div>
         </div>
-
-        {/* Global Avg FSP */}
-        <div className="rounded-[2px] border border-[#1F2629] bg-[#111618] p-4">
-          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#6B7A82]">
-            First Shot Precision (FSP)
-          </span>
-          <p className="mt-1 text-2xl font-mono font-bold text-[#00FFA3] tabular-nums">
-            {avgFsp !== null ? `${(avgFsp?.toFixed(1) ?? '—')}%` : '—'}
-          </p>
-          <div className="mt-2 h-1 w-full bg-[#0B0E0F] border border-[#1F2629]">
-            <div className="h-full bg-[#00FFA3]" style={{ width: `${Math.min(100, avgFsp || 0)}%` }} />
-          </div>
-        </div>
       </div>
 
       {/* Tabela de Estatísticas Avançadas dos Jogadores */}
@@ -152,6 +136,7 @@ export default async function MatchOverviewPage({ params }: MatchOverviewPagePro
             team2Name={team2}
             winnerTeam={winner ?? undefined}
             totalRounds={roundsCount}
+            matchId={matchId}
           />
         </div>
       )}

@@ -15,6 +15,7 @@ import {
 export interface RosterPlayerRowData {
   playerNumber: number;
   playerId: number;
+  steamId?: string;
   name: string;
   side: TeamSide;
   money: number;
@@ -98,6 +99,7 @@ export function buildMR12TeamBlocks(
     const row: RosterPlayerRowData = {
       playerNumber: 0,
       playerId: manifest.id,
+      steamId: manifest.steamId,
       name: manifest.name,
       side: currentSide,
       money,
@@ -168,6 +170,8 @@ export interface TeamRosterSidebarProps {
   teamScoreT?: number;
   filterSide?: TeamSide;
   testIdBlockOverride?: 'top' | 'bottom';
+  onInspectPlayer?: (steamId: string, player?: RosterPlayerRowData) => void;
+  selectedSteamId?: string | null;
 }
 
 const DEFAULT_BELT_SLOTS: ReadonlyArray<{
@@ -207,6 +211,8 @@ export function TeamRosterSidebar({
   teamScoreT,
   filterSide,
   testIdBlockOverride,
+  onInspectPlayer,
+  selectedSteamId,
 }: TeamRosterSidebarProps) {
   const [topBlock, bottomBlock] = buildMR12TeamBlocks(
     roundNumber,
@@ -258,13 +264,37 @@ export function TeamRosterSidebar({
             const invIds = playerInventoryById[player.playerId];
             const hasC4 = playerHasC4ById[player.playerId] ?? (invIds ? invIds.includes(49) : false);
 
+            const isSelected = Boolean(
+              selectedSteamId &&
+                (player.steamId === selectedSteamId ||
+                  String(player.playerId) === selectedSteamId),
+            );
+
             return (
               <div
                 key={player.playerId}
                 data-testid={`roster-player-${player.playerId}`}
                 data-alive={player.isAlive ? 'true' : 'false'}
                 style={{ opacity: player.isAlive ? 1 : 0.38 }}
-                className="relative flex flex-col justify-center px-2 py-1.5 bg-[#111618] hover:bg-[#1F2629]/35 transition-colors gap-1"
+                onClick={() => {
+                  const targetId = player.steamId || String(player.playerId);
+                  onInspectPlayer?.(targetId, player);
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const targetId = player.steamId || String(player.playerId);
+                    onInspectPlayer?.(targetId, player);
+                  }
+                }}
+                title={`Clique para inspecionar telemetria de ${player.name}`}
+                className={`relative flex flex-col justify-center px-2 py-1.5 transition-all gap-1 cursor-pointer select-none group ${
+                  isSelected
+                    ? 'bg-[#151922] border-l-2 border-[#00E5FF] shadow-[0_0_12px_rgba(0,229,255,0.25)]'
+                    : 'bg-[#111618] hover:bg-[#151922] hover:border-l-2 hover:border-[#00E5FF]/50'
+                }`}
               >
                 <div className="flex items-center justify-between gap-1 w-full">
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -274,7 +304,13 @@ export function TeamRosterSidebar({
                     >
                       {player.playerNumber}
                     </span>
-                    <span className="text-[11px] font-semibold truncate max-w-[78px] text-white">
+                    <span
+                      className={`text-[11px] truncate max-w-[78px] transition-colors ${
+                        isSelected
+                          ? 'font-bold text-[#00E5FF]'
+                          : 'font-semibold text-white group-hover:text-[#00E5FF]'
+                      }`}
+                    >
                       {player.name}
                     </span>
                     {player.isAlive && callout && (

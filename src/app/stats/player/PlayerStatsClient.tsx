@@ -122,7 +122,6 @@ export function PlayerStatsClient({ initialPerformance }: PlayerStatsClientProps
       kastPct: performance.kastPct,
       ttd: performance.ttd,
       ttk: performance.ttk,
-      fsp: performance.fsp,
       recentRatingHistory: performance.history.map((h) => ({
         matchId: h.matchId,
         date: h.date,
@@ -193,6 +192,7 @@ export function PlayerStatsClient({ initialPerformance }: PlayerStatsClientProps
           <TabRoles
             playerName={performance?.nickname || selectedPlayerId}
             matchesCount={performance?.matchesCount ?? 1}
+            performance={performance}
           />
         )}
         {activeTab === 'weapons' && <TabWeapons rows={breakdowns?.weapons}/>}

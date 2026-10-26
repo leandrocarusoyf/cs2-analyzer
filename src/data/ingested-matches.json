@@ -15,7 +15,6 @@
       "replay_storage_path": "data/replays/2026/18-10-2026/FURIA_vs_Aurora/upload_1792539563321_furia-vs-aurora-m1-dust2.bin.gz",
       "global_avg_ttd_ms": null,
       "global_avg_ttk_ms": 298,
-      "global_avg_fsp_pct": 100,
       "is_public": false,
       "uploader_id": null
     },
@@ -32,7 +31,6 @@
         "roundsPlayed": 21,
         "ttd": null,
         "ttk": 358,
-        "fsp": 100,
         "duelsWon": 10,
         "duelsTotal": 21,
         "metrics": {
@@ -81,7 +79,6 @@
         "roundsPlayed": 21,
         "ttd": null,
         "ttk": 455,
-        "fsp": 100,
         "duelsWon": 22,
         "duelsTotal": 31,
         "metrics": {
@@ -130,7 +127,6 @@
         "roundsPlayed": 21,
         "ttd": null,
         "ttk": 399,
-        "fsp": 100,
         "duelsWon": 11,
         "duelsTotal": 25,
         "metrics": {
@@ -179,7 +175,6 @@
         "roundsPlayed": 21,
         "ttd": null,
         "ttk": 311,
-        "fsp": 100,
         "duelsWon": 9,
         "duelsTotal": 25,
         "metrics": {
@@ -228,7 +223,6 @@
         "roundsPlayed": 21,
         "ttd": null,
         "ttk": 234,
-        "fsp": 100,
         "duelsWon": 13,
         "duelsTotal": 24,
         "metrics": {
@@ -277,7 +271,6 @@
         "roundsPlayed": 21,
         "ttd": null,
         "ttk": 461,
-        "fsp": 100,
         "duelsWon": 6,
         "duelsTotal": 23,
         "metrics": {
@@ -326,7 +319,6 @@
         "roundsPlayed": 21,
         "ttd": null,
         "ttk": 165,
-        "fsp": 100,
         "duelsWon": 12,
         "duelsTotal": 26,
         "metrics": {
@@ -375,7 +367,6 @@
         "roundsPlayed": 21,
         "ttd": null,
         "ttk": 217,
-        "fsp": 100,
         "duelsWon": 20,
         "duelsTotal": 29,
         "metrics": {
@@ -424,7 +415,6 @@
         "roundsPlayed": 21,
         "ttd": null,
         "ttk": 302,
-        "fsp": 100,
         "duelsWon": 16,
         "duelsTotal": 33,
         "metrics": {
@@ -473,7 +463,6 @@
         "roundsPlayed": 21,
         "ttd": null,
         "ttk": 108,
-        "fsp": 100,
         "duelsWon": 12,
         "duelsTotal": 25,
         "metrics": {
@@ -572,7 +561,6 @@
       "replay_storage_path": "data/replays/2026/18-10-2026/FURIA_vs_Aurora/upload_1792539641884_furia-vs-aurora-m2-inferno.bin.gz",
       "global_avg_ttd_ms": null,
       "global_avg_ttk_ms": 237,
-      "global_avg_fsp_pct": 99.31,
       "is_public": false,
       "uploader_id": null
     },
@@ -589,7 +577,6 @@
         "roundsPlayed": 23,
         "ttd": null,
         "ttk": 184,
-        "fsp": 100,
         "duelsWon": 17,
         "duelsTotal": 30,
         "metrics": {
@@ -638,7 +625,6 @@
         "roundsPlayed": 23,
         "ttd": null,
         "ttk": 180,
-        "fsp": 100,
         "duelsWon": 15,
         "duelsTotal": 28,
         "metrics": {
@@ -687,7 +673,6 @@
         "roundsPlayed": 23,
         "ttd": null,
         "ttk": 208,
-        "fsp": 100,
         "duelsWon": 14,
         "duelsTotal": 28,
         "metrics": {
@@ -736,7 +721,6 @@
         "roundsPlayed": 23,
         "ttd": null,
         "ttk": 327,
-        "fsp": 100,
         "duelsWon": 16,
         "duelsTotal": 29,
         "metrics": {
@@ -785,7 +769,6 @@
         "roundsPlayed": 23,
         "ttd": null,
         "ttk": 313,
-        "fsp": 100,
         "duelsWon": 10,
         "duelsTotal": 25,
         "metrics": {
@@ -834,7 +817,6 @@
         "roundsPlayed": 23,
         "ttd": null,
         "ttk": 424,
-        "fsp": 100,
         "duelsWon": 8,
         "duelsTotal": 25,
         "metrics": {
@@ -883,7 +865,6 @@
         "roundsPlayed": 23,
         "ttd": null,
         "ttk": 234,
-        "fsp": 100,
         "duelsWon": 20,
         "duelsTotal": 32,
         "metrics": {
@@ -932,7 +913,6 @@
         "roundsPlayed": 23,
         "ttd": null,
         "ttk": 146,
-        "fsp": 100,
         "duelsWon": 18,
         "duelsTotal": 35,
         "metrics": {
@@ -981,7 +961,6 @@
         "roundsPlayed": 23,
         "ttd": null,
         "ttk": 181,
-        "fsp": 100,
         "duelsWon": 13,
         "duelsTotal": 28,
         "metrics": {
@@ -1030,7 +1009,6 @@
         "roundsPlayed": 23,
         "ttd": null,
         "ttk": 300,
-        "fsp": 92.86,
         "duelsWon": 14,
         "duelsTotal": 30,
         "metrics": {

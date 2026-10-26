@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en" style=""><head></head><body class="bg-surface-container-lowest font-body-md text-on-surface antialiased"><svg aria-hidden="true" class="inline-defs-container" style="position:absolute;width:0;height:0;overflow:hidden"></svg><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"surface-container-highest": "#32353c", "surface-container": "#1d2026", "outline-variant": "#3b494c", primary: "#c3f5ff", "on-secondary-fixed-variant": "#004395", "inverse-primary": "#006875", "inverse-surface": "#e1e2eb", "on-primary": "#00363d", "inverse-on-surface": "#2e3037", "primary-fixed": "#9cf0ff", error: "#ffb4ab", "on-tertiary-container": "#953f00", "surface-dim": "#10131a", "on-secondary-container": "#e6ecff", background: "#10131a", "surface-container-high": "#272a31", "on-tertiary": "#552100", "on-secondary": "#002e6a", "on-tertiary-fixed-variant": "#783200", "surface-bright": "#363940", "primary-fixed-dim": "#00daf3", "tertiary-container": "#ffc4a6", "secondary-fixed-dim": "#adc6ff", "on-background": "#e1e2eb", "error-container": "#93000a", outline: "#849396", "on-secondary-fixed": "#001a42", "surface-tint": "#00daf3", "on-surface": "#e1e2eb", "tertiary-fixed": "#ffdbca", secondary: "#adc6ff", "on-primary-container": "#00626e", "on-primary-fixed": "#001f24", "on-error-container": "#ffdad6", "surface-container-lowest": "#0b0e14", "secondary-fixed": "#d8e2ff", "on-error": "#690005", "tertiary-fixed-dim": "#ffb690", "on-tertiary-fixed": "#341100", surface: "#10131a", "surface-variant": "#32353c", "surface-container-low": "#191c22", "secondary-container": "#0566d9", "on-primary-fixed-variant": "#004f58", "on-surface-variant": "#bac9cc", "primary-container": "#00e5ff", tertiary: "#ffe9df"}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}, spacing: {"space-xs": "0.25rem", "space-md": "0.75rem", "space-lg": "1.25rem", "space-sm": "0.5rem", "space-xl": "2rem", gutter: "0.75rem", margin: "1rem"}, fontFamily: {"card-header": ["Inter"], "body-sm": ["Inter"], "stat-display": ["JetBrains Mono"], "stat-mono-md": ["JetBrains Mono"], "screen-title": ["Inter"], "benchmark-label": ["JetBrains Mono"], "hud-timer": ["JetBrains Mono"], "display-xl": ["Inter"], "body-md": ["Inter"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["JetBrains Mono"]}, fontSize: {"card-header": ["13px", {lineHeight: "18px", letterSpacing: "0.02em", fontWeight: "600"}], "body-sm": ["12px", {lineHeight: "16px", fontWeight: "400"}], "stat-display": ["32px", {lineHeight: "36px", letterSpacing: "-0.03em", fontWeight: "700"}], "stat-mono-md": ["14px", {lineHeight: "18px", letterSpacing: "-0.01em", fontWeight: "600"}], "screen-title": ["18px", {lineHeight: "24px", letterSpacing: "0.05em", fontWeight: "700"}], "benchmark-label": ["11px", {lineHeight: "14px", fontWeight: "400"}], "hud-timer": ["18px", {lineHeight: "22px", fontWeight: "700"}], "display-xl": ["48px", {lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "700"}], "body-md": ["14px", {lineHeight: "20px", fontWeight: "400"}]}}}};</script><aside class="fixed left-0 top-0 h-full w-64 bg-[#0B0E14] border-r border-[#222735] z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-16 px-space-lg flex items-center gap-space-sm border-b border-[#222735]"><div class="w-7 h-7 rounded-lg bg-[#00E5FF] flex items-center justify-center shadow-[0_0_12px_rgba(0,229,255,0.35)]"><span class="material-symbols-outlined text-[#00363d] text-[18px]">radar</span></div><div class="flex flex-col"><span class="font-['Inter'] text-[14px] font-bold tracking-wider text-white uppercase">Analytics</span><span class="font-['JetBrains_Mono'] text-[10px] text-[#00E5FF] font-semibold tracking-widest">// CS2 TELEMETRY</span></div></div><div class="px-space-md py-space-sm"><span class="font-['Inter'] text-[10px] text-[#94A3B8] uppercase px-space-sm tracking-widest font-semibold">Operations</span></div><nav class="flex flex-col gap-1 px-space-sm"><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-slate-400 hover:bg-[#151922] hover:text-white transition-all text-sm font-medium" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span class="font-['Inter']">Dashboard</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-slate-400 hover:bg-[#151922] hover:text-white transition-all text-sm font-medium" data-path="match-history" href="#"><span class="material-symbols-outlined text-[18px]">history</span><span class="font-['Inter']">Match History</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-slate-400 hover:bg-[#151922] hover:text-white transition-all text-sm font-medium" data-path="tactical-map" href="#"><span class="material-symbols-outlined text-[18px]">layers</span><span class="font-['Inter']">2D Tactical Map</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg bg-[#00E5FF] text-[#0B0E14] font-semibold shadow-[0_0_10px_rgba(0,229,255,0.25)] text-sm" data-path="player-stats" href="#"><span class="material-symbols-outlined text-[18px]">query_stats</span><span class="font-['Inter']">Player Stats</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-slate-400 hover:bg-[#151922] hover:text-white transition-all text-sm font-medium" data-path="grenade-lineups" href="#"><span class="material-symbols-outlined text-[18px]">track_changes</span><span class="font-['Inter']">Grenade Lineups</span></a></nav></div><div class="p-3 m-3 rounded-[4px] bg-[#151922] border border-[#222735] flex flex-col gap-2"><div class="flex items-center justify-between"><span class="font-['Inter'] text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Status</span><span class="inline-flex items-center gap-1.5 font-['JetBrains_Mono'] text-[11px] text-emerald-400 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#10B981]"></span>ENGINE V2.4 // ONLINE</span></div><div class="flex items-center justify-between pt-1 border-t border-[#222735]"><span class="font-['Inter'] text-[11px] text-slate-400">LATENCY</span><span class="font-['JetBrains_Mono'] text-[12px] font-semibold text-[#00E5FF]">14ms</span></div><div class="flex items-center justify-between"><span class="font-['Inter'] text-[10px] text-slate-400 uppercase tracking-wider font-semibold">PARSER</span><span class="px-1.5 py-0.5 rounded-[3px] bg-[#1C202C] border border-[#222735] text-white font-['JetBrains_Mono'] text-[10px] tracking-wide font-semibold">128-TICK</span></div></div></aside><div class="pl-64 flex flex-col min-h-screen"><header class="fixed top-0 left-64 right-0 z-40 bg-[#0B0E14]/95 backdrop-blur-md border-b border-[#222735]"><div class="h-14 px-space-lg flex items-center justify-between gap-space-md border-b border-[#222735]/40"><div class="flex items-center gap-space-md flex-1"><div class="flex items-center gap-space-sm px-3 py-1 bg-[#151922] border border-[#222735] rounded-[4px] cursor-pointer hover:bg-[#1c222e] transition-colors"><div class="w-5 h-5 rounded-full bg-[#1C202C] flex items-center justify-center font-['JetBrains_Mono'] text-[10px] text-[#00E5FF] font-bold">TS</div><span class="font-['Inter'] text-[13px] font-semibold text-white">donk // Team Spirit</span><span class="material-symbols-outlined text-slate-400 text-[16px]">arrow_drop_down</span></div><button class="flex items-center gap-1.5 px-3 py-1 bg-[#00E5FF]/10 hover:bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/30 rounded-[4px] font-['Inter'] text-[13px] font-semibold transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">add</span><span class="">Compare Player</span></button><div class="h-4 w-px bg-[#222735]"></div><div class="flex items-center gap-2"><div class="flex items-center gap-1 px-2.5 py-1 bg-[#151922] border border-[#222735] rounded-[4px] cursor-pointer hover:bg-[#1c222e] text-slate-300 font-['Inter'] text-xs"><span class="text-slate-400">Scope:</span><span class="text-white font-medium">Last 3 Months</span><span class="material-symbols-outlined text-slate-400 text-[14px]">expand_more</span></div><div class="flex items-center gap-1 px-2.5 py-1 bg-[#151922] border border-[#222735] rounded-[4px] cursor-pointer hover:bg-[#1c222e] text-slate-300 font-['Inter'] text-xs"><span class="text-slate-400">Pool:</span><span class="text-white font-medium">All Maps</span><span class="material-symbols-outlined text-slate-400 text-[14px]">expand_more</span></div><div class="flex items-center gap-1 px-2.5 py-1 bg-[#151922] border border-[#222735] rounded-[4px] cursor-pointer hover:bg-[#1c222e] text-slate-300 font-['Inter'] text-xs"><span class="text-slate-400">Comp:</span><span class="text-white font-medium">Tier 1 Pros</span><span class="material-symbols-outlined text-slate-400 text-[14px]">expand_more</span></div></div></div><div class="flex items-center gap-space-sm"><button class="flex items-center gap-1.5 px-3 py-1 rounded-[4px] bg-[#151922] hover:bg-[#1c222e] border border-[#222735] text-slate-200 text-xs font-['Inter'] transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">file_download</span><span class="">Export</span></button><button class="w-8 h-8 rounded-[4px] flex items-center justify-center text-slate-400 hover:text-white hover:bg-[#151922] border border-[#222735] transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">notifications</span></button><div class="w-8 h-8 rounded-full bg-[#00E5FF] flex items-center justify-center"><span class="material-symbols-outlined text-[#00363d] text-[18px]">person</span></div></div></div><nav class="h-10 px-space-lg flex items-center gap-6 bg-[#0B0E14]"><a class="h-full inline-flex items-center font-['Inter'] text-[13px] font-normal text-slate-400 hover:text-white transition-colors" data-path="intro" href="#">Intro</a><a class="h-full inline-flex items-center font-['Inter'] text-[13px] font-semibold text-[#00E5FF] border-b-2 border-[#00E5FF]" data-path="roles-and-positioning" href="#">Roles &amp; Positioning</a><a class="h-full inline-flex items-center font-['Inter'] text-[13px] font-normal text-slate-400 hover:text-white transition-colors" data-path="weapons-and-duels" href="#">Weapons &amp; Duels</a><a class="h-full inline-flex items-center font-['Inter'] text-[13px] font-normal text-slate-400 hover:text-white transition-colors" data-path="buy-types" href="#">Buy Types</a><a class="h-full inline-flex items-center font-['Inter'] text-[13px] font-normal text-slate-400 hover:text-white transition-colors" data-path="maps" href="#">Maps</a></nav></header><main class="relative pt-24 w-full px-space-lg bg-surface-container-lowest min-h-screen"><div class="flex flex-col w-full text-on-surface pb-12">
+<!-- Sub-Header & Controls Toolbar -->
+<div class="flex flex-col gap-4 mb-6">
+<div class="flex flex-wrap items-center justify-between gap-4"><div class="flex items-center gap-3"><h1 class="font-screen-title text-screen-title text-on-surface tracking-wide flex items-center gap-2"><span class="text-primary-container font-stat-mono-md">/</span><span class="">Role performance</span></h1></div></div>
+<!-- Segmented Role Filters -->
+<div class="flex items-center justify-between gap-4 p-2 rounded-[4px] bg-surface-container overflow-x-auto">
+<div class="flex items-center gap-1.5 shrink-0">
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant uppercase px-2 tracking-widest">
+          FILTER VECTOR:
+        </span>
+<button class="px-3 py-1 rounded-[4px] bg-primary-container text-on-primary font-body-sm text-body-sm font-semibold shadow-sm" type="button">
+          All
+        </button>
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-[4px] bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container"></span>
+<span class="">CT Allround</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-[4px] bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container"></span>
+<span class="">Anchor</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-[4px] bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container"></span>
+<span class="">Rotation</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-[4px] bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+<span class="">T Allround</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-[4px] bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+<span class="">Lurk</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-[4px] bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+<span class="">Half Lurk</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-[4px] bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+<span class="">Pack</span>
+</button>
+</div>
+<div class="flex items-center gap-2 pr-2 text-on-surface-variant font-benchmark-label text-benchmark-label shrink-0">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="">INDEXING: 1,028 MATCH ROUNDS</span>
+</div>
+</div>
+</div>
+<!-- TOP SECTION - RADAR COMPARISON & KPI BENCHMARKS -->
+<div class="bg-surface-container rounded-[4px] p-6 mb-6 shadow-md">
+<div class="grid grid-cols-12 gap-8 items-center">
+<!-- Left Column: Tactical Radar Spider Chart -->
+<div class="col-span-12 lg:col-span-7 flex flex-col items-center">
+<div class="w-full flex items-center justify-between mb-2">
+<span class="font-card-header text-card-header text-on-surface tracking-wider uppercase flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">data_exploration</span>
+            Multi-Axis Performance Radar
+          </span>
+</div>
+<div class="relative w-full max-w-[520px] aspect-square flex items-center justify-center py-2">
+<!-- 12 Axis Tactical Radar Chart (donk vs Tier 1 Pro Avg) -->
+<svg class="w-full h-full overflow-visible" viewbox="-240 -240 480 480">
+<!-- Concentric Grid Polygons -->
+<polygon fill="none" points="0,-40 20,-34.6 34.6,-20 40,0 34.6,20 20,34.6 0,40 -20,34.6 -34.6,20 -40,0 -34.6,-20 -20,-34.6" stroke="#272a31" stroke-width="1"></polygon>
+<polygon fill="none" points="0,-80 40,-69.3 69.3,-40 80,0 69.3,40 40,69.3 0,80 -40,69.3 -69.3,40 -80,0 -69.3,-40 -40,-69.3" stroke="#272a31" stroke-width="1"></polygon>
+<polygon fill="none" points="0,-120 60,-103.9 103.9,-60 120,0 103.9,60 60,103.9 0,120 -60,103.9 -103.9,60 -120,0 -103.9,-60 -60,-103.9" stroke="#272a31" stroke-width="1"></polygon>
+<polygon fill="none" points="0,-160 80,-138.6 138.6,-80 160,0 138.6,80 80,138.6 0,160 -80,138.6 -138.6,80 -160,0 -138.6,-80 -80,-138.6" stroke="#272a31" stroke-width="1.5"></polygon>
+<!-- Axis Spokes (12 Angles: every 30 deg) -->
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="0" y1="0" y2="-165"></line>
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="82.5" y1="0" y2="-142.9"></line>
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="142.9" y1="0" y2="-82.5"></line>
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="165" y1="0" y2="0"></line>
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="142.9" y1="0" y2="82.5"></line>
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="82.5" y1="0" y2="142.9"></line>
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="0" y1="0" y2="165"></line>
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="-82.5" y1="0" y2="142.9"></line>
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="-142.9" y1="0" y2="82.5"></line>
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="-165" y1="0" y2="0"></line>
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="-142.9" y1="0" y2="-82.5"></line>
+<line stroke="#272a31" stroke-dasharray="2,2" stroke-width="1" x1="0" x2="-82.5" y1="0" y2="-142.9"></line>
+<!-- Baseline Polygon: Tier 1 Pros Avg (Normalized to 100 on 160 scale) -->
+<polygon fill="#32353c" fill-opacity="0.3" points="
+              0,-105
+              55,-95
+              98,-56
+              108,0
+              92,53
+              52,90
+              0,102
+              -54,93
+              -95,55
+              -104,0
+              -90,-52
+              -51,-88
+            " stroke="#849396" stroke-dasharray="4,3" stroke-width="1.5"></polygon>
+<!-- donk Polygon: Hyper aggressive profile -->
+<polygon fill="#00daf3" fill-opacity="0.22" points="
+              0,-158
+              82,-132
+              142,-78
+              156,0
+              128,74
+              75,130
+              -8,142
+              -72,124
+              -126,72
+              -112,0
+              -88,-51
+              -76,-131
+            " stroke="#00e5ff" stroke-width="2.2"></polygon>
+<!-- donk Vertex Glowing Dots -->
+<circle cx="0" cy="-158" fill="#c3f5ff" r="3.5"></circle>
+<circle cx="82" cy="-132" fill="#c3f5ff" r="3.5"></circle>
+<circle cx="142" cy="-78" fill="#c3f5ff" r="3.5"></circle>
+<circle cx="156" cy="0" fill="#c3f5ff" r="3.5"></circle>
+<circle cx="128" cy="74" fill="#c3f5ff" r="3.5"></circle>
+<circle cx="75" cy="130" fill="#c3f5ff" r="3.5"></circle>
+<circle cx="-8" cy="142" fill="#c3f5ff" r="3.5"></circle>
+<circle cx="-72" cy="124" fill="#c3f5ff" r="3.5"></circle>
+<circle cx="-126" cy="72" fill="#c3f5ff" r="3.5"></circle>
+<circle cx="-112" cy="0" fill="#c3f5ff" r="3.5"></circle>
+<circle cx="-88" cy="-51" fill="#c3f5ff" r="3.5"></circle>
+<circle cx="-76" cy="-131" fill="#c3f5ff" r="3.5"></circle>
+<!-- Axis Labels (JetBrains Mono 9-10px) -->
+<text fill="#c3f5ff" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="0" y="-176">HLTV RATING</text>
+<text fill="#bac9cc" font-family="JetBrains Mono" font-size="10" text-anchor="start" x="96" y="-154">ADR</text>
+<text fill="#bac9cc" font-family="JetBrains Mono" font-size="10" text-anchor="start" x="168" y="-90">OPENING ATT</text>
+<text fill="#c3f5ff" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="start" x="182" y="4">OPENING KD</text>
+<text fill="#bac9cc" font-family="JetBrains Mono" font-size="10" text-anchor="start" x="162" y="96">TRADE KILLS/R</text>
+<text fill="#c3f5ff" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="start" x="94" y="166">KPR</text>
+<text fill="#bac9cc" font-family="JetBrains Mono" font-size="10" text-anchor="middle" x="0" y="185">KD RATIO</text>
+<text fill="#bac9cc" font-family="JetBrains Mono" font-size="10" text-anchor="end" x="-94" y="166">DPR</text>
+<text fill="#bac9cc" font-family="JetBrains Mono" font-size="10" text-anchor="end" x="-162" y="96">TRADED DEATHS</text>
+<text fill="#bac9cc" font-family="JetBrains Mono" font-size="10" text-anchor="end" x="-182" y="4">UDR</text>
+<text fill="#bac9cc" font-family="JetBrains Mono" font-size="10" text-anchor="end" x="-168" y="-90">FLASH ASSISTS</text>
+<text fill="#c3f5ff" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="end" x="-96" y="-154">KAST</text>
+</svg>
+</div>
+<!-- Radar Legend -->
+<div class="flex items-center gap-6 mt-2 pt-3">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary-container shadow-[0_0_8px_rgba(0,229,255,0.6)]"></span>
+<span class="font-stat-mono-md text-stat-mono-md text-on-surface font-semibold">donk</span>
+<span class="font-benchmark-label text-benchmark-label text-primary">(Aggressive Space Creator)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-outline"></span>
+<span class="font-stat-mono-md text-stat-mono-md text-on-surface-variant font-normal">Tier 1 Pro Average</span>
+<span class="font-benchmark-label text-benchmark-label text-outline">(Baseline)</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Head-to-Head Telemetry Column -->
+<div class="col-span-12 lg:col-span-5 flex flex-col justify-between h-full bg-surface-container-low p-5 rounded-[4px]">
+<div>
+<div class="flex items-center justify-between pb-3">
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant uppercase tracking-wider">
+              TELEMETRY DELTA // DONK VS COMPARISON
+            </span>
+<span class="font-benchmark-label text-benchmark-label text-primary font-bold">MODE: GLOBAL SCOUT</span>
+</div>
+<!-- Hero HLTV Rating Block -->
+<div class="py-4">
+<div class="flex items-baseline justify-between">
+<div>
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant uppercase tracking-wider block mb-1">HLTV 2.0 Rating</span>
+<div class="flex items-baseline gap-3">
+<span class="font-stat-display text-stat-display text-primary-container">1.33</span>
+<span class="font-stat-mono-md text-stat-mono-md text-on-surface-variant line-through opacity-75">1.07</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="px-2 py-0.5 rounded-[3px] bg-primary/10 text-primary-fixed-dim font-stat-mono-md text-stat-mono-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                  +0.26
+                </span>
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant mt-1">vs T1 Baseline</span>
+</div>
+</div>
+<!-- Spline Area Wave Chart: Trend Curve -->
+<div class="w-full h-16 mt-3 relative">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 320 60">
+<defs>
+<lineargradient id="waveGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#00e5ff" stop-opacity="0.4"></stop>
+<stop offset="100%" stop-color="#00e5ff" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<path d="M 0 45 Q 30 20 60 35 T 120 18 T 180 28 T 240 8 T 280 20 T 320 10 L 320 60 L 0 60 Z" fill="url(#waveGradient)"></path>
+<path d="M 0 45 Q 30 20 60 35 T 120 18 T 180 28 T 240 8 T 280 20 T 320 10" fill="none" stroke="#00e5ff" stroke-width="2"></path>
+<circle cx="240" cy="8" fill="#c3f5ff" r="3"></circle>
+<circle cx="320" cy="10" fill="#00e5ff" r="3.5"></circle>
+</svg>
+<div class="absolute right-0 top-0 font-benchmark-label text-benchmark-label text-primary font-mono">
+                PEAK 1.54
+              </div>
+</div>
+</div>
+</div>
+<!-- Stacked Secondary Metrics -->
+<div class="flex flex-col gap-3 pt-4">
+<!-- Metric: ADR -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-stat-mono-md text-stat-mono-md">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Average Damage / Round (ADR)</span>
+<div class="flex items-center gap-2">
+<span class="text-on-surface font-semibold">95.4</span>
+<span class="text-outline text-xs">/ 78.9</span>
+<span class="text-primary-fixed-dim text-xs font-bold">+16.5</span>
+</div>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 82%;"></div>
+</div>
+</div>
+<!-- Metric: K/D Ratio -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-stat-mono-md text-stat-mono-md">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Kill / Death Ratio</span>
+<div class="flex items-center gap-2">
+<span class="text-on-surface font-semibold">1.33</span>
+<span class="text-outline text-xs">/ 1.02</span>
+<span class="text-primary-fixed-dim text-xs font-bold">+0.31</span>
+</div>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 76%;"></div>
+</div>
+</div>
+<!-- Metric: KPR -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-stat-mono-md text-stat-mono-md">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Kills Per Round (KPR)</span>
+<div class="flex items-center gap-2">
+<span class="text-on-surface font-semibold">0.90</span>
+<span class="text-outline text-xs">/ 0.68</span>
+<span class="text-primary-fixed-dim text-xs font-bold">+0.22</span>
+</div>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 89%;"></div>
+</div>
+</div>
+<!-- Metric: KAST -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-stat-mono-md text-stat-mono-md">
+<span class="font-body-sm text-body-sm text-on-surface-variant">KAST Consistency</span>
+<div class="flex items-center gap-2">
+<span class="text-on-surface font-semibold">72.4%</span>
+<span class="text-outline text-xs">/ 70.1%</span>
+<span class="text-primary-fixed-dim text-xs font-bold">+2.3%</span>
+</div>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 72%;"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- BOTTOM SECTION - DUAL SIDE-BY-SIDE ROLE BREAKDOWN TABLES -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+<!-- CT Side Role Breakdown Table -->
+<div class="bg-surface-container rounded-[4px] p-5 shadow-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-3 mb-3">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-container shadow-[0_0_8px_#0566d9]"></span>
+<span class="font-card-header text-card-header text-on-surface uppercase tracking-wider">
+              CT Side Roles &amp; Zones
+            </span>
+</div>
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant">
+            6 ROLES RECORDED // 524 RDS
+          </span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="font-benchmark-label text-benchmark-label text-on-surface-variant uppercase">
+<th class="py-2.5 px-3">Role</th>
+<th class="py-2.5 px-3">Map</th>
+<th class="py-2.5 px-3">HLTV</th>
+<th class="py-2.5 px-3">ADR</th>
+<th class="py-2.5 px-3">K/D</th>
+<th class="py-2.5 px-3">KPR</th>
+<th class="py-2.5 px-3 text-right">Rounds</th>
+</tr>
+</thead>
+<tbody class="font-stat-mono-md text-stat-mono-md divide-y-0">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">B Con</td>
+<td class="py-3 px-3 text-on-surface-variant">Anubis</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.51 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 9 Q 15 2 30 7 T 60 2" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">97.1</td>
+<td class="py-3 px-3 text-on-surface">1.64</td>
+<td class="py-3 px-3 text-on-surface">0.99</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">98</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">Mid</td>
+<td class="py-3 px-3 text-on-surface-variant">Cache</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.51 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 10 Q 20 1 40 6 T 60 1" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">104.3</td>
+<td class="py-3 px-3 text-on-surface">1.64</td>
+<td class="py-3 px-3 text-on-surface">1.00</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">95</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">B Anchor</td>
+<td class="py-3 px-3 text-on-surface-variant">Dust2</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.47 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 6 Q 15 10 30 3 T 60 2" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">107.1</td>
+<td class="py-3 px-3 text-on-surface">1.54</td>
+<td class="py-3 px-3 text-on-surface">1.00</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">74</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">A Connector</td>
+<td class="py-3 px-3 text-on-surface-variant">Mirage</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.44 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 8 Q 20 4 35 7 T 60 3" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">104.5</td>
+<td class="py-3 px-3 text-on-surface">1.54</td>
+<td class="py-3 px-3 text-on-surface">0.97</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">121</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">Mid</td>
+<td class="py-3 px-3 text-on-surface-variant">Ancient</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.37 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 9 Q 15 8 30 4 T 60 5" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">96.0</td>
+<td class="py-3 px-3 text-on-surface">1.35</td>
+<td class="py-3 px-3 text-on-surface">0.90</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">115</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">Yard</td>
+<td class="py-3 px-3 text-on-surface-variant">Nuke</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.36 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 10 Q 18 3 32 8 T 60 4" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">100.2</td>
+<td class="py-3 px-3 text-on-surface">1.43</td>
+<td class="py-3 px-3 text-on-surface">0.94</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">81</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="pt-3 flex items-center justify-between text-on-surface-variant font-benchmark-label text-benchmark-label">
+<span class="">PRIMARY ZONE IMPACT: HIGH</span>
+<span class="">DEFENSIVE WIN-RATE: 58.6%</span>
+</div>
+</div>
+<!-- T Side Role Breakdown Table -->
+<div class="bg-surface-container rounded-[4px] p-5 shadow-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-3 mb-3">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-on-tertiary-container shadow-[0_0_8px_#953f00]"></span>
+<span class="font-card-header text-card-header text-on-surface uppercase tracking-wider">
+              T Side Roles &amp; Execute Vectors
+            </span>
+</div>
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant">
+            6 ROLES RECORDED // 504 RDS
+          </span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="font-benchmark-label text-benchmark-label text-on-surface-variant uppercase">
+<th class="py-2.5 px-3">Role</th>
+<th class="py-2.5 px-3">Map</th>
+<th class="py-2.5 px-3">HLTV</th>
+<th class="py-2.5 px-3">ADR</th>
+<th class="py-2.5 px-3">K/D</th>
+<th class="py-2.5 px-3">KPR</th>
+<th class="py-2.5 px-3 text-right">Rounds</th>
+</tr>
+</thead>
+<tbody class="font-stat-mono-md text-stat-mono-md">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">A Lurk</td>
+<td class="py-3 px-3 text-on-surface-variant">Anubis</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.87 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 10 Q 15 1 35 4 T 60 1" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">131.2</td>
+<td class="py-3 px-3 text-on-surface">2.08</td>
+<td class="py-3 px-3 text-on-surface">1.29</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">21</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">A Lurk</td>
+<td class="py-3 px-3 text-on-surface-variant">Ancient</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.51 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 8 Q 20 2 38 6 T 60 2" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">99.8</td>
+<td class="py-3 px-3 text-on-surface">1.63</td>
+<td class="py-3 px-3 text-on-surface">1.08</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">12</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">T Mid</td>
+<td class="py-3 px-3 text-on-surface-variant">Ancient</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.50 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 6 Q 22 2 34 8 T 60 3" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">109.0</td>
+<td class="py-3 px-3 text-on-surface">1.48</td>
+<td class="py-3 px-3 text-on-surface">1.02</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">106</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">Canal</td>
+<td class="py-3 px-3 text-on-surface-variant">Anubis</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.29 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 8 Q 18 5 35 9 T 60 6" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">91.4</td>
+<td class="py-3 px-3 text-on-surface">1.23</td>
+<td class="py-3 px-3 text-on-surface">0.85</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">82</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">Secondary Mid</td>
+<td class="py-3 px-3 text-on-surface-variant">Cache</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.22 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 10 Q 15 6 30 9 T 60 5" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">89.9</td>
+<td class="py-3 px-3 text-on-surface">1.12</td>
+<td class="py-3 px-3 text-on-surface">0.84</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">90</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-3 font-medium text-on-surface">Lower Tunnels</td>
+<td class="py-3 px-3 text-on-surface-variant">Dust2</td>
+<td class="py-3 px-3">
+<div class="flex flex-col gap-0.5">
+<span class="text-primary-container font-bold flex items-center gap-1">
+                      1.14 <span class="text-[10px] text-primary">▲</span>
+</span>
+<svg class="w-16 h-3" fill="none" viewbox="0 0 60 12">
+<path d="M0 9 Q 20 8 36 10 T 60 8" stroke="#00e5ff" stroke-linecap="round" stroke-width="1.5"></path>
+</svg>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface">82.7</td>
+<td class="py-3 px-3 text-on-surface">1.16</td>
+<td class="py-3 px-3 text-on-surface">0.82</td>
+<td class="py-3 px-3 text-right text-on-surface-variant">193</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="pt-3 flex items-center justify-between text-on-surface-variant font-benchmark-label text-benchmark-label">
+<span class="">ENTRY DUEL SUCCESS: 64.2%</span>
+<span class="">OFFENSIVE WIN-RATE: 53.4%</span>
+</div>
+</div>
+</div>
+<!-- FOOTER AUDIT LINE -->
+<div class="flex flex-wrap items-center justify-between gap-4 py-3 px-4 rounded-[4px] bg-surface-container-low text-on-surface-variant font-benchmark-label text-benchmark-label">
+<div class="flex items-center gap-3">
+</div>
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-[14px]">sync</span>
+<span class="">STREAM SYNCHRONIZED</span>
+</div>
+</div>
+</div></main></div>
+</body></html>

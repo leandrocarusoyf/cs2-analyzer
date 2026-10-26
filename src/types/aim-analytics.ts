@@ -20,8 +20,6 @@ export interface AimMetricsSummary {
   timeToKillMs: number | null;
   /** Desvio retículo-alvo (graus) no frame de contato visual */
   preAimAngularError: number;
-  /** FSP: percentual de duelos com primeiro tiro no alvo */
-  firstShotPrecisionPct: number;
   /** Intervalo (ms) entre desaceleração e clique de disparo */
   counterStrafingDeltaMs: number;
   /** Eliminações até 4000ms após a morte de um aliado próximo */

@@ -3,43 +3,69 @@
 @tailwind utilities;
 
 :root {
-  --color-canvas: #0B0E0F;
-  --color-surface: #111618;
-  --color-surface-card: #0E1214;
-  --color-surface-active: #13191B;
-  --color-border-subtle: #1F2629;
-  --color-border-card: #1B2226;
-  --color-border-muted: #232B30;
-  --color-accent: #00FFA3;
-  --color-primary: #00FFA3;
-  --color-primary-glow: rgba(0, 255, 163, 0.14);
-  --color-ct: #2979FF;
-  --color-ct-hover: #3B82F6;
-  --color-ct-bg: #0F1E2E;
-  --color-ct-border: #1E3A5F;
-  --color-tr: #EAB308;
-  --color-tr-hover: #FACC15;
-  --color-tr-bg: #26160A;
-  --color-tr-border: #3D2411;
-  --color-text-primary: #FFFFFF;
-  --color-text-secondary: #A1A1AA;
-  --color-text-muted: #9BA8B0;
-  --color-text-dim: #4B5563;
-  --color-status-win: #00FFA3;
-  --color-status-loss: #EF4444;
-  --color-status-tie: #EAB308;
-  --radius-sm: 2px;
+  /* Paleta canônica Stitch - Tactical Replay & Player Inspection */
+  --color-base-bg: #0B0E14;
+  --color-surface-dark: #10141D;
+  --color-card-bg: #151922;
+  --color-surface-elevated: #1B2230;
+  --color-border-dark: #222735;
+  --color-cyan-accent: #00E5FF;
+  --color-cyan-hover: #9CF0FF;
+  --color-cyan-dim: #00DAF3;
+  --color-cyan-glow: rgba(0, 229, 255, 0.22);
+  --color-cyan-glow-strong: rgba(0, 229, 255, 0.40);
+  --color-ct-blue: #3B82F6;
+  --color-t-orange: #F97316;
+  --color-on-background: #E1E2EB;
+  --color-on-surface-variant: #BAC9CC;
+  --color-outline-variant: #3B494C;
+
+  /* Tokens semânticos globais mapeados para a fonte única da verdade */
+  --color-canvas: #0B0E14;
+  --color-surface: #10141D;
+  --color-surface-card: #151922;
+  --color-surface-active: #1B2230;
+  --color-border-subtle: #222735;
+  --color-border-card: #222735;
+  --color-border-muted: #3B494C;
+  --color-accent: #00E5FF;
+  --color-primary: #00E5FF;
+  --color-primary-glow: rgba(0, 229, 255, 0.15);
+  --color-ct: #3B82F6;
+  --color-ct-hover: #60A5FA;
+  --color-ct-bg: rgba(59, 130, 246, 0.15);
+  --color-ct-border: rgba(59, 130, 246, 0.30);
+  --color-tr: #F97316;
+  --color-tr-hover: #FB923C;
+  --color-tr-bg: rgba(249, 115, 22, 0.15);
+  --color-tr-border: rgba(249, 115, 22, 0.30);
+  --color-text-primary: #E1E2EB;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #849396;
+  --color-text-dim: #4A5568;
+  --color-status-win: #34D399;
+  --color-status-loss: #FB7185;
+  --color-status-tie: #FBBF24;
+
+  /* Raios de borda táticos extraídos do Stitch */
+  --radius-sm: 0.125rem;
+  --radius-default: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.75rem;
+  --radius-full: 9999px;
 }
 
 html, body {
-  background-color: var(--color-canvas);
-  color: var(--color-text-primary);
+  background-color: var(--color-base-bg);
+  color: var(--color-on-background);
   min-height: 100vh;
 }
 
 ::selection {
   background-color: var(--color-primary-glow);
-  color: var(--color-accent);
+  color: var(--color-cyan-accent);
 }
 
 /* Aplicação global de números tabulares para dados estatísticos e métricas */
@@ -49,32 +75,48 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Scrollbars finas táticas no padrão EDGE */
+/* Scrollbars finas táticas no padrão Stitch */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--color-base-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border-subtle);
-  border-radius: var(--radius-sm);
+  background: var(--color-border-dark);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2A3439;
+  background: var(--color-cyan-accent);
 }
 
 @layer base {
   html { color-scheme: dark; }
   body { @apply font-sans antialiased; }
-  :focus-visible { @apply outline outline-2 outline-offset-2 outline-ct; }
+  :focus-visible { @apply outline outline-2 outline-offset-2 outline-cyan-accent; }
   button:disabled { @apply cursor-not-allowed opacity-50; }
   td { @apply font-mono tabular-nums; }
 }
+
 @layer components {
-  .metric-label { @apply text-[10px] font-medium uppercase tracking-wider text-zinc-400; }
+  .metric-label { @apply text-[10px] font-mono font-medium uppercase tracking-wider text-text-muted; }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #10141D;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #222735;
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #00E5FF;
+  }
 }

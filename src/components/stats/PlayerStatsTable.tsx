@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { PlayerMatchInspectModal } from '../replay/PlayerMatchInspectModal.tsx';
 
 export interface PlayerStatRow {
   steamId: string;
@@ -15,7 +16,6 @@ export interface PlayerStatRow {
   kast?: number | null;
   ttd?: number | null;
   ttk?: number | null;
-  fsp?: number | null;
   k2?: number | null;
   k3?: number | null;
   k4?: number | null;
@@ -58,6 +58,9 @@ export interface PlayerStatsTableProps {
   team2Name?: string;
   winnerTeam?: string;
   totalRounds?: number;
+  matchId?: string;
+  onSelectPlayer?: (steamId: string) => void;
+  selectedSteamId?: string | null;
 }
 
 export function PlayerStatsTable({
@@ -68,8 +71,24 @@ export function PlayerStatsTable({
   team2Name,
   winnerTeam,
   totalRounds = 23,
+  matchId,
+  onSelectPlayer,
+  selectedSteamId: propSelectedSteamId,
 }: PlayerStatsTableProps) {
   const [activeTab, setActiveTab] = useState<MatchTab>(defaultTab);
+  const [internalSelectedSteamId, setInternalSelectedSteamId] = useState<string | null>(null);
+
+  const selectedSteamId =
+    propSelectedSteamId !== undefined ? propSelectedSteamId : internalSelectedSteamId;
+
+  const handleSelectPlayer = (steamId: string) => {
+    setInternalSelectedSteamId(steamId);
+    onSelectPlayer?.(steamId);
+  };
+
+  const handleCloseModal = () => {
+    setInternalSelectedSteamId(null);
+  };
 
   // Agrupamento por time
   const teams = Array.from(new Set(players.map((p) => p.team)));
@@ -270,6 +289,43 @@ export function PlayerStatsTable({
     return map;
   }, [players, totalRounds]);
 
+  const selectedPlayer = useMemo(() => {
+    if (!selectedSteamId) return null;
+    return players.find((p) => p.steamId === selectedSteamId) ?? null;
+  }, [players, selectedSteamId]);
+
+  const selectedPlayerInfo = useMemo(() => {
+    if (!selectedPlayer) return undefined;
+    const isTeam1 =
+      selectedPlayer.team.toLowerCase() === primaryTeam.toLowerCase();
+    const side = isTeam1 ? 'CT' : 'T';
+    const metrics = (selectedPlayer as any).metrics_json || {};
+    const nickSlug = selectedPlayer.nickname.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return {
+      nickname: selectedPlayer.nickname,
+      realName: metrics.realName || metrics.real_name,
+      team: selectedPlayer.team,
+      side: side as 'CT' | 'T',
+      country: metrics.country,
+      countryFlag: metrics.countryFlag || metrics.country_flag,
+      role: metrics.role,
+      avatarUrl:
+        metrics.avatarUrl ||
+        metrics.avatar_url ||
+        (nickSlug ? `/players/${nickSlug}.png` : undefined),
+      kills: selectedPlayer.kills ?? 0,
+      deaths: selectedPlayer.deaths ?? 0,
+    };
+  }, [selectedPlayer, primaryTeam]);
+
+  const playerLookup = useMemo(() => {
+    const lookup: Record<string, string> = {};
+    for (const p of players) {
+      if (p.steamId) lookup[p.steamId] = p.nickname;
+    }
+    return lookup;
+  }, [players]);
+
   const renderPlayerRow = (p: PlayerStatRow, isWinnerTeam: boolean) => {
     const kills = p.kills ?? 0;
     const deaths = p.deaths ?? 0;
@@ -298,7 +354,7 @@ export function PlayerStatsTable({
     const crossPlacement = p.crosshairPlacement ?? aim.crosshairPlacement ?? null;
     const headAcc = p.headAccuracy ?? aim.headAccuracy ?? null;
     const hsKill = p.hsKillPct ?? aim.hsKillPct ?? null;
-    const firstBullet = p.firstBullet ?? aim.firstBullet ?? (p.fsp !== undefined ? p.fsp : null);
+    const firstBullet = p.firstBullet ?? aim.firstBullet ?? null;
     const sprayAcc = p.sprayAccuracy ?? aim.sprayAccuracy ?? null;
     const counterStrafing = p.counterStrafing ?? aim.counterStrafing ?? null;
     const accAll = p.accuracyAll ?? aim.accuracyAll ?? null;
@@ -347,7 +403,9 @@ export function PlayerStatsTable({
       <tr
         key={p.steamId}
         data-testid={`player-row-${p.steamId}`}
-        className="h-12 border-b border-[#1F2629]/60 hover:bg-[#151C20] transition-colors text-xs font-mono select-none"
+        onClick={() => handleSelectPlayer(p.steamId)}
+        title={`Clique para inspecionar telemetria tática de ${p.nickname}`}
+        className="h-12 border-b border-[#1F2629]/60 hover:bg-surface-elevated/40 cursor-pointer transition-colors text-xs font-mono select-none group"
       >
         {/* Indicador lateral e Câmera */}
         <td className="w-10 px-2 text-center">
@@ -361,6 +419,9 @@ export function PlayerStatsTable({
               type="button"
               title="Ver POV do jogador"
               className="text-[#6B7A82] hover:text-[#00FFA3] transition-colors p-1"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
@@ -372,11 +433,13 @@ export function PlayerStatsTable({
         {/* Jogador: Avatar + Nickname */}
         <td className="py-2 px-3 min-w-[180px]">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-full bg-[#1A2328] border border-[#232F36] flex items-center justify-center overflow-hidden text-[11px] font-bold text-white shrink-0">
+            <div className="w-7 h-7 rounded-full bg-[#1A2328] border border-[#232F36] flex items-center justify-center overflow-hidden text-[11px] font-bold text-white shrink-0 group-hover:border-[#00E5FF]/60 transition-colors">
               {p.nickname.slice(0, 2).toUpperCase()}
             </div>
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="font-bold text-white text-[13px] truncate">{p.nickname}</span>
+              <span className="font-bold text-white text-[13px] truncate group-hover:text-[#00E5FF] transition-colors">
+                {p.nickname}
+              </span>
               {isTopDamage && <span className="text-[11px] text-[#EAB308] font-bold">★</span>}
             </div>
           </div>
@@ -391,9 +454,6 @@ export function PlayerStatsTable({
           )}
           <span data-testid={`player-ttk-${p.steamId}`}>
             {rawTtk !== null && rawTtk !== undefined ? `${Math.round(rawTtk)} ms` : '—'}
-          </span>
-          <span data-testid={`player-fsp-${p.steamId}`}>
-            {p.fsp !== null && p.fsp !== undefined ? `${p.fsp.toFixed(1)}%` : '—'}
           </span>
         </td>
 
@@ -979,6 +1039,18 @@ export function PlayerStatsTable({
           )}
         </table>
       </div>
+
+      {/* Modal de Inspeção Tática do Jogador */}
+      {selectedSteamId && (
+        <PlayerMatchInspectModal
+          matchId={matchId || 'match-overview'}
+          steamId={selectedSteamId}
+          isOpen={true}
+          onClose={handleCloseModal}
+          playerInfo={selectedPlayerInfo}
+          playerLookup={playerLookup}
+        />
+      )}
     </div>
   );
 }

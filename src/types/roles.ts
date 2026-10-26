@@ -1,12 +1,18 @@
 export type RoleFilterType =
+  | 'ALL'
+  | 'CT ALLROUND'
+  | 'ANCHOR'
+  | 'ROTATION'
+  | 'T ALLROUND'
+  | 'LURKER'
+  | 'HALF LURKER'
   | 'All'
   | 'CT Allround'
   | 'Anchor'
   | 'Rotation'
   | 'T Allround'
-  | 'Lurk'
-  | 'Half Lurk'
-  | 'Pack';
+  | 'Lurker'
+  | 'Half Lurker';
 
 export interface RadarAxisPoint {
   axis: string;

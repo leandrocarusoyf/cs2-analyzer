@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"surface-container-highest": "#32353c", "surface-container": "#1d2026", "outline-variant": "#3b494c", primary: "#c3f5ff", "on-secondary-fixed-variant": "#004395", "inverse-primary": "#006875", "inverse-surface": "#e1e2eb", "on-primary": "#00363d", "inverse-on-surface": "#2e3037", "primary-fixed": "#9cf0ff", error: "#ffb4ab", "on-tertiary-container": "#953f00", "surface-dim": "#10131a", "on-secondary-container": "#e6ecff", background: "#10131a", "surface-container-high": "#272a31", "on-tertiary": "#552100", "on-secondary": "#002e6a", "on-tertiary-fixed-variant": "#783200", "surface-bright": "#363940", "primary-fixed-dim": "#00daf3", "tertiary-container": "#ffc4a6", "secondary-fixed-dim": "#adc6ff", "on-background": "#e1e2eb", "error-container": "#93000a", outline: "#849396", "on-secondary-fixed": "#001a42", "surface-tint": "#00daf3", "on-surface": "#e1e2eb", "tertiary-fixed": "#ffdbca", secondary: "#adc6ff", "on-primary-container": "#00626e", "on-primary-fixed": "#001f24", "on-error-container": "#ffdad6", "surface-container-lowest": "#0b0e14", "secondary-fixed": "#d8e2ff", "on-error": "#690005", "tertiary-fixed-dim": "#ffb690", "on-tertiary-fixed": "#341100", surface: "#10131a", "surface-variant": "#32353c", "surface-container-low": "#191c22", "secondary-container": "#0566d9", "on-primary-fixed-variant": "#004f58", "on-surface-variant": "#bac9cc", "primary-container": "#00e5ff", tertiary: "#ffe9df"}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}, spacing: {"space-xs": "0.25rem", "space-md": "0.75rem", "space-lg": "1.25rem", "space-sm": "0.5rem", "space-xl": "2rem", gutter: "0.75rem", margin: "1rem"}, fontFamily: {"card-header": ["Inter"], "body-sm": ["Inter"], "stat-display": ["JetBrains Mono"], "stat-mono-md": ["JetBrains Mono"], "screen-title": ["Inter"], "benchmark-label": ["JetBrains Mono"], "hud-timer": ["JetBrains Mono"], "display-xl": ["Inter"], "body-md": ["Inter"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["JetBrains Mono"]}, fontSize: {"card-header": ["13px", {lineHeight: "18px", letterSpacing: "0.02em", fontWeight: "600"}], "body-sm": ["12px", {lineHeight: "16px", fontWeight: "400"}], "stat-display": ["32px", {lineHeight: "36px", letterSpacing: "-0.03em", fontWeight: "700"}], "stat-mono-md": ["14px", {lineHeight: "18px", letterSpacing: "-0.01em", fontWeight: "600"}], "screen-title": ["18px", {lineHeight: "24px", letterSpacing: "0.05em", fontWeight: "700"}], "benchmark-label": ["11px", {lineHeight: "14px", fontWeight: "400"}], "hud-timer": ["18px", {lineHeight: "22px", fontWeight: "700"}], "display-xl": ["48px", {lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "700"}], "body-md": ["14px", {lineHeight: "20px", fontWeight: "400"}]}}}};</script></head><body class="bg-surface-container-lowest font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-[#0B0E14] border-r border-[#222735] z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-16 px-space-lg flex items-center gap-space-sm border-b border-[#222735]"><div class="w-7 h-7 rounded-lg bg-[#00E5FF] flex items-center justify-center shadow-[0_0_12px_rgba(0,229,255,0.35)]"><span class="material-symbols-outlined text-[#00363d] text-[18px]">radar</span></div><div class="flex flex-col"><span class="font-['Inter'] text-[14px] font-bold tracking-wider text-white uppercase">Analytics</span><span class="font-['JetBrains_Mono'] text-[10px] text-[#00E5FF] font-semibold tracking-widest">// CS2 TELEMETRY</span></div></div><div class="px-space-md py-space-sm"><span class="font-['Inter'] text-[10px] text-[#94A3B8] uppercase px-space-sm tracking-widest font-semibold">Operations</span></div><nav class="flex flex-col gap-1 px-space-sm"><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-slate-400 hover:bg-[#151922] hover:text-white transition-all text-sm font-medium" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span class="font-['Inter']">Dashboard</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-slate-400 hover:bg-[#151922] hover:text-white transition-all text-sm font-medium" data-path="match-history" href="#"><span class="material-symbols-outlined text-[18px]">history</span><span class="font-['Inter']">Match History</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-slate-400 hover:bg-[#151922] hover:text-white transition-all text-sm font-medium" data-path="tactical-map" href="#"><span class="material-symbols-outlined text-[18px]">layers</span><span class="font-['Inter']">2D Tactical Map</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg bg-[#00E5FF] text-[#0B0E14] font-semibold shadow-[0_0_10px_rgba(0,229,255,0.25)] text-sm" data-path="player-stats" href="#"><span class="material-symbols-outlined text-[18px]">query_stats</span><span class="font-['Inter']">Player Stats</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-slate-400 hover:bg-[#151922] hover:text-white transition-all text-sm font-medium" data-path="grenade-lineups" href="#"><span class="material-symbols-outlined text-[18px]">track_changes</span><span class="font-['Inter']">Grenade Lineups</span></a></nav></div><div class="p-3 m-3 rounded-[4px] bg-[#151922] border border-[#222735] flex flex-col gap-2"><div class="flex items-center justify-between"><span class="font-['Inter'] text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Status</span><span class="inline-flex items-center gap-1.5 font-['JetBrains_Mono'] text-[11px] text-emerald-400 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#10B981]"></span>ENGINE V2.4 // ONLINE</span></div><div class="flex items-center justify-between pt-1 border-t border-[#222735]"><span class="font-['Inter'] text-[11px] text-slate-400">LATENCY</span><span class="font-['JetBrains_Mono'] text-[12px] font-semibold text-[#00E5FF]">14ms</span></div><div class="flex items-center justify-between"><span class="font-['Inter'] text-[10px] text-slate-400 uppercase tracking-wider font-semibold">PARSER</span><span class="px-1.5 py-0.5 rounded-[3px] bg-[#1C202C] border border-[#222735] text-white font-['JetBrains_Mono'] text-[10px] tracking-wide font-semibold">128-TICK</span></div></div></aside><div class="pl-64 flex flex-col min-h-screen"><header class="fixed top-0 left-64 right-0 z-40 bg-[#0B0E14]/95 backdrop-blur-md border-b border-[#222735]"><div class="h-14 px-space-lg flex items-center justify-between gap-space-md border-b border-[#222735]/40"><div class="flex items-center gap-space-md flex-1"><div class="flex items-center gap-space-sm px-3 py-1 bg-[#151922] border border-[#222735] rounded-[4px] cursor-pointer hover:bg-[#1c222e] transition-colors"><div class="w-5 h-5 rounded-full bg-[#1C202C] flex items-center justify-center font-['JetBrains_Mono'] text-[10px] text-[#00E5FF] font-bold">TS</div><span class="font-['Inter'] text-[13px] font-semibold text-white">donk // Team Spirit</span><span class="material-symbols-outlined text-slate-400 text-[16px]">arrow_drop_down</span></div><button class="flex items-center gap-1.5 px-3 py-1 bg-[#00E5FF]/10 hover:bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/30 rounded-[4px] font-['Inter'] text-[13px] font-semibold transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">add</span><span>Compare Player</span></button><div class="h-4 w-px bg-[#222735]"></div><div class="flex items-center gap-2"><div class="flex items-center gap-1 px-2.5 py-1 bg-[#151922] border border-[#222735] rounded-[4px] cursor-pointer hover:bg-[#1c222e] text-slate-300 font-['Inter'] text-xs"><span class="text-slate-400">Scope:</span><span class="text-white font-medium">Last 3 Months</span><span class="material-symbols-outlined text-slate-400 text-[14px]">expand_more</span></div><div class="flex items-center gap-1 px-2.5 py-1 bg-[#151922] border border-[#222735] rounded-[4px] cursor-pointer hover:bg-[#1c222e] text-slate-300 font-['Inter'] text-xs"><span class="text-slate-400">Pool:</span><span class="text-white font-medium">All Maps</span><span class="material-symbols-outlined text-slate-400 text-[14px]">expand_more</span></div><div class="flex items-center gap-1 px-2.5 py-1 bg-[#151922] border border-[#222735] rounded-[4px] cursor-pointer hover:bg-[#1c222e] text-slate-300 font-['Inter'] text-xs"><span class="text-slate-400">Comp:</span><span class="text-white font-medium">Tier 1 Pros</span><span class="material-symbols-outlined text-slate-400 text-[14px]">expand_more</span></div></div></div><div class="flex items-center gap-space-sm"><button class="flex items-center gap-1.5 px-3 py-1 rounded-[4px] bg-[#151922] hover:bg-[#1c222e] border border-[#222735] text-slate-200 text-xs font-['Inter'] transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">file_download</span><span>Export</span></button><button class="w-8 h-8 rounded-[4px] flex items-center justify-center text-slate-400 hover:text-white hover:bg-[#151922] border border-[#222735] transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">notifications</span></button><div class="w-8 h-8 rounded-full bg-[#00E5FF] flex items-center justify-center"><span class="material-symbols-outlined text-[#00363d] text-[18px]">person</span></div></div></div><nav class="h-10 px-space-lg flex items-center gap-6 bg-[#0B0E14]"><a class="h-full inline-flex items-center font-['Inter'] text-[13px] font-semibold text-[#00E5FF] border-b-2 border-[#00E5FF]" data-path="intro" href="#">Intro</a><a class="h-full inline-flex items-center font-['Inter'] text-[13px] font-normal text-slate-400 hover:text-white transition-colors" data-path="roles-and-positioning" href="#">Roles &amp; Positioning</a><a class="h-full inline-flex items-center font-['Inter'] text-[13px] font-normal text-slate-400 hover:text-white transition-colors" data-path="weapons-and-duels" href="#">Weapons &amp; Duels</a><a class="h-full inline-flex items-center font-['Inter'] text-[13px] font-normal text-slate-400 hover:text-white transition-colors" data-path="buy-types" href="#">Buy Types</a><a class="h-full inline-flex items-center font-['Inter'] text-[13px] font-normal text-slate-400 hover:text-white transition-colors" data-path="maps" href="#">Maps</a></nav></header><main class="relative pt-24 w-full px-space-lg bg-surface-container-lowest min-h-screen"><div class="flex flex-col w-full pb-8">
+<!-- Sub-header section -->
+<div class="flex items-center justify-between py-3 mb-4">
+<div class="flex items-center gap-2">
+<span class="font-screen-title text-screen-title text-on-surface">/ Map performance</span>
+<span class="font-benchmark-label text-benchmark-label text-outline uppercase tracking-wider">// POOL SAMPLES: 34</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[15px] text-primary-container">swap_vert</span>
+<span class="font-benchmark-label text-benchmark-label text-outline tracking-wider uppercase">SORTED BY HLTV 2.0 RATING</span>
+</div>
+</div>
+<!-- Main 4-Column Maps Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+<!-- Card 1: ANUBIS -->
+<div class="bg-surface-container-low rounded-[4px] overflow-hidden flex flex-col group hover:bg-surface-container transition-colors shadow-sm">
+<div class="relative w-full h-36 overflow-hidden">
+<img alt="CS2 de_anubis map overview" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMwbywKEwawOfiQDo-3ogVHfXJstdWTYFIQSu5Zb1BS9x0uwTizzAg1UGz5hKnGYuFz0ukkEOFS3UGrEbTWeS5qKE-PoGkn0gpAng1Bz00p7WvDzICcOYSVSuiyT4_pd7ARZDzHbPqE5GeTZEWQ2DYdWGwcWakCqjNgy5AqvI6OpuGRWJHHEd4XvX_4evVdklIxuJEXELkrOF8P1H_DhZyvAaftO7TREYd4WYcbBoj2ssclAyVRRad_Q"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/60 to-transparent"></div>
+<div class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-[3px] bg-surface-container-lowest/80 backdrop-blur-sm">
+<span class="font-benchmark-label text-benchmark-label text-primary font-semibold tracking-wider">de_anubis</span>
+</div>
+</div>
+<div class="px-4 pb-4 -mt-6 relative flex flex-col flex-1">
+<div class="flex items-baseline justify-between mb-1">
+<span class="font-screen-title text-screen-title text-on-surface tracking-tight">Anubis</span>
+<div class="flex items-center text-primary-container">
+<span class="font-stat-display text-stat-display leading-none">1.46</span>
+<span class="text-xs ml-0.5 text-primary-container font-stat-mono-md leading-none">▲</span>
+</div>
+</div>
+<div class="font-benchmark-label text-benchmark-label text-outline mb-3">
+          9 MAPS PLAYED • 78% WIN RATE
+        </div>
+<!-- Glowing Spline Sparkline -->
+<div class="w-full h-12 my-1">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 200 48">
+<defs>
+<lineargradient id="anubis-grad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#00E5FF" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#00E5FF" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<path d="M 0 38 Q 30 40 55 24 T 110 20 T 155 10 T 200 8 L 200 48 L 0 48 Z" fill="url(#anubis-grad)"></path>
+<path d="M 0 38 Q 30 40 55 24 T 110 20 T 155 10 T 200 8" fill="none" stroke="#00E5FF" stroke-linecap="round" stroke-width="2"></path>
+<circle class="animate-pulse" cx="200" cy="8" fill="#00E5FF" r="3"></circle>
+</svg>
+</div>
+<!-- Side Breakdown Table -->
+<div class="mt-3 flex flex-col gap-1.5 pt-3">
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/60">
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">BOTH SIDES</span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">98.4</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-primary-container font-semibold">1.46</span></span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/40">
+<span class="inline-flex items-center gap-1.5 font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>CT SIDE
+            </span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">92.1</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-secondary font-semibold">1.41</span></span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/40">
+<span class="inline-flex items-center gap-1.5 font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span>T SIDE
+            </span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">104.7</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-tertiary-fixed-dim font-semibold">1.51</span></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: ANCIENT -->
+<div class="bg-surface-container-low rounded-[4px] overflow-hidden flex flex-col group hover:bg-surface-container transition-colors shadow-sm">
+<div class="relative w-full h-36 overflow-hidden">
+<img alt="CS2 de_ancient map overview" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8ZOC3gXwyVrEasndnZzABiVmnwjJXvSiUkDs-LZjAgIz2jPpGu4kMlUVzdrmYWo2BtINEvLx-ytSlm0p_rZprzkPHMibDqA0IzKp7u4MESLdnW_zxD-kA8mmwL0DZoIqRToEGymH1g8RBQysVyRUFnQ_jy3Xa0ZJ6eD5BR9VIhjklQnACFXl0VcuEl5WTKMTIN09CXeDbC3JD7Qi8dZYs61MXE7_2CZ0MG1vwdDcwLlBx-7rCFK-dyg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/60 to-transparent"></div>
+<div class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-[3px] bg-surface-container-lowest/80 backdrop-blur-sm">
+<span class="font-benchmark-label text-benchmark-label text-primary font-semibold tracking-wider">de_ancient</span>
+</div>
+</div>
+<div class="px-4 pb-4 -mt-6 relative flex flex-col flex-1">
+<div class="flex items-baseline justify-between mb-1">
+<span class="font-screen-title text-screen-title text-on-surface tracking-tight">Ancient</span>
+<div class="flex items-center text-primary-container">
+<span class="font-stat-display text-stat-display leading-none">1.44</span>
+<span class="text-xs ml-0.5 text-primary-container font-stat-mono-md leading-none">▲</span>
+</div>
+</div>
+<div class="font-benchmark-label text-benchmark-label text-outline mb-3">
+          8 MAPS PLAYED • 75% WIN RATE
+        </div>
+<!-- Glowing Spline Sparkline -->
+<div class="w-full h-12 my-1">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 200 48">
+<defs>
+<lineargradient id="ancient-grad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#00E5FF" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#00E5FF" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<path d="M 0 32 Q 40 18 70 28 T 130 16 T 170 22 T 200 12 L 200 48 L 0 48 Z" fill="url(#ancient-grad)"></path>
+<path d="M 0 32 Q 40 18 70 28 T 130 16 T 170 22 T 200 12" fill="none" stroke="#00E5FF" stroke-linecap="round" stroke-width="2"></path>
+<circle class="animate-pulse" cx="200" cy="12" fill="#00E5FF" r="3"></circle>
+</svg>
+</div>
+<!-- Side Breakdown Table -->
+<div class="mt-3 flex flex-col gap-1.5 pt-3">
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/60">
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">BOTH SIDES</span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">96.8</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-primary-container font-semibold">1.44</span></span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/40">
+<span class="inline-flex items-center gap-1.5 font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>CT SIDE
+            </span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">88.5</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-secondary font-semibold">1.35</span></span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/40">
+<span class="inline-flex items-center gap-1.5 font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span>T SIDE
+            </span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">105.1</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-tertiary-fixed-dim font-semibold">1.53</span></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3: CACHE -->
+<div class="bg-surface-container-low rounded-[4px] overflow-hidden flex flex-col group hover:bg-surface-container transition-colors shadow-sm">
+<div class="relative w-full h-36 overflow-hidden">
+<img alt="CS2 de_cache map overview" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrSmmMFpeAwUUA-KI99KMt_sCs1n3n61RDIFOFuunJOEd0-rwCgwiEdoPaJOpMg5bqGLfKpijcZ-H2iblzpch-40dx1SKox3iFgnBdWHfTj2Mapj7cRN6AVJQ9PIzMSbEBedQR0XKn5qeZz2TQ3u7PufTP5orpuYISgA3MzdBGPCYUAewcQopW3LfbzumjTjChxFsKwR8FgAxnDB6im_vol_QfXvnGtRTJd7Ca4wPn_L1vlpbpAyFzyA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/60 to-transparent"></div>
+<div class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-[3px] bg-surface-container-lowest/80 backdrop-blur-sm">
+<span class="font-benchmark-label text-benchmark-label text-primary font-semibold tracking-wider">de_cache</span>
+</div>
+</div>
+<div class="px-4 pb-4 -mt-6 relative flex flex-col flex-1">
+<div class="flex items-baseline justify-between mb-1">
+<span class="font-screen-title text-screen-title text-on-surface tracking-tight">Cache</span>
+<div class="flex items-center text-primary-container">
+<span class="font-stat-display text-stat-display leading-none">1.37</span>
+<span class="text-xs ml-0.5 text-primary-container font-stat-mono-md leading-none">▲</span>
+</div>
+</div>
+<div class="font-benchmark-label text-benchmark-label text-outline mb-3">
+          6 MAPS PLAYED • 67% WIN RATE
+        </div>
+<!-- Glowing Spline Sparkline -->
+<div class="w-full h-12 my-1">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 200 48">
+<defs>
+<lineargradient id="cache-grad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#00E5FF" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#00E5FF" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<path d="M 0 35 Q 35 30 75 36 T 125 25 T 165 24 T 200 16 L 200 48 L 0 48 Z" fill="url(#cache-grad)"></path>
+<path d="M 0 35 Q 35 30 75 36 T 125 25 T 165 24 T 200 16" fill="none" stroke="#00E5FF" stroke-linecap="round" stroke-width="2"></path>
+<circle class="animate-pulse" cx="200" cy="16" fill="#00E5FF" r="3"></circle>
+</svg>
+</div>
+<!-- Side Breakdown Table -->
+<div class="mt-3 flex flex-col gap-1.5 pt-3">
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/60">
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">BOTH SIDES</span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">91.2</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-primary-container font-semibold">1.37</span></span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/40">
+<span class="inline-flex items-center gap-1.5 font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>CT SIDE
+            </span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">89.0</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-secondary font-semibold">1.32</span></span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/40">
+<span class="inline-flex items-center gap-1.5 font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span>T SIDE
+            </span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">93.4</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-tertiary-fixed-dim font-semibold">1.42</span></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4: MIRAGE -->
+<div class="bg-surface-container-low rounded-[4px] overflow-hidden flex flex-col group hover:bg-surface-container transition-colors shadow-sm">
+<div class="relative w-full h-36 overflow-hidden">
+<img alt="CS2 de_mirage map overview" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcxHl2gOtVBNHV3fOOtiWMGGaSskRTS3yVWshnT50vTOFulOSXaTTjJf6eDGV4kx3G2njzicBzGOWxHpZtehOU8Y9hwZjL2fP7dKVdI9xG1B6qSpVgUPNDMKJyHxBpUvPYwu12U-SfeFFfGRrNHaUZB0c0ccyrY_nTAxXl7X_VqGWa2ADdKhFjAbWBKUTKlvcsG8x4JlePQlQCl6rGwLJPkZqDhs8AclV4-8xjHH484SkMwC8dfiInPg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/60 to-transparent"></div>
+<div class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-[3px] bg-surface-container-lowest/80 backdrop-blur-sm">
+<span class="font-benchmark-label text-benchmark-label text-primary font-semibold tracking-wider">de_mirage</span>
+</div>
+</div>
+<div class="px-4 pb-4 -mt-6 relative flex flex-col flex-1">
+<div class="flex items-baseline justify-between mb-1">
+<span class="font-screen-title text-screen-title text-on-surface tracking-tight">Mirage</span>
+<div class="flex items-center text-primary-container">
+<span class="font-stat-display text-stat-display leading-none">1.27</span>
+<span class="text-xs ml-0.5 text-primary-container font-stat-mono-md leading-none">▲</span>
+</div>
+</div>
+<div class="font-benchmark-label text-benchmark-label text-outline mb-3">
+          11 MAPS PLAYED • 64% WIN RATE
+        </div>
+<!-- Glowing Spline Sparkline -->
+<div class="w-full h-12 my-1">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 200 48">
+<defs>
+<lineargradient id="mirage-grad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#00E5FF" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#00E5FF" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<path d="M 0 38 Q 40 40 70 30 T 120 34 T 160 26 T 200 22 L 200 48 L 0 48 Z" fill="url(#mirage-grad)"></path>
+<path d="M 0 38 Q 40 40 70 30 T 120 34 T 160 26 T 200 22" fill="none" stroke="#00E5FF" stroke-linecap="round" stroke-width="2"></path>
+<circle class="animate-pulse" cx="200" cy="22" fill="#00E5FF" r="3"></circle>
+</svg>
+</div>
+<!-- Side Breakdown Table -->
+<div class="mt-3 flex flex-col gap-1.5 pt-3">
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/60">
+<span class="font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">BOTH SIDES</span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">89.6</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-primary-container font-semibold">1.27</span></span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/40">
+<span class="inline-flex items-center gap-1.5 font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>CT SIDE
+            </span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">85.3</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-secondary font-semibold">1.21</span></span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm px-2.5 py-1.5 rounded-[3px] bg-surface-container-lowest/40">
+<span class="inline-flex items-center gap-1.5 font-benchmark-label text-benchmark-label text-on-surface-variant font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span>T SIDE
+            </span>
+<div class="flex items-center gap-3">
+<span class="text-outline font-stat-mono-md text-benchmark-label">ADR <span class="text-on-surface font-semibold">93.8</span></span>
+<span class="text-outline font-stat-mono-md text-benchmark-label">HLTV <span class="text-tertiary-fixed-dim font-semibold">1.33</span></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Summary KPI Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+<!-- Card 1 -->
+<div class="p-4 rounded-[4px] bg-surface-container-low flex items-center justify-between shadow-sm relative overflow-hidden group hover:bg-surface-container transition-colors">
+<div class="flex flex-col">
+<span class="font-benchmark-label text-benchmark-label text-outline uppercase tracking-wider font-semibold mb-1">
+          ENTRY KILL SUCCESS (T-SIDE)
+        </span>
+<div class="flex items-baseline gap-2">
+<span class="font-stat-display text-stat-display text-primary-container leading-none font-bold">64.8%</span>
+<span class="font-stat-mono-md text-benchmark-label text-primary font-semibold">+12.4% vs Pro Avg</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1.5">First duel win rate opening bombsite executes</span>
+</div>
+<div class="w-12 h-12 rounded-[4px] bg-surface-container-lowest flex items-center justify-center text-primary-container opacity-80 group-hover:opacity-100 transition-opacity">
+<svg class="w-6 h-6 stroke-current" fill="none" stroke-width="1.75" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="9" stroke="currentColor"></circle>
+<line stroke="currentColor" x1="12" x2="12" y1="3" y2="7"></line>
+<line stroke="currentColor" x1="12" x2="12" y1="17" y2="21"></line>
+<line stroke="currentColor" x1="3" x2="7" y1="12" y2="12"></line>
+<line stroke="currentColor" x1="17" x2="21" y1="12" y2="12"></line>
+<circle cx="12" cy="12" fill="currentColor" r="2"></circle>
+</svg>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="p-4 rounded-[4px] bg-surface-container-low flex items-center justify-between shadow-sm relative overflow-hidden group hover:bg-surface-container transition-colors">
+<div class="flex flex-col">
+<span class="font-benchmark-label text-benchmark-label text-outline uppercase tracking-wider font-semibold mb-1">
+          MULTI-KILL ROUNDS (2K+)
+        </span>
+<div class="flex items-baseline gap-2">
+<span class="font-stat-display text-stat-display text-primary-container leading-none font-bold">26.1%</span>
+<span class="font-stat-mono-md text-benchmark-label text-on-surface font-semibold">354 Total Rounds</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1.5">Rounds with 2 or more frags recorded</span>
+</div>
+<div class="w-12 h-12 rounded-[4px] bg-surface-container-lowest flex items-center justify-center text-primary-container opacity-80 group-hover:opacity-100 transition-opacity">
+<svg class="w-6 h-6 stroke-current" fill="none" stroke-width="1.75" viewbox="0 0 24 24">
+<path d="M12 4C7.58172 4 4 7.58172 4 12C4 14.8097 5.44784 17.2809 7.66667 18.6667V20C7.66667 20.5523 8.11438 21 8.66667 21H15.3333C15.8856 21 16.3333 20.5523 16.3333 20V18.6667C18.5522 17.2809 20 14.8097 20 12C20 7.58172 16.4183 4 12 4Z" stroke="currentColor"></path>
+<circle cx="9" cy="12" fill="currentColor" r="1.5"></circle>
+<circle cx="15" cy="12" fill="currentColor" r="1.5"></circle>
+<path d="M10 17H14" stroke="currentColor" stroke-linecap="round"></path>
+</svg>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="p-4 rounded-[4px] bg-surface-container-low flex items-center justify-between shadow-sm relative overflow-hidden group hover:bg-surface-container transition-colors">
+<div class="flex flex-col">
+<span class="font-benchmark-label text-benchmark-label text-outline uppercase tracking-wider font-semibold mb-1">
+          HLTV 2.0 IMPACT RATING
+        </span>
+<div class="flex items-baseline gap-2">
+<span class="font-stat-display text-stat-display text-primary-container leading-none font-bold">1.62</span>
+<span class="font-stat-mono-md text-benchmark-label text-primary font-semibold">Rank #1 Global (Tier 1 LAN)</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1.5">Weighted metric based on round swing impact</span>
+</div>
+<div class="w-12 h-12 rounded-[4px] bg-surface-container-lowest flex items-center justify-center text-primary-container opacity-80 group-hover:opacity-100 transition-opacity">
+<svg class="w-6 h-6 stroke-current" fill="none" stroke-width="1.75" viewbox="0 0 24 24">
+<polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></polyline>
+<polyline points="16 7 22 7 22 13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></polyline>
+</svg>
+</div>
+</div>
+</div>
+<!-- System Integrity Footer -->
+<div class="pt-3 flex items-center justify-between text-outline font-stat-mono-md text-benchmark-label">
+<div class="flex items-center gap-3">
+<span>DATA INTEGRITY: <span class="text-primary font-semibold">100% VALIDATED</span></span>
+<span>•</span>
+<span>PARSER ENGINE: <span class="text-on-surface font-semibold">v4.18</span></span>
+<span>•</span>
+<span>UPDATED: <span class="text-on-surface font-semibold">TODAY, 14:32 UTC</span></span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-benchmark-label text-benchmark-label">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span>STREAM SYNCHRONIZED</span>
+</div>
+</div>
+</div>
+<script>
+  // Micro-interaction: Active tab sync with shell nav if present
+  document.addEventListener("DOMContentLoaded", () => {
+    const tabs = document.querySelectorAll('header nav a[data-path]');
+    tabs.forEach(tab => {
+      if (tab.getAttribute('data-path') === 'maps') {
+        tab.className = "h-full inline-flex items-center font-['Inter'] text-[13px] font-semibold text-[#00E5FF] border-b-2 border-[#00E5FF]";
+      } else if (tab.getAttribute('data-path') === 'intro') {
+        tab.className = "h-full inline-flex items-center font-['Inter'] text-[13px] font-normal text-slate-400 hover:text-white transition-colors";
+      }
+    });
+  });
+</script></main></div>
+</body></html>

@@ -99,3 +99,34 @@ export function normalizeRadarMetric(
   return roundToTwoDecimals(clamped);
 }
 
+export interface RadarPolygonResult {
+  pointsString: string;
+  vertices: Array<{ cx: number; cy: number }>;
+}
+
+/**
+ * Mapeia N eixos (ex: 12 ou 6) matematicamente em função das notas do jogador (0 a 100% do raio).
+ * Começa no topo (12 o'clock, y negativo) e gira no sentido horário.
+ */
+export function computeRadarPolygonPoints(
+  scores: number[],
+  maxRadius: number = 160,
+): RadarPolygonResult {
+  if (!scores || scores.length === 0) {
+    return { pointsString: '', vertices: [] };
+  }
+  const n = scores.length;
+  const vertices = scores.map((score, i) => {
+    const angle = (i * 2 * Math.PI) / n;
+    const clampedScore = Math.max(5, Math.min(100, Number.isFinite(score) ? score : 0));
+    const r = (clampedScore / 100) * maxRadius;
+    const cx = Number((r * Math.sin(angle)).toFixed(1));
+    const cy = Number((-r * Math.cos(angle)).toFixed(1));
+    return { cx, cy };
+  });
+
+  const pointsString = vertices.map((v) => `${v.cx},${v.cy}`).join(' ');
+  return { pointsString, vertices };
+}
+
+

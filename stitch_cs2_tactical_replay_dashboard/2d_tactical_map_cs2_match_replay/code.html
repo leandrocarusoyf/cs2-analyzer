@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en" style=""><head>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/></head><body class="bg-surface-container-lowest font-body-md text-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><svg aria-hidden="true" class="inline-defs-container" style="position:absolute;width:0;height:0;overflow:hidden"></svg><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"on-error-container": "#ffdad6", "on-background": "#e1e2eb", "on-primary-fixed": "#001f24", "primary-fixed": "#9cf0ff", "on-tertiary-fixed-variant": "#783200", "on-secondary-fixed": "#001a42", "secondary-fixed": "#d8e2ff", surface: "#10131a", error: "#ffb4ab", "tertiary-fixed-dim": "#ffb690", "primary-fixed-dim": "#00daf3", "on-secondary-container": "#e6ecff", "inverse-primary": "#006875", "on-tertiary": "#552100", "on-secondary-fixed-variant": "#004395", secondary: "#adc6ff", "on-tertiary-container": "#953f00", "on-primary-fixed-variant": "#004f58", tertiary: "#ffe9df", "surface-container-low": "#191c22", "surface-variant": "#32353c", "surface-container-lowest": "#0b0e14", "surface-container-highest": "#32353c", "secondary-container": "#0566d9", "surface-dim": "#10131a", "error-container": "#93000a", "inverse-surface": "#e1e2eb", outline: "#849396", "surface-container-high": "#272a31", "primary-container": "#00e5ff", "surface-tint": "#00daf3", "on-surface": "#e1e2eb", "on-primary": "#00363d", "on-primary-container": "#00626e", background: "#10131a", "on-surface-variant": "#bac9cc", "on-secondary": "#002e6a", "surface-bright": "#363940", primary: "#c3f5ff", "secondary-fixed-dim": "#adc6ff", "tertiary-fixed": "#ffdbca", "outline-variant": "#3b494c", "on-tertiary-fixed": "#341100", "inverse-on-surface": "#2e3037", "surface-container": "#1d2026", "on-error": "#690005", "tertiary-container": "#ffc4a6"}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}, spacing: {"space-xs": "0.25rem", "space-sm": "0.5rem", "space-lg": "1.25rem", gutter: "0.75rem", margin: "1rem", "space-md": "0.75rem", "space-xl": "2rem"}, fontFamily: {"headline-lg-mobile": ["Space Grotesk"], "hud-timer": ["JetBrains Mono"], "headline-md": ["Space Grotesk"], "body-lg": ["Inter"], "body-sm": ["Inter"], "headline-sm": ["Space Grotesk"], "display-xl": ["Inter"], "body-md": ["Inter"], "label-caps": ["Space Grotesk"], "headline-lg": ["Space Grotesk"], "stat-display": ["JetBrains Mono"], "stat-mono-md": ["JetBrains Mono"], "card-header": ["Inter"], "screen-title": ["Inter"], "benchmark-label": ["JetBrains Mono"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["JetBrains Mono"]}, fontSize: {"headline-lg-mobile": ["24px", {lineHeight: "32px", fontWeight: "600"}], "hud-timer": ["18px", {lineHeight: "22px", fontWeight: "700"}], "headline-md": ["20px", {lineHeight: "28px", fontWeight: "600"}], "body-lg": ["16px", {lineHeight: "24px", fontWeight: "400"}], "body-sm": ["12px", {lineHeight: "16px", fontWeight: "400"}], "headline-sm": ["16px", {lineHeight: "24px", fontWeight: "600"}], "display-xl": ["48px", {lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "700"}], "body-md": ["14px", {lineHeight: "20px", fontWeight: "400"}], "label-caps": ["11px", {lineHeight: "14px", letterSpacing: "0.08em", fontWeight: "700"}], "headline-lg": ["32px", {lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "600"}], "stat-display": ["32px", {lineHeight: "36px", letterSpacing: "-0.03em", fontWeight: "700"}], "stat-mono-md": ["14px", {lineHeight: "18px", letterSpacing: "-0.01em", fontWeight: "600"}], "card-header": ["13px", {lineHeight: "18px", letterSpacing: "0.02em", fontWeight: "600"}], "screen-title": ["18px", {lineHeight: "24px", letterSpacing: "0.05em", fontWeight: "700"}], "benchmark-label": ["11px", {lineHeight: "14px", fontWeight: "400"}]}}}};</script><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low border-r border-outline-variant/30 z-50 flex flex-col justify-between"><div class="flex flex-col"><div class="h-16 px-space-lg flex items-center gap-space-sm border-b border-outline-variant/30"><div class="w-7 h-7 rounded-lg bg-primary-container flex items-center justify-center shadow-[0_0_12px_rgba(0,229,255,0.35)]"><span class="material-symbols-outlined text-on-primary-container text-[18px]">radar</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm tracking-wider text-on-surface uppercase">Analytics</span><span class="font-label-caps text-label-caps text-primary-container tracking-widest">// CS2 TELEMETRY</span></div></div><div class="px-space-md py-space-sm"><span class="font-label-caps text-label-caps text-outline uppercase px-space-sm tracking-widest">Operations</span></div><nav class="flex flex-col gap-1 px-space-sm" data-active-classes="bg-primary-container text-on-primary-container font-headline-sm rounded-lg shadow-[0_0_10px_rgba(0,229,255,0.25)]"><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[18px]">dashboard</span><span class="font-headline-sm text-headline-sm">Dashboard</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="match-history" href="#"><span class="material-symbols-outlined text-[18px]">history</span><span class="font-headline-sm text-headline-sm">Match History</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="tactical-map" href="#"><span class="material-symbols-outlined text-[18px]">layers</span><span class="font-headline-sm text-headline-sm">2D Tactical Map</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="player-stats" href="#"><span class="material-symbols-outlined text-[18px]">query_stats</span><span class="font-headline-sm text-headline-sm">Player Stats</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="grenade-lineups" href="#"><span class="material-symbols-outlined text-[18px]">track_changes</span><span class="font-headline-sm text-headline-sm">Grenade Lineups</span></a></nav></div><div class="p-space-md m-space-sm rounded-lg bg-surface-container border border-outline-variant/40 flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-label-caps text-label-caps text-outline uppercase">Status</span><span class="inline-flex items-center gap-1.5 font-label-caps text-label-caps text-secondary"><span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>ENGINE V2.4 // ONLINE</span></div><div class="flex items-center justify-between pt-1 border-t border-outline-variant/20"><span class="font-body-sm text-body-sm text-on-surface-variant">LATENCY</span><span class="font-stat-mono-md text-stat-mono-md text-primary">14ms</span></div><div class="flex items-center justify-between"><span class="font-label-caps text-label-caps text-outline uppercase">PARSER</span><span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface font-stat-mono-md text-[11px] tracking-wide">128-TICK</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-low/95 backdrop-blur-md border-b border-outline-variant/30 z-40 px-space-lg flex items-center justify-between"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><!-- NAVI Team --><div class="flex items-center gap-2"><div class="w-5 h-5 rounded bg-[#FFEE00]/10 border border-[#FFEE00]/30 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5 fill-[#FFEE00]" viewbox="0 0 24 24"><path d="M4 4h3.2l7.6 11.2V4H18v16h-3.2L7.2 8.8V20H4V4z"></path></svg></div><span class="text-[14px] font-bold text-[#FFEE00] tracking-wide font-headline-sm">NAVI</span><span class="font-stat-mono-md text-[13px] font-bold text-[#FFEE00] px-2.5 py-1 rounded bg-[#1E1D13] border border-[#FFEE00]/35 leading-none">13</span></div><!-- Muted Colon Divider --><span class="font-stat-mono-md text-sm text-[#64748B] px-1 select-none">:</span><!-- FaZe Team --><div class="flex items-center gap-2"><span class="font-stat-mono-md text-[13px] font-bold text-[#E41C24] px-2.5 py-1 rounded bg-[#221315] border border-[#E41C24]/35 leading-none">11</span><span class="text-[14px] font-bold text-[#E41C24] tracking-wide font-headline-sm">FAZE</span><div class="w-5 h-5 rounded bg-[#E41C24]/10 border border-[#E41C24]/30 flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5 fill-[#E41C24]" viewbox="0 0 24 24"><path d="M4 4h16v3.2H8v3.6h9v3.2H8V20H4V4z"></path></svg></div></div></div><div class="h-6 w-px bg-outline-variant/40 hidden md:block"></div><div class="hidden lg:flex flex-col"><div class="flex items-center gap-2"><span class="font-headline-sm text-headline-sm text-primary-container tracking-wider">DE_MIRAGE</span><span class="font-label-caps text-label-caps text-outline">•</span><span class="font-label-caps text-label-caps text-on-surface-variant">OCT 24, 2026</span></div><span class="font-body-sm text-body-sm text-on-surface-variant">ESL PRO LEAGUE S24 GRAND FINALS</span></div><div class="hidden xl:flex items-center gap-1.5"><span class="px-2 py-0.5 rounded bg-surface-container-high border border-outline-variant/40 font-label-caps text-label-caps text-on-surface-variant">POST-MATCH ANALYTICS</span></div></div><div class="flex items-center gap-space-sm"><button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant/40 text-on-surface text-body-sm font-body-sm transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">file_download</span><span class="hidden sm:inline">Export Replay</span></button><button class="flex items-center justify-center w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high border border-outline-variant/40 text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">share</span></button><div class="h-6 w-px bg-outline-variant/40"></div><div class="flex items-center gap-2 pl-1"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden 2xl:flex flex-col text-left"><span class="font-headline-sm text-headline-sm text-on-surface leading-none">Analyst Desk</span><span class="font-body-sm text-body-sm text-secondary leading-tight">Tier-1 Verified</span></div></div></div></header><main class="w-full pt-16 bg-surface-container-lowest min-h-screen"><div class="flex flex-col w-full">
+<div class="p-space-md grid grid-cols-12 gap-gutter">
+<!-- LEFT MAIN COLUMN: Tactical Map Viewport, Playback Scrubber, Analytics Bento -->
+<div class="col-span-12 xl:col-span-9 flex flex-col gap-gutter min-w-0">
+<!-- 2D MINIMAP CARD VIEWPORT -->
+<div class="relative bg-surface-container rounded-lg overflow-hidden flex flex-col shadow-xl">
+<!-- Minimap HUD Top Bar Overlay -->
+<div class="absolute top-0 left-0 right-0 z-20 px-4 py-2 bg-[#151922] border-b border-[#222735] backdrop-blur-md flex items-center justify-between pointer-events-auto"><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#00E5FF] shadow-[0_0_6px_#00E5FF]"></span><span class="font-['Inter'] text-[11px] font-normal text-[#94A3B8] uppercase tracking-wider">RADAR VIEW // FULL MAP</span></div><div class="flex items-center gap-1.5"><button class="h-[26px] px-2.5 rounded bg-[#1A2230] border border-[#00E5FF]/30 text-[#E2E8F0] font-['Inter'] text-[11px] flex items-center gap-1.5 shadow-sm transition-colors" id="toggleUtility" type="button"><span class="w-1.5 h-1.5 rounded-full bg-[#00E5FF] shadow-[0_0_5px_#00E5FF]"></span><span class="">Utility</span></button><button class="h-[26px] px-2.5 rounded bg-[#1A2230] border border-[#00E5FF]/30 text-[#E2E8F0] font-['Inter'] text-[11px] flex items-center gap-1.5 shadow-sm transition-colors" id="toggleCones" type="button"><span class="w-1.5 h-1.5 rounded-full bg-[#00E5FF] shadow-[0_0_5px_#00E5FF]"></span><span class="">Sightlines</span></button><button class="h-[26px] px-2.5 rounded bg-[#151922] border border-outline-variant/30 text-[#64748B] hover:text-[#94A3B8] font-['Inter'] text-[11px] flex items-center gap-1.5 transition-colors" id="toggleKills" type="button"><span class="w-1.5 h-1.5 rounded-full bg-[#64748B]"></span><span class="">Tracers</span></button></div></div>
+<!-- 2D Vector Tactical Map Stage -->
+<div class="relative w-full aspect-[16/9] bg-surface-container-lowest overflow-hidden select-none">
+<!-- Background Grid Texture -->
+<div class="absolute inset-0 opacity-15 bg-[radial-gradient(#00daf3_1px,transparent_1px)] [background-size:24px_24px]"></div>
+<!-- Vector Blueprint of de_mirage -->
+<svg class="w-full h-full" fill="none" viewbox="0 0 1000 580" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<!-- Smoke Gradient -->
+<radialgradient cx="50%" cy="50%" id="smokeGradient" r="50%">
+<stop offset="0%" stop-color="#bac9cc" stop-opacity="0.85"></stop>
+<stop offset="70%" stop-color="#849396" stop-opacity="0.4"></stop>
+<stop offset="100%" stop-color="#849396" stop-opacity="0"></stop>
+</radialgradient>
+<!-- Molotov / Incendiary Gradient -->
+<radialgradient cx="50%" cy="50%" id="molyGradient" r="50%">
+<stop offset="0%" stop-color="#ffb690" stop-opacity="0.9"></stop>
+<stop offset="50%" stop-color="#953f00" stop-opacity="0.55"></stop>
+<stop offset="100%" stop-color="#953f00" stop-opacity="0"></stop>
+</radialgradient>
+<!-- Vision Cone CT -->
+<lineargradient id="ctVision" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#adc6ff" stop-opacity="0.35"></stop>
+<stop offset="100%" stop-color="#adc6ff" stop-opacity="0.02"></stop>
+</lineargradient>
+<!-- Vision Cone T -->
+<lineargradient id="tVision" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#ffb690" stop-opacity="0.35"></stop>
+<stop offset="100%" stop-color="#ffb690" stop-opacity="0.02"></stop>
+</lineargradient>
+</defs>
+<!-- Map Structural Geometry (Mirage Blueprint Layout) -->
+<!-- Outer Boundary / Out of Bounds -->
+<rect fill="#10131a" height="520" opacity="0.6" rx="8" width="940" x="30" y="30"></rect>
+<!-- T Spawn & T Roofs -->
+<path d="M 60 210 L 160 210 L 160 380 L 60 380 Z" fill="#191c22"></path>
+<text fill="#3b494c" font-family="JetBrains Mono" font-size="11" font-weight="700" letter-spacing="2" text-anchor="middle" x="110" y="295">T SPAWN</text>
+<!-- Palace Alley & Palace Interior -->
+<path d="M 160 390 L 340 390 L 370 470 L 260 470 L 260 520 L 160 520 Z" fill="#191c22"></path>
+<path d="M 370 400 L 460 400 L 490 490 L 370 490 Z" fill="#1d2026"></path>
+<text fill="#3b494c" font-family="JetBrains Mono" font-size="10" font-weight="600" text-anchor="middle" x="420" y="450">PALACE</text>
+<!-- A Ramp & Tetris Area -->
+<path d="M 340 360 L 460 360 L 460 390 L 340 390 Z" fill="#191c22"></path>
+<text fill="#3b494c" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="390" y="380">A RAMP</text>
+<rect fill="#272a31" height="22" width="22" x="470" y="355"></rect>
+<text fill="#849396" font-family="JetBrains Mono" font-size="8" text-anchor="middle" x="481" y="370">TETRIS</text>
+<!-- Bombsite A Ground -->
+<polygon fill="#191c22" points="500,320 640,320 640,440 500,440"></polygon>
+<rect fill="#272a31" height="30" stroke="#3b494c" stroke-width="0.5" width="40" x="545" y="365"></rect>
+<text fill="#00e5ff" font-family="Space Grotesk" font-size="14" font-weight="700" opacity="0.8" text-anchor="middle" x="565" y="384">A</text>
+<text fill="#3b494c" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="565" y="420">DEFAULT</text>
+<!-- CT Ticket & Triple Box -->
+<rect fill="#272a31" height="40" width="30" x="650" y="340"></rect>
+<text fill="#849396" font-family="JetBrains Mono" font-size="8" text-anchor="middle" x="665" y="364">CT</text>
+<rect fill="#272a31" height="22" width="22" x="590" y="335"></rect>
+<!-- Jungle & Connector -->
+<path d="M 500 240 L 590 240 L 590 320 L 530 320 L 500 280 Z" fill="#191c22"></path>
+<text fill="#3b494c" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="545" y="275">JUNGLE</text>
+<path d="M 440 240 L 500 240 L 500 320 L 450 320 Z" fill="#1d2026"></path>
+<text fill="#3b494c" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="470" y="280">CONN</text>
+<!-- Sniper's Nest / Window & Catwalk / Mid -->
+<rect fill="#272a31" height="50" width="60" x="440" y="180"></rect>
+<text fill="#00daf3" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="470" y="210">WINDOW</text>
+<path d="M 280 180 L 440 180 L 440 230 L 280 230 Z" fill="#191c22"></path>
+<text fill="#3b494c" font-family="JetBrains Mono" font-size="10" letter-spacing="1" text-anchor="middle" x="360" y="210">MID COURTYARD</text>
+<rect fill="#272a31" height="26" width="18" x="365" y="200"></rect>
+<text fill="#849396" font-family="JetBrains Mono" font-size="7" text-anchor="middle" x="374" y="217">TOP BOX</text>
+<!-- B Short / Catwalk -->
+<path d="M 430 130 L 560 130 L 560 170 L 430 170 Z" fill="#191c22"></path>
+<text fill="#3b494c" font-family="JetBrains Mono" font-size="9" text-anchor="middle" x="495" y="154">CATWALK / SHORT</text>
+<!-- B Apartments (Apps) -->
+<path d="M 170 80 L 360 80 L 360 140 L 220 140 L 220 160 L 170 160 Z" fill="#191c22"></path>
+<text fill="#3b494c" font-family="JetBrains Mono" font-size="10" text-anchor="middle" x="260" y="115">B APARTMENTS</text>
+<!-- Bombsite B Ground & Van -->
+<polygon fill="#191c22" points="560,70 720,70 720,190 560,190"></polygon>
+<rect fill="#272a31" height="35" stroke="#3b494c" stroke-width="0.5" width="45" x="580" y="100"></rect>
+<text fill="#00e5ff" font-family="Space Grotesk" font-size="14" font-weight="700" opacity="0.8" text-anchor="middle" x="602" y="122">B</text>
+<rect fill="#272a31" height="35" rx="3" width="18" x="545" y="80"></rect>
+<text fill="#849396" font-family="JetBrains Mono" font-size="7" text-anchor="middle" x="554" y="102">VAN</text>
+<!-- CT Spawn / Market / Kitchen -->
+<path d="M 720 160 L 840 160 L 840 260 L 720 260 Z" fill="#191c22"></path>
+<text fill="#3b494c" font-family="JetBrains Mono" font-size="10" text-anchor="middle" x="780" y="215">MARKET</text>
+<path d="M 720 270 L 870 270 L 870 380 L 720 380 Z" fill="#191c22"></path>
+<text fill="#3b494c" font-family="JetBrains Mono" font-size="11" font-weight="700" letter-spacing="2" text-anchor="middle" x="795" y="330">CT SPAWN</text>
+<!-- DYNAMIC TACTICAL UTILITY FX LAYER -->
+<!-- Smokes deployed on A site -->
+<g class="transition-opacity duration-300" id="smokesGroup" style="opacity: 1;">
+<!-- CT Smoke -->
+<circle cx="655" cy="355" fill="url(#smokeGradient)" r="32"></circle>
+<text fill="#e1e2eb" font-family="JetBrains Mono" font-size="8" font-weight="700" text-anchor="middle" x="655" y="358">SMOKE [CT]</text>
+<!-- Jungle Smoke -->
+<circle cx="535" cy="285" fill="url(#smokeGradient)" r="34"></circle>
+<text fill="#e1e2eb" font-family="JetBrains Mono" font-size="8" font-weight="700" text-anchor="middle" x="535" y="288">SMOKE [JGL]</text>
+<!-- Stairs Smoke -->
+<circle cx="490" cy="305" fill="url(#smokeGradient)" r="30"></circle>
+</g>
+<!-- Molotov Burning Sandwich -->
+<g class="transition-opacity duration-300" id="molotovGroup" style="opacity: 1;">
+<ellipse cx="510" cy="370" fill="url(#molyGradient)" rx="24" ry="18"></ellipse>
+<text fill="#ffe9df" font-family="JetBrains Mono" font-size="7" font-weight="700" text-anchor="middle" x="510" y="373">INCENDIARY</text>
+</g>
+<!-- Grenade Trajectories (Dashed lines from A Ramp & Palace) -->
+<path d="M 370 380 Q 450 330 655 355" fill="none" opacity="0.75" stroke="#00daf3" stroke-dasharray="4 3" stroke-width="1.5"></path>
+<path d="M 380 375 Q 460 290 535 285" fill="none" opacity="0.75" stroke="#adc6ff" stroke-dasharray="4 3" stroke-width="1.5"></path>
+<path d="M 445 420 Q 480 390 510 370" fill="none" opacity="0.8" stroke="#ffb690" stroke-dasharray="4 3" stroke-width="1.5"></path>
+<!-- Flashbang Pop FX -->
+<g transform="translate(525, 340)">
+<polygon fill="#ffe9df" opacity="0.95" points="0,-10 3,-3 10,0 3,3 0,10 -3,3 -10,0 -3,-3"></polygon>
+<circle cx="0" cy="0" fill="none" opacity="0.6" r="14" stroke="#ffe9df" stroke-dasharray="2 2" stroke-width="1"></circle>
+<text fill="#ffe9df" font-family="JetBrains Mono" font-size="7" font-weight="700" text-anchor="middle" x="0" y="-13">FLASH DETONATE</text>
+</g>
+<!-- KIA Gravestone / Trade Frag in Connector (broky) -->
+<g transform="translate(475, 275)">
+<circle cx="0" cy="0" fill="#93000a" opacity="0.7" r="10"></circle>
+<text fill="#ffdad6" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="0" y="3">☠</text>
+<line stroke="#ffb4ab" stroke-dasharray="2 2" stroke-width="1" x1="-12" x2="12" y1="-12" y2="12"></line>
+<text fill="#ffb4ab" font-family="JetBrains Mono" font-size="7" text-anchor="middle" x="0" y="-14">broky KIA [AWP]</text>
+</g>
+<!-- DYNAMIC PLAYER ENTITIES & VISION CONES -->
+<!-- CT TEAM (Sky Blue #adc6ff & Secondary) -->
+<!-- Aleksib (CT 1) - Site Default Anchor -->
+<g id="player-ct-aleksib" transform="translate(585, 395)">
+<path class="vision-cone" d="M 0 0 L -45 -35 A 55 55 0 0 1 -15 -55 Z" fill="url(#ctVision)"></path>
+<circle cx="0" cy="0" fill="#0566d9" r="9" stroke="#adc6ff" stroke-width="1.5"></circle>
+<text fill="#e6ecff" font-family="JetBrains Mono" font-size="8" font-weight="700" text-anchor="middle" x="0" y="3.5">1</text>
+<text fill="#adc6ff" font-family="JetBrains Mono" font-size="7.5" font-weight="600" text-anchor="middle" x="0" y="18">Aleksib</text>
+</g>
+<!-- iM (CT 2) - Triple Box -->
+<g id="player-ct-im" transform="translate(600, 345)">
+<path class="vision-cone" d="M 0 0 L -55 -15 A 60 60 0 0 1 -40 -45 Z" fill="url(#ctVision)"></path>
+<circle cx="0" cy="0" fill="#0566d9" r="9" stroke="#adc6ff" stroke-width="1.5"></circle>
+<text fill="#e6ecff" font-family="JetBrains Mono" font-size="8" font-weight="700" text-anchor="middle" x="0" y="3.5">2</text>
+<text fill="#adc6ff" font-family="JetBrains Mono" font-size="7.5" font-weight="600" text-anchor="middle" x="0" y="-12">iM</text>
+</g>
+<!-- b1t (CT 3) - Ninja / Firebox -->
+<g id="player-ct-b1t" transform="translate(630, 415)">
+<path class="vision-cone" d="M 0 0 L -50 0 A 55 55 0 0 1 -35 -40 Z" fill="url(#ctVision)"></path>
+<circle cx="0" cy="0" fill="#0566d9" r="9" stroke="#adc6ff" stroke-width="1.5"></circle>
+<text fill="#e6ecff" font-family="JetBrains Mono" font-size="8" font-weight="700" text-anchor="middle" x="0" y="3.5">3</text>
+<text fill="#adc6ff" font-family="JetBrains Mono" font-size="7.5" font-weight="600" text-anchor="middle" x="0" y="18">b1t</text>
+</g>
+<!-- w0nderful (CT 5 - AWP) - CT Spawn Sniper angle -->
+<g id="player-ct-wonderful" transform="translate(735, 330)">
+<path class="vision-cone" d="M 0 0 L -80 15 A 90 90 0 0 1 -80 -25 Z" fill="url(#ctVision)"></path>
+<circle cx="0" cy="0" fill="#0566d9" r="9" stroke="#00e5ff" stroke-width="2"></circle>
+<text fill="#c3f5ff" font-family="JetBrains Mono" font-size="8" font-weight="700" text-anchor="middle" x="0" y="3.5">5</text>
+<text fill="#00e5ff" font-family="JetBrains Mono" font-size="7.5" font-weight="700" text-anchor="middle" x="0" y="18">w0nderful [AWP]</text>
+</g>
+<!-- jL (CT 4) - Rotating through Kitchen / B Site -->
+<g id="player-ct-jl" transform="translate(685, 210)">
+<path class="vision-cone" d="M 0 0 L -30 40 A 50 50 0 0 1 -50 15 Z" fill="url(#ctVision)"></path>
+<circle cx="0" cy="0" fill="#0566d9" r="9" stroke="#adc6ff" stroke-width="1.5"></circle>
+<text fill="#e6ecff" font-family="JetBrains Mono" font-size="8" font-weight="700" text-anchor="middle" x="0" y="3.5">4</text>
+<text fill="#adc6ff" font-family="JetBrains Mono" font-size="7.5" font-weight="600" text-anchor="middle" x="0" y="18">jL (Rot.)</text>
+</g>
+<!-- T TERRORIST TEAM (Orange #ffb690 / #953f00) -->
+<!-- karrigan (T 1 - IGL) - Pushing Ramp -->
+<g id="player-t-karrigan" transform="translate(420, 375)">
+<path class="vision-cone" d="M 0 0 L 50 -15 A 55 55 0 0 1 50 25 Z" fill="url(#tVision)"></path>
+<circle cx="0" cy="0" fill="#953f00" r="9" stroke="#ffb690" stroke-width="1.5"></circle>
+<text fill="#ffe9df" font-family="JetBrains Mono" font-size="8" font-weight="700" text-anchor="middle" x="0" y="3.5">1</text>
+<text fill="#ffb690" font-family="JetBrains Mono" font-size="7.5" font-weight="600" text-anchor="middle" x="0" y="18">karrigan</text>
+</g>
+<!-- rain (T 2 - Entry) - Peeking Palace exit -->
+<g id="player-t-rain" transform="translate(460, 420)">
+<path class="vision-cone" d="M 0 0 L 45 -35 A 55 55 0 0 1 60 5 Z" fill="url(#tVision)"></path>
+<circle cx="0" cy="0" fill="#953f00" r="9" stroke="#ffb690" stroke-width="1.5"></circle>
+<text fill="#ffe9df" font-family="JetBrains Mono" font-size="8" font-weight="700" text-anchor="middle" x="0" y="3.5">2</text>
+<text fill="#ffb690" font-family="JetBrains Mono" font-size="7.5" font-weight="600" text-anchor="middle" x="0" y="18">rain [HP:31]</text>
+</g>
+<!-- frozen (T 3 - BOMB CARRIER) - Mid-Ramp with C4 -->
+<g id="player-t-frozen" transform="translate(380, 390)">
+<path class="vision-cone" d="M 0 0 L 40 -20 A 50 50 0 0 1 45 15 Z" fill="url(#tVision)"></path>
+<!-- Bomb Indicator Pulse Ring -->
+<circle class="animate-spin" cx="0" cy="0" fill="none" r="14" stroke="#ffb4ab" stroke-dasharray="3 2" stroke-width="1.5"></circle>
+<circle cx="0" cy="0" fill="#93000a" r="9" stroke="#ffb690" stroke-width="1.5"></circle>
+<text fill="#ffe9df" font-family="JetBrains Mono" font-size="8" font-weight="700" text-anchor="middle" x="0" y="3.5">C4</text>
+<text fill="#ffb4ab" font-family="JetBrains Mono" font-size="7.5" font-weight="700" text-anchor="middle" x="0" y="-13">frozen [C4]</text>
+</g>
+<!-- ropz (T 4 - Lurk) - Mid connector lurk -->
+<g id="player-t-ropz" transform="translate(425, 235)">
+<path class="vision-cone" d="M 0 0 L 50 15 A 55 55 0 0 1 35 45 Z" fill="url(#tVision)"></path>
+<circle cx="0" cy="0" fill="#953f00" r="9" stroke="#ffb690" stroke-width="1.5"></circle>
+<text fill="#ffe9df" font-family="JetBrains Mono" font-size="8" font-weight="700" text-anchor="middle" x="0" y="3.5">4</text>
+<text fill="#ffb690" font-family="JetBrains Mono" font-size="7.5" font-weight="600" text-anchor="middle" x="0" y="-12">ropz (Lurk)</text>
+</g>
+</svg>
+<!-- Interactive Minimap Legend Floating Pill -->
+<div class="absolute bottom-3 left-3 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center gap-3">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-container"></span>
+<span class="font-benchmark-label text-benchmark-label text-secondary">CT (5 ALIVE)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary-container"></span>
+<span class="font-benchmark-label text-benchmark-label text-tertiary">T (4 ALIVE)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-error font-stat-mono-md text-xs">☠</span>
+<span class="font-benchmark-label text-benchmark-label text-error">broky (KIA)</span>
+</div>
+</div>
+</div>
+<!-- REPLAY TIMELINE & TRANSPORT CONTROLS BAR -->
+<div class="bg-surface-container-low px-space-md py-space-sm flex flex-col gap-2">
+<!-- Round Switcher & Transport Bar -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm">
+<!-- Round Selector & Status -->
+<div class="flex items-center gap-2">
+<button class="w-6 h-6 rounded bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<div class="flex items-baseline gap-1.5 px-2 py-0.5 rounded bg-surface-container-lowest">
+<span class="font-card-header text-card-header text-on-surface">Round 24</span>
+<span class="font-benchmark-label text-benchmark-label text-outline">/ 24</span>
+<span class="font-benchmark-label text-benchmark-label text-primary-container font-semibold">[MAP POINT]</span>
+</div>
+<button class="w-6 h-6 rounded bg-surface-container-high hover:bg-surface-bright flex items-center justify-center text-on-surface transition-colors" disabled="">
+<span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span>
+</button>
+</div>
+<!-- Playback Transport Buttons -->
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Previous Kill Event">
+<span class="material-symbols-outlined text-[18px]">skip_previous</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="-5 Seconds">
+<span class="material-symbols-outlined text-[18px]">replay_5</span>
+</button>
+<!-- Play / Pause Main CTA -->
+<button class="px-3.5 py-1 rounded bg-primary-container hover:bg-primary-fixed-dim text-on-primary font-card-header text-card-header flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,229,255,0.35)] transition-all" id="playBtn">
+<span class="material-symbols-outlined text-[18px]" id="playIcon">pause</span>
+<span class="" id="playLabel">PLAYING</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="+5 Seconds">
+<span class="material-symbols-outlined text-[18px]">forward_5</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Next Frag Event">
+<span class="material-symbols-outlined text-[18px]">skip_next</span>
+</button>
+</div>
+<!-- Playback Speed & Round HUD Time -->
+<div class="flex items-center gap-space-md">
+<div class="flex items-center rounded bg-surface-container-lowest p-0.5">
+<button class="px-2 py-0.5 rounded font-benchmark-label text-benchmark-label text-outline hover:text-on-surface transition-colors">0.5x</button>
+<button class="px-2 py-0.5 rounded font-benchmark-label text-benchmark-label bg-primary text-on-primary font-bold shadow-sm">1.0x</button>
+<button class="px-2 py-0.5 rounded font-benchmark-label text-benchmark-label text-outline hover:text-on-surface transition-colors">2.0x</button>
+<button class="px-2 py-0.5 rounded font-benchmark-label text-benchmark-label text-outline hover:text-on-surface transition-colors">4.0x</button>
+</div>
+<div class="font-stat-mono-md text-stat-mono-md text-primary tracking-wider">
+<span class="" id="curTimer">01:13.20</span>
+<span class="text-outline"> / 01:55.00</span>
+</div>
+</div>
+</div>
+<!-- Interactive Scrubber Track with Event Pips -->
+<div class="relative w-full h-8 flex items-center group cursor-pointer" id="scrubberTrack">
+<!-- Full Bar Track Background -->
+<div class="w-full h-2 rounded-full bg-surface-container-highest relative overflow-hidden">
+<!-- Buffer Track / Buy Phase Boundary (First 15s) -->
+<div class="absolute left-0 top-0 bottom-0 w-[13%] bg-surface-container-high opacity-70"></div>
+<!-- Active Progress Fill -->
+<div class="absolute left-0 top-0 bottom-0 bg-primary-container shadow-[0_0_8px_rgba(0,229,255,0.6)]" style="width: 37.2%;"></div>
+</div>
+<!-- Round Key Event Annotations on Track -->
+<!-- 00:15 - Freeze time ends -->
+<div class="absolute left-[13%] top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-3.5 bg-outline-variant" title="Freeze Time Ended"></div>
+<!-- 00:26 - Smoke Execution (A Site) -->
+<div class="absolute left-[22.6%] top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center group/pip" title="A Smokes Deployed">
+<div class="w-2.5 h-2.5 rounded-full bg-surface-bright flex items-center justify-center text-[9px] text-on-surface-variant">☁</div>
+</div>
+<!-- 00:38 - First Kill: w0nderful -> broky (Sniper Duel) -->
+<div class="absolute left-[33.0%] top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center group/pip" title="First Frag: w0nderful AWPs broky">
+<div class="w-3.5 h-3.5 rounded-full bg-error flex items-center justify-center text-[9px] text-on-error font-bold leading-none">☠</div>
+</div>
+<!-- 00:42.8 - CURRENT PLAYHEAD POSITION -->
+<div class="absolute left-[37.2%] top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 flex flex-col items-center">
+<div class="w-4 h-4 rounded-full bg-primary-container shadow-[0_0_10px_#00e5ff] flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-on-primary"></div>
+</div>
+</div>
+<!-- 00:49 - Upcoming C4 Plant forecast -->
+<div class="absolute left-[42.6%] top-1/2 -translate-y-1/2 -translate-x-1/2 opacity-60" title="C4 Plant Initiated">
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary-container flex items-center justify-center text-[8px] text-on-tertiary font-bold">▲</div>
+</div>
+<!-- 01:14 - Retake engagement -->
+<div class="absolute left-[64.3%] top-1/2 -translate-y-1/2 -translate-x-1/2 opacity-40">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- 4-CARD MATCH ANALYTICS BENTO GRID -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- MODULE 1: Round Win Expectancy -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col justify-between shadow-md">
+<div class="flex items-center justify-between">
+<span class="font-card-header text-card-header text-on-surface-variant uppercase tracking-wider">Win Expectancy</span>
+<span class="px-1.5 py-0.5 rounded bg-secondary-container/30 text-secondary font-benchmark-label text-benchmark-label">+14.6% frag delta</span>
+</div>
+<div class="my-space-sm flex items-baseline justify-between">
+<div>
+<span class="font-stat-display text-stat-display text-primary">68.2</span>
+<span class="font-stat-mono-md text-stat-mono-md text-primary">%</span>
+<span class="font-benchmark-label text-benchmark-label text-outline ml-1">NAVI</span>
+</div>
+<div class="text-right">
+<span class="font-stat-display text-stat-display text-tertiary-fixed-dim">31.8</span>
+<span class="font-stat-mono-md text-stat-mono-md text-tertiary-fixed-dim">%</span>
+<span class="font-benchmark-label text-benchmark-label text-outline ml-1">FAZE</span>
+</div>
+</div>
+<!-- Dual Team Probability Bar -->
+<div class="w-full h-1.5 rounded-full bg-surface-container-highest overflow-hidden flex">
+<div class="h-full bg-primary-container" style="width: 68.2%;"></div>
+<div class="h-full bg-tertiary-fixed-dim" style="width: 31.8%;"></div>
+</div>
+</div>
+<!-- MODULE 2: Team Utility Impact -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col justify-between shadow-md"><div class="flex items-center justify-between"><span class="font-card-header text-card-header text-on-surface-variant uppercase tracking-wider">Territory Control</span><span class="px-1.5 py-0.5 rounded bg-primary-container/30 border border-primary-container/40 text-primary-container font-benchmark-label text-benchmark-label uppercase tracking-wide">MID DOMINANCE</span></div><div class="my-space-sm flex flex-col gap-1"><div class="flex items-baseline gap-1"><span class="font-stat-display text-stat-display text-on-surface">64.5</span><span class="font-stat-mono-md text-stat-mono-md text-primary-container">%</span></div><div class="font-body-sm text-body-sm text-on-surface-variant">Map space secured prior to site execute</div></div><div class="flex flex-col gap-1 py-1 border-t border-b border-outline-variant/20 font-benchmark-label text-benchmark-label"><div class="flex items-center justify-between"><span class="text-outline">MID &amp; CONNECTOR</span><span class="text-secondary font-semibold">CONTROLLED (NAVI)</span></div><div class="flex items-center justify-between"><span class="text-outline">A-PALACE &amp; APPS</span><span class="text-tertiary-fixed-dim font-semibold">CONTESTED</span></div></div><div class="flex flex-col gap-1.5 pt-1"><div class="w-full h-1.5 rounded-full bg-surface-container-highest overflow-hidden flex"><div class="h-full bg-primary-container" style="width: 64.5%;"></div><div class="h-full bg-surface-container-high" style="width: 35.5%;"></div></div><div class="flex items-center justify-between font-benchmark-label text-benchmark-label"><span class="text-outline">PACE: Fast Split</span><span class="text-on-surface-variant">(+3.8s vs Tier-1 Avg)</span></div></div></div>
+<!-- MODULE 3: Trade Kill Efficiency -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col justify-between shadow-md">
+<div class="flex items-center justify-between">
+<span class="font-card-header text-card-header text-on-surface-variant uppercase tracking-wider">Trade Frag Rate</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-primary font-benchmark-label text-benchmark-label">ELITE</span>
+</div>
+<div class="my-space-sm">
+<div class="flex items-baseline gap-1">
+<span class="font-stat-display text-stat-display text-primary">71.4</span>
+<span class="font-stat-mono-md text-stat-mono-md text-primary">%</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">5/7 conversions · 420ms reaction</div>
+</div>
+<!-- Micro Sparkline SVG -->
+<div class="w-full h-4">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 20">
+<polyline fill="none" points="0,15 20,12 40,16 60,8 80,4 100,6" stroke="#00e5ff" stroke-width="2"></polyline>
+</svg>
+</div>
+</div>
+<!-- MODULE 4: Opening Duel Matrix -->
+<div class="bg-surface-container rounded-lg p-space-md flex flex-col justify-between shadow-md">
+<div class="flex items-center justify-between">
+<span class="font-card-header text-card-header text-on-surface-variant uppercase tracking-wider">Opening Duels</span>
+<span class="font-stat-mono-md text-stat-mono-md text-secondary">14 : 10</span>
+</div>
+<div class="my-space-sm">
+<div class="font-card-header text-card-header text-on-surface truncate">w0nderful vs broky</div>
+<div class="font-body-sm text-body-sm text-primary">AWP Pick in Connector (00:38)</div>
+</div>
+<div class="flex items-center justify-between font-benchmark-label text-benchmark-label pt-1">
+<span class="text-outline">FB WIN PROB.</span>
+<span class="text-secondary font-bold">78.5% NAVI</span>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT MAIN COLUMN: Vertical 10-Player Telemetry Roster -->
+<div class="col-span-12 xl:col-span-3 flex flex-col gap-space-sm"><!-- CT TEAM PANEL -->
+<div class="bg-[#151922] border border-blue-500/30 rounded-lg p-3 flex flex-col gap-2.5 shadow-md">
+<!-- Header: NAVI -->
+<div class="flex items-center justify-between pb-1.5 border-b border-blue-500/20">
+<div class="flex items-center">
+<span class="font-semibold text-white text-sm tracking-wide">NAVI</span>
+</div>
+<div class="flex items-center gap-3 font-stat-mono-md text-xs font-semibold">
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-bold text-white">13</span>
+<span class="text-slate-300 font-normal">$28,400</span>
+</div>
+</div>
+<!-- 5 CT Players (3-line layout) -->
+<div class="flex flex-col gap-2.5">
+<!-- Aleksib -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between leading-none">
+<div class="flex items-center">
+<span class="text-[13px] font-semibold text-white">Aleksib</span>
+<span class="text-[10px] uppercase text-slate-500 font-normal ml-1 font-benchmark-label">· IGL</span>
+</div>
+<span class="font-stat-mono-md text-[11px] text-slate-300">M4A1-S</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<div class="h-[3px] rounded-full bg-[#1e2330] flex-1 overflow-hidden">
+<div class="h-full bg-blue-500 rounded-full" style="width: 100%;"></div>
+</div>
+<span class="font-stat-mono-md text-[12px] font-bold text-white shrink-0 leading-none">100</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#94A3B8] font-stat-mono-md leading-none">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-secondary">shield</span>
+<span class="">$4,200</span>
+</div>
+<div class="flex items-center gap-1">
+<!-- Smoke -->
+<svg class="w-3 h-3 text-slate-400 fill-current opacity-80" viewbox="0 0 16 16"><circle cx="8" cy="8" r="5"></circle></svg>
+<!-- Flash -->
+<svg class="w-3 h-3 text-amber-200 fill-current" viewbox="0 0 16 16"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"></path></svg>
+<!-- HE -->
+<svg class="w-3 h-3 text-emerald-400 fill-current" viewbox="0 0 16 16"><rect height="7" rx="2" width="6" x="5" y="6"></rect><path d="M6 3h4v2H6z"></path></svg>
+<!-- Kit -->
+<svg class="w-3 h-3 text-primary-container fill-current" viewbox="0 0 24 24"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM5 16l4-4H6c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4 7.58 4 4 7.58 4 12H1l4 4z"></path></svg>
+</div>
+</div>
+</div>
+<!-- iM -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between leading-none">
+<div class="flex items-center">
+<span class="text-[13px] font-semibold text-white">iM</span>
+<span class="text-[10px] uppercase text-slate-500 font-normal ml-1 font-benchmark-label">· RIFLE</span>
+</div>
+<span class="font-stat-mono-md text-[11px] text-slate-300">M4A4</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<div class="h-[3px] rounded-full bg-[#1e2330] flex-1 overflow-hidden">
+<div class="h-full bg-blue-500 rounded-full" style="width: 100%;"></div>
+</div>
+<span class="font-stat-mono-md text-[12px] font-bold text-white shrink-0 leading-none">100</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#94A3B8] font-stat-mono-md leading-none">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-secondary">shield</span>
+<span class="">$2,600</span>
+</div>
+<div class="flex items-center gap-1">
+<svg class="w-3 h-3 text-slate-400 fill-current opacity-80" viewbox="0 0 16 16"><circle cx="8" cy="8" r="5"></circle></svg>
+<svg class="w-3 h-3 text-amber-200 fill-current" viewbox="0 0 16 16"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"></path></svg>
+<svg class="w-3 h-3 text-amber-200 fill-current" viewbox="0 0 16 16"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"></path></svg>
+</div>
+</div>
+</div>
+<!-- b1t -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between leading-none">
+<div class="flex items-center">
+<span class="text-[13px] font-semibold text-white">b1t</span>
+<span class="text-[10px] uppercase text-slate-500 font-normal ml-1 font-benchmark-label">· ANCHOR</span>
+</div>
+<span class="font-stat-mono-md text-[11px] text-slate-300">M4A1-S</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<div class="h-[3px] rounded-full bg-[#1e2330] flex-1 overflow-hidden">
+<div class="h-full bg-blue-500 rounded-full" style="width: 100%;"></div>
+</div>
+<span class="font-stat-mono-md text-[12px] font-bold text-white shrink-0 leading-none">100</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#94A3B8] font-stat-mono-md leading-none">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-secondary">shield</span>
+<span class="">$3,100</span>
+</div>
+<div class="flex items-center gap-1">
+<svg class="w-3 h-3 text-amber-200 fill-current" viewbox="0 0 16 16"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"></path></svg>
+<svg class="w-3 h-3 text-orange-400 fill-current" viewbox="0 0 16 16"><path d="M8 1c.5 2.5 3 4 3 7a5 5 0 0 1-10 0c0-3 2.5-4.5 3-7 1 2 3 2 4 0z"></path></svg>
+<svg class="w-3 h-3 text-primary-container fill-current" viewbox="0 0 24 24"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM5 16l4-4H6c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4 7.58 4 4 7.58 4 12H1l4 4z"></path></svg>
+</div>
+</div>
+</div>
+<!-- jL -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between leading-none">
+<div class="flex items-center">
+<span class="text-[13px] font-semibold text-white">jL</span>
+<span class="text-[10px] uppercase text-slate-500 font-normal ml-1 font-benchmark-label">· LURK</span>
+</div>
+<span class="font-stat-mono-md text-[11px] text-slate-300">FAMAS</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<div class="h-[3px] rounded-full bg-[#1e2330] flex-1 overflow-hidden">
+<div class="h-full bg-blue-500 rounded-full" style="width: 100%;"></div>
+</div>
+<span class="font-stat-mono-md text-[12px] font-bold text-white shrink-0 leading-none">100</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#94A3B8] font-stat-mono-md leading-none">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-secondary">shield</span>
+<span class="">$3,800</span>
+</div>
+<div class="flex items-center gap-1">
+<svg class="w-3 h-3 text-amber-200 fill-current" viewbox="0 0 16 16"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"></path></svg>
+<svg class="w-3 h-3 text-amber-200 fill-current" viewbox="0 0 16 16"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"></path></svg>
+<svg class="w-3 h-3 text-emerald-400 fill-current" viewbox="0 0 16 16"><rect height="7" rx="2" width="6" x="5" y="6"></rect><path d="M6 3h4v2H6z"></path></svg>
+</div>
+</div>
+</div>
+<!-- w0nderful -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between leading-none">
+<div class="flex items-center">
+<span class="text-[13px] font-semibold text-white">w0nderful</span>
+<span class="text-[10px] uppercase text-slate-500 font-normal ml-1 font-benchmark-label">· AWP</span>
+</div>
+<span class="font-stat-mono-md text-[11px] text-slate-300 font-semibold">AWP</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<div class="h-[3px] rounded-full bg-[#1e2330] flex-1 overflow-hidden">
+<div class="h-full bg-blue-500 rounded-full" style="width: 100%;"></div>
+</div>
+<span class="font-stat-mono-md text-[12px] font-bold text-white shrink-0 leading-none">100</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#94A3B8] font-stat-mono-md leading-none">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-secondary">shield</span>
+<span class="">$1,400</span>
+</div>
+<div class="flex items-center gap-1">
+<svg class="w-3 h-3 text-slate-400 fill-current opacity-80" viewbox="0 0 16 16"><circle cx="8" cy="8" r="5"></circle></svg>
+<svg class="w-3 h-3 text-amber-200 fill-current" viewbox="0 0 16 16"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"></path></svg>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- SLIM CLUTCH STATUS BANNER -->
+<div class="flex items-center justify-center py-0.5 select-none">
+<div class="px-2.5 py-1 rounded-full bg-[#151922] border border-amber-500/30 flex items-center gap-1.5 shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+<span class="font-stat-mono-md text-[10px] font-semibold text-amber-300 tracking-wider uppercase">4v4 CLUTCH · C4 PLANTED AT A RAMP</span>
+</div>
+</div>
+<!-- T TEAM PANEL -->
+<div class="bg-[#151922] border border-orange-500/30 rounded-lg p-3 flex flex-col gap-2.5 shadow-md">
+<!-- Header: FaZe -->
+<div class="flex items-center justify-between pb-1.5 border-b border-orange-500/20">
+<div class="flex items-center">
+<span class="font-semibold text-white text-sm tracking-wide">FaZe</span>
+</div>
+<div class="flex items-center gap-3 font-stat-mono-md text-xs font-semibold">
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-bold text-white">11</span>
+<span class="text-slate-300 font-normal">$19,850</span>
+</div>
+</div>
+<!-- 5 T Players (3-line layout) -->
+<div class="flex flex-col gap-2.5">
+<!-- karrigan -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between leading-none">
+<div class="flex items-center">
+<span class="text-[13px] font-semibold text-white">karrigan</span>
+<span class="text-[10px] uppercase text-slate-500 font-normal ml-1 font-benchmark-label">· IGL</span>
+</div>
+<span class="font-stat-mono-md text-[11px] text-slate-300">AK-47</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<div class="h-[3px] rounded-full bg-[#1e2330] flex-1 overflow-hidden">
+<div class="h-full bg-orange-500 rounded-full" style="width: 62%;"></div>
+</div>
+<span class="font-stat-mono-md text-[12px] font-bold text-white shrink-0 leading-none">62</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#94A3B8] font-stat-mono-md leading-none">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-tertiary-fixed-dim">shield</span>
+<span class="">$2,100</span>
+</div>
+<div class="flex items-center gap-1">
+<svg class="w-3 h-3 text-orange-400 fill-current" viewbox="0 0 16 16"><path d="M8 1c.5 2.5 3 4 3 7a5 5 0 0 1-10 0c0-3 2.5-4.5 3-7 1 2 3 2 4 0z"></path></svg>
+<svg class="w-3 h-3 text-amber-200 fill-current" viewbox="0 0 16 16"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"></path></svg>
+</div>
+</div>
+</div>
+<!-- rain -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between leading-none">
+<div class="flex items-center">
+<span class="text-[13px] font-semibold text-white">rain</span>
+<span class="text-[10px] uppercase text-slate-500 font-normal ml-1 font-benchmark-label">· ENTRY</span>
+</div>
+<span class="font-stat-mono-md text-[11px] text-slate-300">Galil AR</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<div class="h-[3px] rounded-full bg-[#1e2330] flex-1 overflow-hidden">
+<div class="h-full bg-orange-500 rounded-full" style="width: 31%;"></div>
+</div>
+<span class="font-stat-mono-md text-[12px] font-bold text-error shrink-0 leading-none">31</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#94A3B8] font-stat-mono-md leading-none">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-tertiary-fixed-dim">shield</span>
+<span class="">$1,800</span>
+</div>
+<div class="flex items-center gap-1">
+<svg class="w-3 h-3 text-amber-200 fill-current" viewbox="0 0 16 16"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"></path></svg>
+<svg class="w-3 h-3 text-emerald-400 fill-current" viewbox="0 0 16 16"><rect height="7" rx="2" width="6" x="5" y="6"></rect><path d="M6 3h4v2H6z"></path></svg>
+</div>
+</div>
+</div>
+<!-- frozen (C4) -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between leading-none">
+<div class="flex items-center gap-1">
+<span class="text-[13px] font-semibold text-white">frozen</span>
+<span class="text-[10px] uppercase text-slate-500 font-normal font-benchmark-label">· RIFLE</span>
+<span class="px-1 py-0.2 rounded bg-error-container text-on-error-container font-benchmark-label text-[8px] font-bold uppercase ml-0.5">C4</span>
+</div>
+<span class="font-stat-mono-md text-[11px] text-tertiary">AK-47</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<div class="h-[3px] rounded-full bg-[#1e2330] flex-1 overflow-hidden">
+<div class="h-full bg-orange-500 rounded-full" style="width: 95%;"></div>
+</div>
+<span class="font-stat-mono-md text-[12px] font-bold text-white shrink-0 leading-none">95</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#94A3B8] font-stat-mono-md leading-none">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-tertiary-fixed-dim">shield</span>
+<span class="text-tertiary">$3,400</span>
+</div>
+<div class="flex items-center gap-1">
+<svg class="w-3 h-3 text-slate-400 fill-current opacity-80" viewbox="0 0 16 16"><circle cx="8" cy="8" r="5"></circle></svg>
+<svg class="w-3 h-3 text-orange-400 fill-current" viewbox="0 0 16 16"><path d="M8 1c.5 2.5 3 4 3 7a5 5 0 0 1-10 0c0-3 2.5-4.5 3-7 1 2 3 2 4 0z"></path></svg>
+</div>
+</div>
+</div>
+<!-- ropz -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between leading-none">
+<div class="flex items-center">
+<span class="text-[13px] font-semibold text-white">ropz</span>
+<span class="text-[10px] uppercase text-slate-500 font-normal ml-1 font-benchmark-label">· LURK</span>
+</div>
+<span class="font-stat-mono-md text-[11px] text-slate-300">AK-47</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<div class="h-[3px] rounded-full bg-[#1e2330] flex-1 overflow-hidden">
+<div class="h-full bg-orange-500 rounded-full" style="width: 100%;"></div>
+</div>
+<span class="font-stat-mono-md text-[12px] font-bold text-white shrink-0 leading-none">100</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#94A3B8] font-stat-mono-md leading-none">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-tertiary-fixed-dim">shield</span>
+<span class="">$4,150</span>
+</div>
+<div class="flex items-center gap-1">
+<svg class="w-3 h-3 text-slate-400 fill-current opacity-80" viewbox="0 0 16 16"><circle cx="8" cy="8" r="5"></circle></svg>
+<svg class="w-3 h-3 text-amber-200 fill-current" viewbox="0 0 16 16"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"></path></svg>
+<svg class="w-3 h-3 text-orange-400 fill-current" viewbox="0 0 16 16"><path d="M8 1c.5 2.5 3 4 3 7a5 5 0 0 1-10 0c0-3 2.5-4.5 3-7 1 2 3 2 4 0z"></path></svg>
+</div>
+</div>
+</div>
+<!-- broky (KIA) -->
+<div class="flex flex-col gap-1 opacity-40">
+<div class="flex items-center justify-between leading-none">
+<div class="flex items-center gap-1">
+<span class="text-[13px] font-semibold text-white line-through">broky</span>
+<span class="text-[10px] uppercase text-slate-500 font-normal font-benchmark-label">· AWPER</span>
+<span class="px-1 py-0.2 rounded bg-error-container/40 text-error font-benchmark-label text-[8px] font-bold ml-0.5">KIA (00:38)</span>
+</div>
+<span class="font-stat-mono-md text-[11px] line-through text-slate-500">AWP</span>
+</div>
+<div class="flex items-center gap-2 w-full">
+<div class="h-[3px] rounded-full bg-[#1e2330] flex-1 overflow-hidden">
+<div class="h-full bg-error-container rounded-full" style="width: 0%;"></div>
+</div>
+<span class="font-stat-mono-md text-[12px] font-bold text-rose-500 shrink-0 leading-none">0</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#94A3B8] font-stat-mono-md leading-none">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-outline">shield</span>
+<span class="text-outline">$900</span>
+</div>
+<div></div>
+</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  // Tactical HUD Layer Interactive Toggles
+  const toggleConesBtn = document.getElementById('toggleCones');
+  const toggleUtilityBtn = document.getElementById('toggleUtility');
+  const toggleKillsBtn = document.getElementById('toggleKills');
+  const smokesGroup = document.getElementById('smokesGroup');
+  const molotovGroup = document.getElementById('molotovGroup');
+  const playBtn = document.getElementById('playBtn');
+  const playIcon = document.getElementById('playIcon');
+  const playLabel = document.getElementById('playLabel');
+  const curTimer = document.getElementById('curTimer');
+  const tickDisplay = document.getElementById('tickDisplay');
+
+  let isPlaying = true;
+  let showCones = true;
+  let showUtility = true;
+  let showKills = true;
+  let timerVal = 42.8;
+
+  toggleConesBtn.addEventListener('click', () => {
+    showCones = !showCones;
+    document.querySelectorAll('.vision-cone').forEach(el => {
+      el.style.opacity = showCones ? '1' : '0';
+    });
+    toggleConesBtn.classList.toggle('text-primary', showCones);
+    toggleConesBtn.classList.toggle('text-outline', !showCones);
+  });
+
+  toggleUtilityBtn.addEventListener('click', () => {
+    showUtility = !showUtility;
+    if (smokesGroup) smokesGroup.style.opacity = showUtility ? '1' : '0';
+    if (molotovGroup) molotovGroup.style.opacity = showUtility ? '1' : '0';
+    toggleUtilityBtn.classList.toggle('text-primary', showUtility);
+    toggleUtilityBtn.classList.toggle('text-outline', !showUtility);
+  });
+
+  toggleKillsBtn.addEventListener('click', () => {
+    showKills = !showKills;
+    toggleKillsBtn.classList.toggle('text-primary', showKills);
+    toggleKillsBtn.classList.toggle('text-outline', !showKills);
+  });
+
+  playBtn.addEventListener('click', () => {
+    isPlaying = !isPlaying;
+    playIcon.textContent = isPlaying ? 'pause' : 'play_arrow';
+    playLabel.textContent = isPlaying ? 'PLAYING' : 'PAUSED';
+    playBtn.classList.toggle('bg-primary-container', isPlaying);
+    playBtn.classList.toggle('bg-surface-bright', !isPlaying);
+  });
+
+  // Simulated tickrate and timer progression
+  setInterval(() => {
+    if (isPlaying) {
+      timerVal += 0.1;
+      if (timerVal > 115) timerVal = 0;
+      const mins = Math.floor(timerVal / 60).toString().padStart(2, '0');
+      const secs = (timerVal % 60).toFixed(2).padStart(5, '0');
+      curTimer.textContent = `${mins}:${secs}`;
+      const currentTick = Math.floor(64812 + (timerVal * 128));
+      tickDisplay.textContent = currentTick.toLocaleString();
+    }
+  }, 100);
+</script></main></div>
+</body></html>

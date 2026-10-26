@@ -39,7 +39,6 @@ export interface InsertMatchRecord {
   replay_storage_path: string;
   global_avg_ttd_ms: number | null;
   global_avg_ttk_ms: number | null;
-  global_avg_fsp_pct: number | null;
   is_public: boolean;
   uploader_id: string | null;
 }
@@ -169,12 +168,11 @@ export function buildReplayStoragePath(demoHash: string): string {
 export interface GlobalAimAggregates {
   avgTtdMs: number | null;
   avgTtkMs: number | null;
-  fspPct: number | null;
   discardedDuels: number;
 }
 
 /**
- * Agrega TTD, TTK e FSP globais a partir dos duelos.
+ * Agrega TTD e TTK globais a partir dos duelos.
  * Anomalias temporais (ticks não finitos, negativos ou fora de ordem
  * sight <= damage <= kill) descartam o duelo inteiro.
  */
@@ -184,8 +182,6 @@ export function aggregateAimMetrics(
 ): GlobalAimAggregates {
   const ttdSamples: number[] = [];
   const ttkSamples: number[] = [];
-  let validDuels = 0;
-  let firstShotHits = 0;
   let discardedDuels = 0;
 
   for (const duel of duels) {
@@ -205,9 +201,6 @@ export function aggregateAimMetrics(
       continue;
     }
 
-    validDuels++;
-    if (duel.isFirstShotHit) firstShotHits++;
-
     if (firstDamageTick !== null) {
       ttdSamples.push(calculateTimeToDamage(firstSightTick, firstDamageTick, tickrate));
       if (killTick !== null) {
@@ -223,7 +216,6 @@ export function aggregateAimMetrics(
   return {
     avgTtdMs: avgTtd === null ? null : Math.round(avgTtd),
     avgTtkMs: avgTtk === null ? null : Math.round(avgTtk),
-    fspPct: validDuels === 0 ? null : roundTo((firstShotHits / validDuels) * 100, 2),
     discardedDuels,
   };
 }
@@ -386,7 +378,6 @@ export function processDemoTelemetry(rawDemoData: any): {
     replay_storage_path: buildReplayStoragePath(demoHash),
     global_avg_ttd_ms: aggregates.avgTtdMs,
     global_avg_ttk_ms: aggregates.avgTtkMs,
-    global_avg_fsp_pct: aggregates.fspPct,
     is_public: raw.isPublic ?? false,
     uploader_id: raw.uploaderId ?? null,
   };

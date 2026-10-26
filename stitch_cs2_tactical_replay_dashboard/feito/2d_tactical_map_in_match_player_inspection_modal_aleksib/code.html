@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_dashboard" name="shell-type"/>
+<title>CS2 Telemetry - Player Inspection</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>tailwind.config = {darkMode: "class", theme: {extend: {colors: {"base-bg": "#0B0E14", "card-bg": "#151922", "cyan-accent": "#00E5FF", "ct-blue": "#3B82F6", "t-orange": "#F97316", "border-dark": "#222735", "surface-dark": "#10141D", "text-muted": "#849396", "text-dim": "#4A5568", "on-background": "#e1e2eb", "primary-fixed": "#9cf0ff", "tertiary-fixed": "#ffdbca", "error-container": "#93000a", "on-surface": "#e1e2eb", "on-secondary": "#002e6a", "secondary-fixed-dim": "#adc6ff", "outline-variant": "#3b494c", "on-primary": "#00363d", "surface-container-highest": "#32353c", "surface-tint": "#00daf3", "on-primary-fixed": "#001f24", "surface-container-lowest": "#0b0e14", error: "#ffb4ab", "inverse-primary": "#006875", primary: "#c3f5ff", "on-primary-container": "#00626e", "primary-container": "#00e5ff", outline: "#849396", "surface-dim": "#10131a", "tertiary-container": "#ffc4a6", "on-tertiary": "#552100", "on-secondary-container": "#e6ecff", surface: "#10131a", "on-surface-variant": "#bac9cc", secondary: "#adc6ff", "primary-fixed-dim": "#00daf3", "surface-container-high": "#272a31", "on-tertiary-container": "#953f00", "on-primary-fixed-variant": "#004f58", "inverse-surface": "#e1e2eb", "on-secondary-fixed": "#001a42", "surface-container": "#1d2026", tertiary: "#ffe9df", "inverse-on-surface": "#2e3037", "tertiary-fixed-dim": "#ffb690", "on-tertiary-fixed": "#341100", "on-error-container": "#ffdad6", "on-secondary-fixed-variant": "#004395", "secondary-container": "#0566d9", "on-error": "#690005", "secondary-fixed": "#d8e2ff", "surface-variant": "#32353c", background: "#10131a", "on-tertiary-fixed-variant": "#783200", "surface-container-low": "#191c22", "surface-bright": "#363940"}, fontFamily: {sans: ["Inter", "sans-serif"], mono: ["JetBrains Mono", "monospace"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["JetBrains Mono"]}, fontSize: {}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}}}};</script>
+<style>
+  @layer base {
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #0B0E14;
+      color: #e1e2eb;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0B0E14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #222735;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00E5FF;
+    }
+  }
+</style>
+</head>
+<body class="bg-[#0B0E14] text-slate-200 antialiased relative min-h-screen">
+<!-- ========================================== -->
+<!-- LAYER 0 (Background Base): 2D Tactical Replay -->
+<!-- ========================================== -->
+<div class="min-h-screen w-full flex flex-col pointer-events-none select-none">
+<!-- Top Match Header Bar -->
+<header class="h-16 w-full bg-[#10141D] border-b border-[#222735] px-6 flex items-center justify-between z-10">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
+<span class="font-bold text-lg text-[#3B82F6] tracking-wider">NAVI</span>
+<span class="font-mono text-base font-bold px-2 py-0.5 rounded bg-[#151922] border border-[#222735] text-white">13</span>
+</div>
+<span class="font-mono text-slate-500 font-bold">:</span>
+<div class="flex items-center gap-2">
+<span class="font-mono text-base font-bold px-2 py-0.5 rounded bg-[#151922] border border-[#222735] text-white">11</span>
+<span class="font-bold text-lg text-[#F97316] tracking-wider">FAZE</span>
+</div>
+</div>
+<div class="h-5 w-px bg-[#222735]"></div>
+<div class="flex items-center gap-3 text-xs font-mono">
+<span class="text-[#00E5FF] font-semibold tracking-wider">DE_MIRAGE</span>
+<span class="text-slate-600">•</span>
+<span class="text-slate-400">OCT 24, 2026</span>
+<span class="text-slate-600">•</span>
+<span class="text-slate-400">ESL PRO LEAGUE S24 GRAND FINALS</span>
+</div>
+<div class="px-2 py-0.5 rounded bg-[#00E5FF]/10 border border-[#00E5FF]/30 text-[#00E5FF] text-[10px] font-mono tracking-widest font-semibold uppercase">
+        128-Tick Parsed
+      </div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-xs font-mono text-slate-400">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+<span>ENGINE V2.4 // ONLINE</span>
+</div>
+<div class="h-8 w-8 rounded-full bg-[#151922] border border-[#222735] flex items-center justify-center text-slate-300">
+<span class="material-symbols-outlined text-sm">person</span>
+</div>
+</div>
+</header>
+<div class="flex flex-1 w-full relative">
+<!-- Left Sidebar Navigation -->
+<aside class="w-60 bg-[#10141D] border-r border-[#222735] flex flex-col justify-between py-4">
+<div class="flex flex-col gap-6">
+<div class="px-6 flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-[#00E5FF] flex items-center justify-center text-[#0B0E14] shadow-[0_0_12px_rgba(0,229,255,0.4)]">
+<span class="material-symbols-outlined text-[18px]">radar</span>
+</div>
+<div>
+<div class="font-bold text-sm tracking-wider uppercase text-white">ANALYTICS</div>
+<div class="text-[10px] font-mono text-[#00E5FF] tracking-widest">// CS2 TELEMETRY</div>
+</div>
+</div>
+<div class="px-3">
+<div class="text-[10px] font-mono uppercase tracking-widest text-slate-500 px-3 mb-2 font-semibold">Operations</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white" href="#">
+<span class="material-symbols-outlined text-[18px]">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white" href="#">
+<span class="material-symbols-outlined text-[18px]">history</span>
+<span>Match History</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold bg-[#00E5FF] text-[#0B0E14] shadow-[0_0_15px_rgba(0,229,255,0.35)]" href="#">
+<span class="material-symbols-outlined text-[18px]">layers</span>
+<span>2D Tactical Map</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white" href="#">
+<span class="material-symbols-outlined text-[18px]">query_stats</span>
+<span>Player Stats</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white" href="#">
+<span class="material-symbols-outlined text-[18px]">track_changes</span>
+<span>Grenade Lineups</span>
+</a>
+</nav>
+</div>
+</div>
+<!-- Telemetry status footer -->
+<div class="p-3 mx-3 rounded-lg bg-[#151922] border border-[#222735] flex flex-col gap-1 text-[11px] font-mono">
+<div class="flex justify-between items-center text-slate-400">
+<span>PARSER</span>
+<span class="text-slate-200">128-TICK</span>
+</div>
+<div class="flex justify-between items-center text-slate-400">
+<span>LATENCY</span>
+<span class="text-[#00E5FF]">14ms</span>
+</div>
+</div>
+</aside>
+<!-- Central Tactical Minimap & Playback Scrubber -->
+<main class="flex-1 flex flex-col bg-[#0B0E14] p-5">
+<!-- 2D Minimap Canvas Area -->
+<div class="flex-1 rounded-xl bg-[#10141D] border border-[#222735] relative overflow-hidden flex items-center justify-center min-h-[580px]">
+<svg class="w-full h-full max-w-[840px] max-h-[580px] opacity-40" fill="none" stroke="currentColor" viewbox="0 0 1000 700">
+<rect fill="#0B0E14" height="700" width="1000"></rect>
+<path d="M120,520 L260,520 L280,440 L380,440 L380,310 L280,310 L280,180 L440,180 L440,240 L560,240 L560,140 L760,140 L760,320 L860,320 L860,520 L680,520 L680,420 L520,420 L520,540 L340,540 Z" fill="#151922" stroke="#222735" stroke-width="2"></path>
+<!-- Bombsite A -->
+<polygon fill="#1B2230" points="620,240 760,240 760,360 620,360" stroke="#3B82F6" stroke-dasharray="4 4" stroke-width="1.5"></polygon>
+<text fill="#3B82F6" font-family="JetBrains Mono" font-size="24" font-weight="bold" text-anchor="middle" x="690" y="305">A SITE</text>
+<!-- Bombsite B -->
+<polygon fill="#1B2230" points="200,240 320,240 320,380 200,380" stroke="#3B82F6" stroke-dasharray="4 4" stroke-width="1.5"></polygon>
+<text fill="#3B82F6" font-family="JetBrains Mono" font-size="24" font-weight="bold" text-anchor="middle" x="260" y="315">B SITE</text>
+<!-- Tactical Connector Paths -->
+<path d="M420,540 L420,260 M560,420 L560,260 M380,380 L620,380" stroke="#374151" stroke-dasharray="6 6" stroke-width="2"></path>
+<!-- Player Pins -->
+<circle cx="560" cy="280" fill="#00E5FF" opacity="0.9" r="12"></circle>
+<circle cx="560" cy="280" opacity="0.3" r="24" stroke="#00E5FF" stroke-width="1.5"></circle>
+<circle cx="680" cy="330" fill="#F97316" opacity="0.9" r="10"></circle>
+<circle cx="300" cy="270" fill="#3B82F6" opacity="0.9" r="10"></circle>
+<circle cx="440" cy="460" fill="#3B82F6" opacity="0.9" r="10"></circle>
+</svg>
+</div>
+<!-- Playback Scrubber & Telemetry Footer -->
+<div class="h-16 mt-4 rounded-xl bg-[#10141D] border border-[#222735] px-5 flex items-center justify-between">
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<span class="font-mono text-xs font-bold text-[#00E5FF]">ROUND 24 / 24</span>
+<div class="flex-1 h-2 rounded-full bg-[#151922] overflow-hidden border border-[#222735]">
+<div class="h-full bg-[#00E5FF] w-3/4"></div>
+</div>
+<span class="font-mono text-xs text-white font-bold">00:42</span>
+</div>
+<span class="font-mono text-[11px] text-slate-500 uppercase tracking-widest font-medium">LIVE TELEMETRY STREAM // SUB-TICK 128</span>
+</div>
+</main>
+<!-- Far-Right 10-Player Roster Panel (330px width) -->
+<aside class="w-[330px] bg-[#10141D] border-l border-[#222735] p-4 flex flex-col gap-4 overflow-y-auto">
+<!-- NAVI (CT Defending) -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between border-b border-[#222735] pb-2">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></span>
+<span class="font-bold text-xs text-[#3B82F6] tracking-wider">NAVI · CT DEFENDING</span>
+</div>
+<span class="font-mono text-xs text-[#3B82F6] font-bold">$28,400</span>
+</div>
+<div class="flex flex-col gap-1.5 font-mono text-xs">
+<!-- Aleksib -->
+<div class="p-2 rounded bg-[#151922] border border-[#00E5FF]/40 flex flex-col gap-1">
+<div class="flex justify-between items-center text-slate-200 font-semibold">
+<span class="text-[#00E5FF]">Aleksib (IGL)</span>
+<span class="text-[#3B82F6]">100 HP</span>
+</div>
+<div class="w-full h-1.5 bg-[#0B0E14] rounded-full overflow-hidden">
+<div class="h-full bg-[#3B82F6] w-full"></div>
+</div>
+<div class="flex justify-between text-[10px] text-slate-400">
+<span>M4A1-S • DEFUSE</span>
+<span>$3,900</span>
+</div>
+</div>
+<!-- b1t -->
+<div class="p-2 rounded bg-[#151922] border border-[#222735] flex flex-col gap-1">
+<div class="flex justify-between items-center text-slate-200">
+<span>b1t</span>
+<span class="text-[#3B82F6]">84 HP</span>
+</div>
+<div class="w-full h-1.5 bg-[#0B0E14] rounded-full overflow-hidden">
+<div class="h-full bg-[#3B82F6] w-[84%]"></div>
+</div>
+</div>
+<!-- iM -->
+<div class="p-2 rounded bg-[#151922] border border-[#222735] flex flex-col gap-1">
+<div class="flex justify-between items-center text-slate-200">
+<span>iM</span>
+<span class="text-[#3B82F6]">62 HP</span>
+</div>
+<div class="w-full h-1.5 bg-[#0B0E14] rounded-full overflow-hidden">
+<div class="h-full bg-[#3B82F6] w-[62%]"></div>
+</div>
+</div>
+<!-- w0nderful -->
+<div class="p-2 rounded bg-[#151922] border border-[#222735] flex flex-col gap-1">
+<div class="flex justify-between items-center text-slate-200">
+<span>w0nderful</span>
+<span class="text-[#3B82F6]">100 HP</span>
+</div>
+<div class="w-full h-1.5 bg-[#0B0E14] rounded-full overflow-hidden">
+<div class="h-full bg-[#3B82F6] w-full"></div>
+</div>
+</div>
+<!-- jL -->
+<div class="p-2 rounded bg-[#151922] border border-[#222735] flex flex-col gap-1 opacity-50">
+<div class="flex justify-between items-center text-slate-400">
+<span>jL</span>
+<span class="text-rose-400">0 HP [KIA]</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Clutch Banner -->
+<div class="py-1.5 px-3 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-center font-mono text-[11px] font-bold tracking-widest uppercase">
+        ⚡ 4v4 CLUTCH STATE
+      </div>
+<!-- FaZe Clan (T Attacking) -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between border-b border-[#222735] pb-2">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#F97316]"></span>
+<span class="font-bold text-xs text-[#F97316] tracking-wider">FAZE CLAN · T ATTACKING</span>
+</div>
+<span class="font-mono text-xs text-[#F97316] font-bold">$19,850</span>
+</div>
+<div class="flex flex-col gap-1.5 font-mono text-xs">
+<!-- karrigan -->
+<div class="p-2 rounded bg-[#151922] border border-[#222735] opacity-50">
+<div class="flex justify-between items-center text-slate-400">
+<span>karrigan</span>
+<span class="text-rose-400">0 HP [KIA]</span>
+</div>
+</div>
+<!-- rain -->
+<div class="p-2 rounded bg-[#151922] border border-[#222735] opacity-50">
+<div class="flex justify-between items-center text-slate-400">
+<span>rain</span>
+<span class="text-rose-400">0 HP [KIA]</span>
+</div>
+</div>
+<!-- frozen -->
+<div class="p-2 rounded bg-[#151922] border border-[#F97316]/40 flex flex-col gap-1">
+<div class="flex justify-between items-center text-slate-200 font-semibold">
+<span class="text-[#F97316]">frozen (C4)</span>
+<span class="text-[#F97316]">78 HP</span>
+</div>
+<div class="w-full h-1.5 bg-[#0B0E14] rounded-full overflow-hidden">
+<div class="h-full bg-[#F97316] w-[78%]"></div>
+</div>
+<div class="flex justify-between text-[10px] text-slate-400">
+<span>AK-47 • C4 CARRIER</span>
+<span>$2,450</span>
+</div>
+</div>
+<!-- ropz -->
+<div class="p-2 rounded bg-[#151922] border border-[#222735] opacity-50">
+<div class="flex justify-between items-center text-slate-400">
+<span>ropz</span>
+<span class="text-rose-400">0 HP [KIA]</span>
+</div>
+</div>
+<!-- broky -->
+<div class="p-2 rounded bg-[#151922] border border-[#222735] opacity-50">
+<div class="flex justify-between items-center text-slate-400">
+<span>broky</span>
+<span class="text-rose-400">0 HP [KIA]</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</div>
+<!-- ========================================== -->
+<!-- LAYER 1: Dimmed Scrim / Backdrop Overlay  -->
+<!-- ========================================== -->
+<div class="fixed inset-0 bg-[#0B0E14]/80 backdrop-blur-[3px] z-40 transition-opacity duration-300"></div>
+<!-- ========================================== -->
+<!-- LAYER 2: Floating Centered Modal Dialog   -->
+<!-- ========================================== -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-6 md:p-8 pointer-events-auto overflow-y-auto">
+<div class="relative w-full max-w-[1180px] max-h-[901px] bg-[#151922] border-2 border-[#00E5FF] shadow-[0_0_40px_rgba(0,229,255,0.22)] rounded-xl overflow-hidden flex flex-col my-auto">
+<!-- Top Ambient Glow Line -->
+<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#00E5FF] to-transparent pointer-events-none"></div>
+<!-- 1. MODAL HEADER BAR -->
+<div class="p-4 sm:p-5 border-b border-[#222735] bg-[#10141D] flex items-center justify-between gap-4 flex-wrap">
+<div class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-[#00E5FF]">
+<span class="text-slate-400 hover:text-slate-200">2D TACTICAL MAP</span>
+<span class="text-slate-600">&gt;</span>
+<span class="text-slate-400 hover:text-slate-200">MATCH ROSTER</span>
+<span class="text-slate-600">&gt;</span>
+<span class="font-bold text-[#00E5FF]">INSPECTING: ALEKSIB (NAVI · CT)</span>
+</div>
+<div class="flex items-center gap-2.5">
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#00E5FF] hover:bg-[#9cf0ff] text-[#0B0E14] font-mono text-[11px] font-bold tracking-wider uppercase transition shadow-[0_0_15px_rgba(0,229,255,0.4)]" type="button">
+<span class="material-symbols-outlined text-[14px]">arrow_back</span>
+<span>BACK TO 2D MAP</span>
+</button>
+<button class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#151922] hover:bg-[#222735] border border-[#222735] text-slate-300 font-mono text-[11px] tracking-wider uppercase transition" type="button">
+<span class="material-symbols-outlined text-[14px]">close</span>
+<span>Close [ESC]</span>
+</button>
+</div>
+</div>
+<!-- MODAL BODY SCROLLABLE AREA -->
+<div class="p-5 md:p-6 overflow-y-auto flex flex-col gap-5">
+<!-- 2. PLAYER BIO & PRIMARY STATS ROW -->
+<div class="grid grid-cols-12 gap-4 bg-[#10141D] p-4 rounded-xl border border-[#222735] items-center">
+<!-- Player Bio Left -->
+<div class="col-span-12 lg:col-span-4 flex items-center gap-4">
+<!-- Portrait Avatar -->
+<div class="relative w-20 h-20 rounded-lg bg-[#151922] border border-[#00E5FF]/40 overflow-hidden flex-shrink-0 shadow-md">
+<img alt="Aleksib" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkYQ1Gt1dp0L0j9pX3Lsv4RAhNaNUBpq9CSf0v-1SUufHm0DjIOin_96n1WkvlDL-zQc-vQJ3pUKzpR6Wcr5nZPZFdsi0kxWXLkq0toNrDkrDkSDDkthdFXYU1GMibKB-9YViLm1cwiRaAr0MlkKZmwjir6_bUqnVeIFc_LGA8sevkF6rqylck3mo9lQ2a70fUYYErmMlO9j4ucryfBKOxh6RbFyccQ4WWhSKd5nNHADokpTe_M9ELvw"/>
+<div class="absolute bottom-0 inset-x-0 bg-[#00E5FF] py-0.5 text-center">
+<span class="font-mono text-[9px] font-bold text-[#0B0E14] uppercase tracking-wider">128-TICK</span>
+</div>
+</div>
+<!-- Details -->
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-mono text-2xl font-bold text-white tracking-wide">ALEKSIB</span>
+<span class="text-base" title="Finland">🇫🇮</span>
+</div>
+<span class="text-xs text-slate-400 font-medium">Aleksi Virolainen</span>
+<div class="mt-1 flex items-center gap-1.5 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-[#00E5FF]/15 border border-[#00E5FF]/30 text-[#00E5FF] font-mono text-[10px] font-bold uppercase tracking-wide">TACTICAL SHOT-CALLER (IGL)</span>
+<span class="px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[10px]">Tier 1 Filter: ON</span>
+</div>
+<span class="mt-1 font-mono text-[10px] text-slate-500 uppercase tracking-wider">DE_MIRAGE (Last 3 Mon)</span>
+</div>
+</div>
+<!-- Right 6 Primary Telemetry Stat Blocks -->
+<div class="col-span-12 lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+<!-- HLTV 2.1 -->
+<div class="flex flex-col justify-between p-2.5 rounded-lg bg-[#151922] border border-[#222735]">
+<span class="font-mono text-[10px] text-slate-400 uppercase tracking-wider">HLTV 2.1</span>
+<span class="font-mono text-2xl font-bold text-[#00E5FF] my-1">1.18</span>
+<span class="font-mono text-[10px] text-emerald-400 font-medium">+0.08 vs LAN</span>
+</div>
+<!-- ADR -->
+<div class="flex flex-col justify-between p-2.5 rounded-lg bg-[#151922] border border-[#222735]">
+<span class="font-mono text-[10px] text-slate-400 uppercase tracking-wider">ADR</span>
+<span class="font-mono text-2xl font-bold text-white my-1">78.4</span>
+<span class="font-mono text-[10px] text-slate-400">Avg: 73.1</span>
+</div>
+<!-- K/D RATIO -->
+<div class="flex flex-col justify-between p-2.5 rounded-lg bg-[#151922] border border-[#222735]">
+<span class="font-mono text-[10px] text-slate-400 uppercase tracking-wider">K/D RATIO</span>
+<span class="font-mono text-2xl font-bold text-[#00E5FF] my-1">1.12</span>
+<span class="font-mono text-[10px] text-slate-400">19K / 17D</span>
+</div>
+<!-- KAST -->
+<div class="flex flex-col justify-between p-2.5 rounded-lg bg-[#151922] border border-[#222735]">
+<span class="font-mono text-[10px] text-slate-400 uppercase tracking-wider">KAST</span>
+<span class="font-mono text-2xl font-bold text-emerald-400 my-1">74.2%</span>
+<span class="font-mono text-[10px] text-emerald-400 font-medium">Elite Tier</span>
+</div>
+<!-- HS % -->
+<div class="flex flex-col justify-between p-2.5 rounded-lg bg-[#151922] border border-[#222735]">
+<span class="font-mono text-[10px] text-slate-400 uppercase tracking-wider">HS %</span>
+<span class="font-mono text-2xl font-bold text-white my-1">48.5%</span>
+<span class="font-mono text-[10px] text-[#00E5FF] font-medium">Precise</span>
+</div>
+<!-- IMPACT -->
+<div class="flex flex-col justify-between p-2.5 rounded-lg bg-[#151922] border border-[#222735]">
+<span class="font-mono text-[10px] text-slate-400 uppercase tracking-wider">IMPACT</span>
+<span class="font-mono text-2xl font-bold text-[#00E5FF] my-1">1.24</span>
+<span class="font-mono text-[10px] text-emerald-400 font-medium">+0.18 Delta</span>
+</div>
+</div>
+</div>
+<!-- 3. TWO-COLUMN ANALYTICS BODY -->
+<div class="grid grid-cols-12 gap-5">
+<!-- Left Card: Tactical Profiling Vector -->
+<div class="col-span-12 lg:col-span-6 rounded-xl bg-[#10141D] border border-[#222735] p-5 flex flex-col justify-between">
+<div class="flex items-center justify-between border-b border-[#222735] pb-3 mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#00E5FF] text-[20px]">radar</span>
+<span class="font-bold text-xs uppercase tracking-wider text-white">Tactical Profiling Vector</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-[#151922] border border-[#222735] text-[#00E5FF] font-mono text-[10px] uppercase font-semibold">6-AXIS RADAR</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+<!-- Concentric SVG Spider/Radar Chart -->
+<div class="sm:col-span-6 flex items-center justify-center relative">
+<svg class="w-56 h-56" fill="none" viewbox="0 0 240 240">
+<!-- Concentric Rings -->
+<polygon fill="none" opacity="0.8" points="120,30 197,75 197,165 120,210 43,165 43,75" stroke="#222735" stroke-width="1"></polygon>
+<polygon fill="none" opacity="0.6" points="120,52 178,86 178,154 120,188 62,154 62,86" stroke="#222735" stroke-width="1"></polygon>
+<polygon fill="none" opacity="0.4" points="120,75 159,97 159,143 120,165 81,143 81,97" stroke="#222735" stroke-width="1"></polygon>
+<!-- Spokes -->
+<line stroke="#222735" stroke-width="1" x1="120" x2="120" y1="120" y2="30"></line>
+<line stroke="#222735" stroke-width="1" x1="120" x2="197" y1="120" y2="75"></line>
+<line stroke="#222735" stroke-width="1" x1="120" x2="197" y1="120" y2="165"></line>
+<line stroke="#222735" stroke-width="1" x1="120" x2="120" y1="120" y2="210"></line>
+<line stroke="#222735" stroke-width="1" x1="120" x2="43" y1="120" y2="165"></line>
+<line stroke="#222735" stroke-width="1" x1="120" x2="43" y1="120" y2="75"></line>
+<!-- Filled Player Polyline -->
+<polygon fill="#00E5FF" fill-opacity="0.2" points="120,44 182,85 174,152 120,202 52,148 64,88" stroke="#00E5FF" stroke-width="2"></polygon>
+<!-- Glowing Dots -->
+<circle cx="120" cy="44" fill="#00E5FF" r="3.5"></circle>
+<circle cx="182" cy="85" fill="#00E5FF" r="3.5"></circle>
+<circle cx="174" cy="152" fill="#00E5FF" r="3.5"></circle>
+<circle cx="120" cy="202" fill="#00E5FF" r="3.5"></circle>
+<circle cx="52" cy="148" fill="#00E5FF" r="3.5"></circle>
+<circle cx="64" cy="88" fill="#00E5FF" r="3.5"></circle>
+<!-- Labels -->
+<text fill="#00E5FF" font-family="JetBrains Mono" font-size="9" font-weight="bold" text-anchor="middle" x="120" y="22">IMPACT</text>
+<text fill="#849396" font-family="JetBrains Mono" font-size="9" text-anchor="start" x="202" y="75">OPENING</text>
+<text fill="#849396" font-family="JetBrains Mono" font-size="9" text-anchor="start" x="202" y="170">TRADE</text>
+<text fill="#00E5FF" font-family="JetBrains Mono" font-size="9" font-weight="bold" text-anchor="middle" x="120" y="226">UTILITY</text>
+<text fill="#00E5FF" font-family="JetBrains Mono" font-size="9" font-weight="bold" text-anchor="end" x="36" y="170">FLASH</text>
+<text fill="#849396" font-family="JetBrains Mono" font-size="9" text-anchor="end" x="36" y="75">CLUTCH</text>
+</svg>
+</div>
+<!-- Tabular Performance Grades -->
+<div class="sm:col-span-6 flex flex-col gap-1.5 font-mono text-xs">
+<div class="flex items-center justify-between p-2 rounded bg-[#151922] border border-[#222735]">
+<span class="text-slate-400 text-[11px]">OPENING DUELS</span>
+<div class="flex items-center gap-2">
+<span class="text-white font-bold">64.0%</span>
+<span class="px-1.5 py-0.2 rounded bg-[#00E5FF]/20 text-[#00E5FF] text-[10px] font-bold">A+</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 rounded bg-[#151922] border border-[#222735]">
+<span class="text-slate-400 text-[11px]">TRIGGER SPACING</span>
+<div class="flex items-center gap-2">
+<span class="text-emerald-400 font-bold">82.0%</span>
+<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">S</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 rounded bg-[#151922] border border-[#222735]">
+<span class="text-slate-400 text-[11px]">UTILITY DAMAGE</span>
+<div class="flex items-center gap-2">
+<span class="text-white font-bold">36.2 HP</span>
+<span class="px-1.5 py-0.2 rounded bg-[#00E5FF]/20 text-[#00E5FF] text-[10px] font-bold">A</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 rounded bg-[#151922] border border-[#222735]">
+<span class="text-slate-400 text-[11px]">FLASH ASSIST RATE</span>
+<div class="flex items-center gap-2">
+<span class="text-emerald-400 font-bold">0.42 / rnd</span>
+<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">S</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 rounded bg-[#151922] border border-[#222735]">
+<span class="text-slate-400 text-[11px]">ISL TACTICAL RATING</span>
+<div class="flex items-center gap-2">
+<span class="text-emerald-400 font-bold">88.5</span>
+<span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">S</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 rounded bg-[#151922] border border-[#222735]">
+<span class="text-slate-400 text-[11px]">1vX CLUTCH CONV.</span>
+<div class="flex items-center gap-2">
+<span class="text-slate-300 font-bold">42.0%</span>
+<span class="px-1.5 py-0.2 rounded bg-slate-700 text-slate-300 text-[10px] font-bold">B</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-3 pt-2 border-t border-[#222735] flex justify-between items-center text-[10px] font-mono text-slate-500">
+<span>// Analyzed across 1,042 competitive rounds</span>
+<span class="text-[#00E5FF]">128-SUBTICK PARSED</span>
+</div>
+</div>
+<!-- Right Card: Hitbox & Aim Mechanics -->
+<div class="col-span-12 lg:col-span-6 rounded-xl bg-[#10141D] border border-[#222735] p-5 flex flex-col justify-between">
+<div class="flex items-center justify-between border-b border-[#222735] pb-3 mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#00E5FF] text-[20px]">person_pin_circle</span>
+<span class="font-bold text-xs uppercase tracking-wider text-white">Hitbox &amp; Aim Mechanics</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-[#151922] border border-[#222735] text-[#00E5FF] font-mono text-[10px] uppercase font-semibold">2D ANATOMY REGISTRATION</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+<!-- 2D Blueprint Silhouette -->
+<div class="sm:col-span-5 flex items-center justify-center relative">
+<svg class="w-40 h-52" fill="none" viewbox="0 0 160 220">
+<!-- Head with cyan target circle -->
+<circle cx="80" cy="24" fill="#00E5FF" fill-opacity="0.25" r="14" stroke="#00E5FF" stroke-width="2"></circle>
+<circle cx="80" cy="24" fill="#00E5FF" r="5"></circle>
+<!-- Target Reticle Box -->
+<rect fill="none" height="36" stroke="#00E5FF" stroke-dasharray="3 3" stroke-width="1" width="36" x="62" y="6"></rect>
+<!-- Neck & Upper Chest -->
+<path d="M72,38 L88,38 L98,62 L62,62 Z" fill="#1B2230" stroke="#374151" stroke-width="1.2"></path>
+<!-- Torso / Chest -->
+<rect fill="#151922" height="42" rx="4" stroke="#374151" stroke-width="1.2" width="44" x="58" y="64"></rect>
+<!-- Pelvis / Stomach -->
+<path d="M60,108 L100,108 L94,134 L66,134 Z" fill="#151922" stroke="#374151" stroke-width="1.2"></path>
+<!-- Arms / Shoulders -->
+<path d="M58,64 L42,112 L48,118 L62,72" fill="#151922" stroke="#222735" stroke-width="1.2"></path>
+<path d="M102,64 L118,112 L112,118 L98,72" fill="#151922" stroke="#222735" stroke-width="1.2"></path>
+<!-- Legs -->
+<path d="M66,136 L62,204 L74,204 L80,140" fill="#151922" stroke="#222735" stroke-width="1.2"></path>
+<path d="M94,136 L98,204 L86,204 L80,140" fill="#151922" stroke="#222735" stroke-width="1.2"></path>
+<!-- Callout Lead Lines -->
+<line stroke="#00E5FF" stroke-dasharray="2 2" stroke-width="1" x1="80" x2="145" y1="24" y2="24"></line>
+<circle cx="145" cy="24" fill="#00E5FF" r="2"></circle>
+<line stroke="#849396" stroke-dasharray="2 2" stroke-width="1" x1="102" x2="145" y1="80" y2="80"></line>
+<circle cx="145" cy="80" fill="#849396" r="2"></circle>
+</svg>
+</div>
+<!-- Percentages & Telemetry Metrics -->
+<div class="sm:col-span-7 flex flex-col gap-2.5">
+<!-- Hitbox Percentages -->
+<div class="flex flex-col gap-1 font-mono">
+<div class="flex items-center justify-between text-xs">
+<span class="text-[#00E5FF] font-bold">HEADSHOT ZONE</span>
+<span class="text-[#00E5FF] font-bold">62.4%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-[#151922] overflow-hidden border border-[#222735]">
+<div class="h-full bg-[#00E5FF] rounded-full shadow-[0_0_8px_#00E5FF]" style="width: 62.4%;"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 font-mono">
+<div class="flex items-center justify-between text-xs">
+<span class="text-slate-300">CHEST / UPPER TORSO</span>
+<span class="text-slate-300 font-bold">28.3%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-[#151922] overflow-hidden border border-[#222735]">
+<div class="h-full bg-slate-400 rounded-full" style="width: 28.3%;"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 font-mono">
+<div class="flex items-center justify-between text-xs">
+<span class="text-slate-400">STOMACH / PELVIS</span>
+<span class="text-slate-400 font-bold">6.6%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-[#151922] overflow-hidden border border-[#222735]">
+<div class="h-full bg-slate-600 rounded-full" style="width: 6.6%;"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 font-mono">
+<div class="flex items-center justify-between text-xs">
+<span class="text-slate-500">LIMBS &amp; LEGS</span>
+<span class="text-slate-500 font-bold">2.7%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-[#151922] overflow-hidden border border-[#222735]">
+<div class="h-full bg-slate-700 rounded-full" style="width: 2.7%;"></div>
+</div>
+</div>
+<!-- Aim Reaction Metrics (2x2 Grid) -->
+<div class="grid grid-cols-2 gap-2 pt-2 font-mono">
+<div class="p-2 rounded bg-[#151922] border border-[#222735] flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase">Reaction Speed</span>
+<span class="text-xs font-bold text-[#00E5FF]">184ms <span class="text-[10px] text-emerald-400 font-normal">(Top 5%)</span></span>
+</div>
+<div class="p-2 rounded bg-[#151922] border border-[#222735] flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase">Headlock Offset</span>
+<span class="text-xs font-bold text-white">4.1° <span class="text-[10px] text-emerald-400 font-normal">(Precise)</span></span>
+</div>
+<div class="p-2 rounded bg-[#151922] border border-[#222735] flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase">Pre-Fire Contact</span>
+<span class="text-xs font-bold text-white">81.2% <span class="text-[10px] text-[#00E5FF] font-normal">(High)</span></span>
+</div>
+<div class="p-2 rounded bg-[#151922] border border-[#222735] flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase">First 5-Bullets</span>
+<span class="text-xs font-bold text-emerald-400">88.0% <span class="text-[10px] text-emerald-400 font-normal">(Elite)</span></span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-3 pt-2 border-t border-[#222735] flex justify-between items-center text-[10px] font-mono text-slate-500">
+<span>// Calibrated via collision mesh</span>
+<span class="text-[#00E5FF]">SUB-TICK DELTA: 0.4ms</span>
+</div>
+</div>
+</div>
+<!-- 4. MODAL BOTTOM SECTION: MATCH MICRO-DUELS -->
+<div class="rounded-xl bg-[#10141D] border border-[#222735] p-5 flex flex-col gap-3">
+<!-- Section Header & Filter Tabs -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#222735] pb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#00E5FF] text-[20px]">swords</span>
+<span class="font-bold text-xs uppercase tracking-wider text-white">Match Micro-Duels (Rounds 1 - 24)</span>
+</div>
+<!-- Filter Chips -->
+<div class="flex items-center gap-2 flex-wrap">
+<button class="px-3 py-1 rounded-full bg-[#00E5FF] text-[#0B0E14] font-mono text-[11px] font-bold uppercase tracking-wider shadow-[0_0_12px_rgba(0,229,255,0.3)]" type="button">All Duels (18)</button>
+<button class="px-3 py-1 rounded-full bg-[#151922] hover:bg-[#222735] border border-[#222735] text-slate-400 hover:text-white font-mono text-[11px] uppercase tracking-wider transition" type="button">Opening Duels (6)</button>
+<button class="px-3 py-1 rounded-full bg-[#151922] hover:bg-[#222735] border border-[#222735] text-slate-400 hover:text-white font-mono text-[11px] uppercase tracking-wider transition" type="button">Clutch Encounters (5)</button>
+<button class="px-3 py-1 rounded-full bg-[#151922] hover:bg-[#222735] border border-[#222735] text-slate-400 hover:text-white font-mono text-[11px] uppercase tracking-wider transition" type="button">Trades (11)</button>
+</div>
+</div>
+<!-- Micro-Duels Log Table -->
+<div class="flex flex-col gap-2 font-mono text-xs">
+<!-- Entry 1 -->
+<div class="grid grid-cols-12 items-center p-2.5 rounded-lg bg-[#151922] border border-[#222735] hover:border-[#00E5FF]/40 transition gap-2">
+<div class="col-span-12 sm:col-span-3 flex items-center gap-2">
+<span class="px-1.5 py-0.5 rounded bg-[#10141D] border border-[#222735] text-[#00E5FF] font-bold text-[11px]">R12</span>
+<span class="text-slate-400 text-xs">01:14</span>
+<span class="text-slate-200">vs <span class="font-bold text-[#F97316]">ropz</span> (AK-47)</span>
+</div>
+<div class="col-span-6 sm:col-span-3 flex items-center gap-1.5 text-slate-400 text-xs">
+<span class="material-symbols-outlined text-[15px] text-[#00E5FF]">location_on</span>
+<span>Connector</span>
+</div>
+<div class="col-span-6 sm:col-span-3 flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-[10px] tracking-wide">WON (+100 HP)</span>
+<span class="text-slate-300 text-xs">M4A1-S</span>
+</div>
+<div class="col-span-12 sm:col-span-3 flex items-center justify-end">
+<span class="px-2 py-0.5 rounded bg-[#10141D] text-emerald-400 text-[11px]">Headshot 36ms</span>
+</div>
+</div>
+<!-- Entry 2 -->
+<div class="grid grid-cols-12 items-center p-2.5 rounded-lg bg-[#151922] border border-[#222735] hover:border-[#00E5FF]/40 transition gap-2">
+<div class="col-span-12 sm:col-span-3 flex items-center gap-2">
+<span class="px-1.5 py-0.5 rounded bg-[#10141D] border border-[#222735] text-[#00E5FF] font-bold text-[11px]">R18</span>
+<span class="text-slate-400 text-xs">00:48</span>
+<span class="text-slate-200">vs <span class="font-bold text-[#F97316]">karrigan</span> (Galil)</span>
+</div>
+<div class="col-span-6 sm:col-span-3 flex items-center gap-1.5 text-slate-400 text-xs">
+<span class="material-symbols-outlined text-[15px] text-[#00E5FF]">location_on</span>
+<span>A Site Ramp</span>
+</div>
+<div class="col-span-6 sm:col-span-3 flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-[10px] tracking-wide">WON (+42 HP)</span>
+<span class="text-slate-300 text-xs">M4A1-S</span>
+</div>
+<div class="col-span-12 sm:col-span-3 flex items-center justify-end">
+<span class="px-2 py-0.5 rounded bg-[#10141D] text-[#00E5FF] text-[11px]">Spray Transfer</span>
+</div>
+</div>
+<!-- Entry 3 -->
+<div class="grid grid-cols-12 items-center p-2.5 rounded-lg bg-[#151922] border border-[#222735] hover:border-[#00E5FF]/40 transition gap-2">
+<div class="col-span-12 sm:col-span-3 flex items-center gap-2">
+<span class="px-1.5 py-0.5 rounded bg-[#10141D] border border-[#222735] text-slate-400 font-bold text-[11px]">R21</span>
+<span class="text-slate-400 text-xs">00:32</span>
+<span class="text-slate-200">vs <span class="font-bold text-[#F97316]">broky</span> (AWP)</span>
+</div>
+<div class="col-span-6 sm:col-span-3 flex items-center gap-1.5 text-slate-400 text-xs">
+<span class="material-symbols-outlined text-[15px] text-[#00E5FF]">location_on</span>
+<span>Mid Snipers Nest</span>
+</div>
+<div class="col-span-6 sm:col-span-3 flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-rose-500/20 border border-rose-500/30 text-rose-400 font-bold text-[10px] tracking-wide">broky WON</span>
+<span class="text-slate-400 text-xs">Trade Frag</span>
+</div>
+<div class="col-span-12 sm:col-span-3 flex items-center justify-end">
+<span class="px-2 py-0.5 rounded bg-[#10141D] text-rose-400 text-[11px]">AWP Wallbang</span>
+</div>
+</div>
+<!-- Entry 4 -->
+<div class="grid grid-cols-12 items-center p-2.5 rounded-lg bg-[#151922] border border-[#222735] hover:border-[#00E5FF]/40 transition gap-2">
+<div class="col-span-12 sm:col-span-3 flex items-center gap-2">
+<span class="px-1.5 py-0.5 rounded bg-[#00E5FF] text-[#0B0E14] font-bold text-[11px] animate-pulse">R24</span>
+<span class="text-[#00E5FF] text-xs font-bold">00:42</span>
+<span class="text-slate-200">vs <span class="font-bold text-[#F97316]">frozen</span> (AK-47 / C4)</span>
+</div>
+<div class="col-span-6 sm:col-span-3 flex items-center gap-1.5 text-slate-400 text-xs">
+<span class="material-symbols-outlined text-[15px] text-[#00E5FF]">location_on</span>
+<span>A Palace</span>
+</div>
+<div class="col-span-6 sm:col-span-3 flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-[#10141D] border border-[#222735] text-[#00E5FF] font-bold text-[10px] tracking-wide">IN PROGRESS</span>
+<span class="text-slate-400 text-xs">Range: 14.2m</span>
+</div>
+<div class="col-span-12 sm:col-span-3 flex items-center justify-end">
+<span class="px-2 py-0.5 rounded bg-[#10141D] text-[#00E5FF] text-[11px]">Peeking Advantage</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- MODAL FOOTER STATUS BAR -->
+<div class="p-3 px-6 bg-[#10141D] border-t border-[#222735] flex items-center justify-between text-[11px] font-mono text-slate-400">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+<span class="text-slate-300">LIVE TELEMETRY STREAM // SUB-TICK VERIFIED</span>
+</div>
+<div class="flex items-center gap-4">
+<span>PARSER ENGINE: <span class="text-[#00E5FF] font-semibold">v2.4-PRO</span></span>
+<span>•</span>
+<span>LATENCY: <span class="text-emerald-400 font-semibold">14ms</span></span>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Simple dismissal handling for ESC key & modal action buttons
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      window.history.back();
+    }
+  });
+</script>
+</body></html>

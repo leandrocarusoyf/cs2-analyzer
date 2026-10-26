@@ -54,11 +54,11 @@ describe('Ingestion and deletion with isolated PostgreSQL tables',()=>{
   const players=interpolateSnapshotFrames(replay.rounds[0].tacticalFrames,100,'de_inferno',meta);
   expect(players.map(p=>p.name)).toEqual(['Alpha','Beta']);expect(players.map(p=>p.team)).toEqual(['CT','T']);
  });
- it('preserves the source demo and database on a failed transaction',async()=>{
+ it('removes the source demo and rolls back a failed transaction',async()=>{
   const file=path.join(dir,'failure.dem');await writeFile(file,JSON.stringify(base));
   const client={query:vi.fn(async(sql:string)=>{if(sql.includes('INSERT INTO matches'))throw new Error('simulated database failure');return {rows:[]}})};
   await expect(processDemoFile(file,{dbClient:client,replaysBaseDir:dir,logsDir:dir,skipAssets:true})).rejects.toThrow('simulated');
-  await expect(access(file)).resolves.toBeUndefined();expect(client.query.mock.calls.some(([sql])=>sql==='ROLLBACK')).toBe(true);
+  await expect(access(file)).rejects.toThrow();expect(client.query.mock.calls.some(([sql])=>sql==='ROLLBACK')).toBe(true);
  });
  it('infers roles from live positions and ignores dead/freeze samples',()=>{
   const replay={map:'de_inferno',tickrate:64,rounds:base.rounds};const spatial=analyzeSpatial(replay,{id:1,steamId:'1001',name:'Alpha',initialTeam:'CT'});
@@ -67,7 +67,9 @@ describe('Ingestion and deletion with isolated PostgreSQL tables',()=>{
  });
  it('rejects traversal and physically removes the registered series files',async()=>{
   const bad=await DELETE(new Request('http://localhost'),{params:Promise.resolve({id:'../secret'})});expect(bad.status).toBe(400);
-  const files=(await testPool.query('SELECT replay_path,demo_path FROM match_maps')).rows.flatMap(r=>[r.replay_path,r.demo_path]);
+  const storedMaps=(await testPool.query('SELECT replay_path,demo_path FROM match_maps')).rows;
+  expect(storedMaps.every(r=>r.demo_path===null)).toBe(true);
+  const files=storedMaps.flatMap(r=>[r.replay_path,r.demo_path]).filter(Boolean);
   const res=await DELETE(new Request('http://localhost'),{params:Promise.resolve({id:seriesId})});expect(res.status).toBe(200);
   expect((await testPool.query('SELECT * FROM matches')).rows).toHaveLength(0);expect((await testPool.query('SELECT * FROM player_stats')).rows).toHaveLength(0);
   for(const file of files)await expect(access(file)).rejects.toThrow();

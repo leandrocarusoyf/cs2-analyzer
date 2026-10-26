@@ -12,9 +12,15 @@ export interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname() ?? '';
+  const isHomeRoute = pathname === '/' || pathname === '/home';
+  const isTacticalMapRoute = pathname.startsWith('/tactical-map');
   const isReplayerRoute = pathname.startsWith('/replayer');
   const isLeaderboardsRoute = pathname.startsWith('/leaderboards');
   const isStatsRoute = pathname.startsWith('/stats');
+
+  if (isHomeRoute || isTacticalMapRoute) {
+    return <>{children}</>;
+  }
 
   if (isReplayerRoute) {
     return (

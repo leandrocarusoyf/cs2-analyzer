@@ -21,11 +21,19 @@ describe('Sidebar Component Integration (EDGE/Skybox Design System)', () => {
     cleanup();
   });
 
-  it('deve renderizar o logo display itálico "CS2 ANALYZER", badge "v0.1.0" e grupos slash de navegação', () => {
+  it('deve renderizar o logo display itálico "CS2 ANALYZER", badge "v0.1.0" apontando para a Home (/) com feedback tático', () => {
     render(<Sidebar />);
 
-    expect(screen.getByText('CS2 ANALYZER')).toBeTruthy();
+    const logoText = screen.getByText('CS2 ANALYZER');
+    expect(logoText).toBeTruthy();
     expect(screen.getByText('v0.1.0')).toBeTruthy();
+
+    // O contêiner de logo e versão deve ser um link para a Home (/)
+    const logoLink = logoText.closest('a');
+    expect(logoLink).toBeTruthy();
+    expect(logoLink?.getAttribute('href')).toBe('/');
+    expect(logoLink?.className).toContain('hover:border-cyan-400');
+    expect(logoLink?.className).toContain('hover:shadow-[0_0_15px_rgba(0,240,255,0.25)]');
 
     // Rótulos de grupo no padrão / GRP
     expect(screen.getByText('GAMES')).toBeTruthy();
@@ -57,4 +65,3 @@ describe('Sidebar Component Integration (EDGE/Skybox Design System)', () => {
     expect(replayerLink.getAttribute('data-active')).toBe('true');
   });
 });
-

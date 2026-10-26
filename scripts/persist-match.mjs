@@ -6,7 +6,7 @@ export function stableUuid(seed) {
 }
 
 // Caller owns the transaction and the series advisory lock.
-export async function persistMatch(client, { matchRecord: m, rawDemo, playerStats, replayPath, demoPath, targetMatchId, mapIdentifier }) {
+export async function persistMatch(client, { matchRecord: m, rawDemo, playerStats, advancedStats, matchDuels, replayPath, demoPath, targetMatchId, mapIdentifier }) {
   const id = targetMatchId;
   const existing = (await client.query('SELECT * FROM matches WHERE id = $1 FOR UPDATE', [id])).rows[0];
   const team1 = existing?.team1 ?? m.team_ct_name;
@@ -25,9 +25,102 @@ export async function persistMatch(client, { matchRecord: m, rawDemo, playerStat
     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
     [mapId,id,mapKey,mapNumber,m.map_name,...scores,Math.round(rawDemo.rounds.reduce((sum,r)=>sum+(r.endTick-r.startTick)/(rawDemo.tickrate||64),0)),replayPath,demoPath,m.demo_hash]);
   for (const p of playerStats) {
-    await client.query(`INSERT INTO player_stats(match_id,map_id,player_steamid,nickname,team,rating,adr,kast,kills,deaths,assists,ttd,ttk,fsp,metrics_json)
-      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
-      [id,mapId,p.steamId,p.name,p.teamName || (p.initialTeam === rawDemo.team1StartingSide ? m.team_ct_name : m.team_t_name),p.metrics.hltv.overall,p.metrics.adr.overall,p.metrics.kast.overall,p.kills,p.deaths,p.assists,p.ttd,p.ttk,p.fsp,p.metricsJson]);
+    await client.query(`INSERT INTO player_stats(match_id,map_id,player_steamid,nickname,team,rating,adr,kast,kills,deaths,assists,ttd,ttk,metrics_json)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+      [id,mapId,p.steamId,p.name,p.teamName || (p.initialTeam === rawDemo.team1StartingSide ? m.team_ct_name : m.team_t_name),p.metrics.hltv.overall,p.metrics.adr.overall,p.metrics.kast.overall,p.kills,p.deaths,p.assists,p.ttd,p.ttk,p.metricsJson]);
+  }
+  const advList = Array.isArray(advancedStats)
+    ? advancedStats
+    : (playerStats || []).map((p) => p.advancedStats).filter(Boolean);
+  for (const adv of advList) {
+    await client.query(
+      `INSERT INTO player_advanced_stats (
+        match_id, steamid, hltv_rating, adr, kast, impact, hs_percent,
+        hit_head_pct, hit_chest_pct, hit_stomach_pct, hit_limbs_pct,
+        reaction_time_ms, headlock_offset, first_5_bullets_pct, prefire_pct,
+        score_opening, score_trade, score_utility, score_flash, score_clutch, he_damage
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7,
+        $8, $9, $10, $11,
+        $12, $13, $14, $15,
+        $16, $17, $18, $19, $20, $21
+      )
+      ON CONFLICT (match_id, steamid) DO UPDATE SET
+        hltv_rating = EXCLUDED.hltv_rating,
+        adr = EXCLUDED.adr,
+        kast = EXCLUDED.kast,
+        impact = EXCLUDED.impact,
+        hs_percent = EXCLUDED.hs_percent,
+        hit_head_pct = EXCLUDED.hit_head_pct,
+        hit_chest_pct = EXCLUDED.hit_chest_pct,
+        hit_stomach_pct = EXCLUDED.hit_stomach_pct,
+        hit_limbs_pct = EXCLUDED.hit_limbs_pct,
+        reaction_time_ms = EXCLUDED.reaction_time_ms,
+        headlock_offset = EXCLUDED.headlock_offset,
+        first_5_bullets_pct = EXCLUDED.first_5_bullets_pct,
+        prefire_pct = EXCLUDED.prefire_pct,
+        score_opening = EXCLUDED.score_opening,
+        score_trade = EXCLUDED.score_trade,
+        score_utility = EXCLUDED.score_utility,
+        score_flash = EXCLUDED.score_flash,
+        score_clutch = EXCLUDED.score_clutch,
+        he_damage = EXCLUDED.he_damage`,
+      [
+        id,
+        adv.steamid,
+        adv.hltv_rating ?? null,
+        adv.adr ?? null,
+        adv.kast ?? null,
+        adv.impact ?? null,
+        adv.hs_percent ?? null,
+        adv.hit_head_pct ?? 0,
+        adv.hit_chest_pct ?? 0,
+        adv.hit_stomach_pct ?? 0,
+        adv.hit_limbs_pct ?? 0,
+        adv.reaction_time_ms ?? null,
+        adv.headlock_offset ?? null,
+        adv.first_5_bullets_pct ?? 0,
+        adv.prefire_pct ?? 0,
+        adv.score_opening ?? 0,
+        adv.score_trade ?? 0,
+        adv.score_utility ?? 0,
+        adv.score_flash ?? 0,
+        adv.score_clutch ?? 0,
+        adv.he_damage ?? 0,
+      ],
+    );
+  }
+  await client.query('DELETE FROM match_duels WHERE match_id = $1', [id]);
+  for (let dIdx = 0; dIdx < (matchDuels || []).length; dIdx++) {
+    const dl = matchDuels[dIdx];
+    const duelId =
+      dl.id ||
+      stableUuid(
+        `${id}:${mapKey}:duel:${dl.round_number}:${dIdx}:${dl.winner_steamid}:${dl.loser_steamid}`,
+      );
+    await client.query(
+      `INSERT INTO match_duels (
+        id, match_id, round_number, round_time,
+        winner_steamid, loser_steamid, winner_weapon, loser_weapon,
+        winner_hp_remaining, map_zone, is_opening, is_trade, is_clutch, duel_tag
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      [
+        duelId,
+        id,
+        dl.round_number,
+        dl.round_time ?? null,
+        dl.winner_steamid,
+        dl.loser_steamid,
+        dl.winner_weapon ?? null,
+        dl.loser_weapon ?? null,
+        dl.winner_hp_remaining ?? null,
+        dl.map_zone ?? null,
+        Boolean(dl.is_opening),
+        Boolean(dl.is_trade),
+        Boolean(dl.is_clutch),
+        dl.duel_tag ?? null,
+      ],
+    );
   }
   const maps = (await client.query('SELECT * FROM match_maps WHERE match_id=$1 ORDER BY map_number', [id])).rows;
   const series = Boolean(mapIdentifier) || maps.length > 1;

@@ -134,7 +134,7 @@ describe('Pipeline de Ingestão de Demos (PostgreSQL Local + .bin.gz + Exclusão
     expect(res.matchRecord.map_name).toBe('de_nuke');
     expect(res.matchRecord.team_ct_name).toBe('Vitality');
     expect(res.matchRecord.team_t_name).toBe('MOUZ');
-    expect(await exists(demPath)).toBe(true);
+    expect(await exists(demPath)).toBe(false);
     expect(await exists(path.join(publicDir, 'teams', 'vitality.svg'))).toBe(true);
     expect(await exists(path.join(publicDir, 'teams', 'mouz.svg'))).toBe(true);
     expect(await exists(path.join(publicDir, 'players', 'zywoo.png'))).toBe(true);
@@ -328,7 +328,7 @@ describe('Pipeline de Ingestão de Demos (PostgreSQL Local + .bin.gz + Exclusão
     expect(insertedMatch.values).toContain('Aurora');
 
     // Validação cinemática: TTD deve ser null (sem LoS mockado de 250ms) e TTK deve refletir a rajada real (~203ms)
-    const ksceratoStats = res.playerStats.find((p) => p.name === 'KSCERATO');
+    const ksceratoStats = res.playerStats.find((p: any) => p.name === 'KSCERATO');
     expect(ksceratoStats).toBeTruthy();
     expect(ksceratoStats?.ttd).toBeNull();
     expect(ksceratoStats?.ttk).toBe(203);
@@ -349,6 +349,92 @@ describe('Pipeline de Ingestão de Demos (PostgreSQL Local + .bin.gz + Exclusão
     expect(auditCalls).toHaveLength(23);
     expect(auditCalls[0]).toContain('Round 1: Aurora (CT) venceu | Placar: FURIA 0 x 1 Aurora');
     expect(auditCalls[22]).toContain('Round 23: FURIA (CT) venceu | Placar: FURIA 13 x 10 Aurora');
+
+    const duelLogs = consoleSpy.mock.calls
+      .map((c) => String(c[0]))
+      .filter((msg) => msg.startsWith('[duels] '));
+    expect(duelLogs.length).toBeGreaterThan(0);
+    for (const logLine of duelLogs) {
+      expect(logLine).not.toContain('fsp=');
+      expect(logLine).toMatch(
+        /^\[duels\] .+ \(.+\): recebidos=\d+ válidos=\d+ descartados=\d+ ttd=(?:\d+|null)ms ttk=(?:\d+|null)ms$/,
+      );
+    }
+
+    consoleSpy.mockRestore();
+  });
+
+  it('calcula TTD real (ms) a partir de engagement_start_tick (weapon_fire / visibilidade) e descarta outliers (> 3000ms)', async () => {
+    const demPath = path.join(tmpDir, 'ttd-real-calc.dem');
+    await writeFile(demPath, Buffer.from('HL2DEMO_TTD_TEST', 'utf8'));
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    const mockParser = {
+      parseHeader: vi.fn().mockReturnValue({
+        map_name: 'de_inferno',
+        tickrate: 64,
+        team_ct_name: 'FURIA',
+        team_t_name: 'Aurora',
+      }),
+      parseEvent: vi.fn((_path: string, eventName: string) => {
+        if (eventName === 'round_announce_match_start') return [{ tick: 1000 }];
+        if (eventName === 'round_freeze_end') return [{ tick: 1100 }];
+        if (eventName === 'round_end') {
+          return [{ round: 1, tick: 3000, winner: 3, reason: 'ct_win_elimination' }];
+        }
+        if (eventName === 'weapon_fire') {
+          return [
+            // Disparo inicial de KSCERATO no tick 2000 (16 ticks = 250ms antes do primeiro player_hurt em 2016)
+            { tick: 2000, user_steamid: '76561198058500492', weapon: 'weapon_ak47' },
+            { tick: 2016, user_steamid: '76561198058500492', weapon: 'weapon_ak47' },
+            { tick: 2032, user_steamid: '76561198058500492', weapon: 'weapon_ak47' },
+          ];
+        }
+        if (eventName === 'player_hurt') {
+          return [
+            { tick: 2016, attacker_steamid: '76561198058500492', user_steamid: '76561198044118796', dmg_health: 27, hitgroup: 'chest' },
+            { tick: 2032, attacker_steamid: '76561198058500492', user_steamid: '76561198044118796', dmg_health: 100, hitgroup: 'head' },
+          ];
+        }
+        if (eventName === 'player_death') {
+          return [
+            { tick: 2032, attacker_steamid: '76561198058500492', user_steamid: '76561198044118796', weapon_id: 7, headshot: true },
+          ];
+        }
+        return [];
+      }),
+      parseTicks: vi.fn().mockReturnValue([
+        { steamid: '76561198058500492', name: 'KSCERATO', team_num: 3, team_clan_name: 'FURIA', tick: 1200 },
+        { steamid: '76561198044118796', name: 'XANTARES', team_num: 2, team_clan_name: 'Aurora', tick: 1200 },
+      ]),
+    };
+
+    const res = await processDemoFile(demPath, {
+      demoparser: mockParser,
+      skipDb: true,
+      replaysBaseDir: path.join(tmpDir, 'replays'),
+      storeFilePath: null,
+      skipAssets: true,
+    });
+
+    const kscerato = res.playerStats.find((p: any) => p.name === 'KSCERATO');
+    expect(kscerato).toBeTruthy();
+    // (2016 - 2000) * (1 / 64) * 1000 = 250ms
+    expect(kscerato?.ttd).toBe(250);
+    // (2032 - 2016) * (1 / 64) * 1000 = 250ms
+    expect(kscerato?.ttk).toBe(250);
+    expect('fsp' in (kscerato || {})).toBe(false);
+    expect('global_avg_fsp_pct' in res.matchRecord).toBe(false);
+    expect(res.matchRecord.global_avg_ttd_ms).toBe(250);
+    expect(res.matchRecord.global_avg_ttk_ms).toBe(250);
+
+    const ksceratoLog = consoleSpy.mock.calls
+      .map((c) => String(c[0]))
+      .find((msg) => msg.startsWith('[duels] KSCERATO'));
+    expect(ksceratoLog).toBe(
+      '[duels] KSCERATO (76561198058500492): recebidos=1 válidos=1 descartados=0 ttd=250ms ttk=250ms',
+    );
 
     consoleSpy.mockRestore();
   });

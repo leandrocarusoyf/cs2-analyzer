@@ -1,5 +1,11 @@
 import { query } from '../db.ts';
-import type { RecentMatchTelemetry } from '../../types/stats.ts';
+import type {
+  RecentMatchTelemetry,
+  PlayerAdvancedStatsRow,
+  MatchDuelRow,
+  MatchInspectFilters,
+  PlayerMatchInspectPayload,
+} from '../../types/stats.ts';
 import type { LeaderboardPlayer, PlayerMapStats } from '../../data/leaderboards-data.ts';
 
 export interface DbPlayerStat {
@@ -17,7 +23,6 @@ export interface DbPlayerStat {
   assists: number;
   ttd: number | null;
   ttk: number | null;
-  fsp: number | null;
   metrics_json?: Record<string, any> | null;
 }
 
@@ -62,6 +67,7 @@ export interface PlayerPerformanceResult {
   nickname: string;
   team: string;
   matchesCount: number;
+  totalRounds?: number;
   currentRating: number;
   adr: number;
   kd: number;
@@ -70,7 +76,6 @@ export interface PlayerPerformanceResult {
   kastPct: number;
   ttd: number | null;
   ttk: number | null;
-  fsp: number | null;
   history: Array<{
     matchId: string;
     mapName: string;
@@ -84,9 +89,16 @@ export interface PlayerPerformanceResult {
     deaths: number;
     ttd: number | null;
     ttk: number | null;
-    fsp: number | null;
   }>;
   telemetry: RecentMatchTelemetry[];
+  roles?: {
+    ct?: string | null;
+    t?: string | null;
+    primary?: string | null;
+  };
+  ctRoles?: any[];
+  tRoles?: any[];
+  advancedStats?: PlayerAdvancedStatsRow | null;
 }
 
 function normalizeTeamSlug(name: string): string {
@@ -186,7 +198,6 @@ export async function getRecentMatches(limit = 10): Promise<MatchWithDetails[]> 
         assists,
         ttd,
         ttk,
-        fsp,
         metrics_json
       FROM player_stats
       WHERE match_id = ANY($1::uuid[])
@@ -216,7 +227,6 @@ export async function getRecentMatches(limit = 10): Promise<MatchWithDetails[]> 
         kast: p.kast !== null && p.kast !== undefined ? Number(p.kast) : null,
         ttd: p.ttd !== null && p.ttd !== undefined ? Number(p.ttd) : null,
         ttk: p.ttk !== null && p.ttk !== undefined ? Number(p.ttk) : null,
-        fsp: p.fsp !== null && p.fsp !== undefined ? Number(p.fsp) : null,
         metrics_json: parsedMetrics,
       });
       playersByMatch.set(p.match_id, list);
@@ -346,7 +356,6 @@ export async function getMatchById(id: string): Promise<MatchWithDetails | null>
         assists,
         ttd,
         ttk,
-        fsp,
         metrics_json
       FROM player_stats
       WHERE match_id = $1::uuid
@@ -374,7 +383,6 @@ export async function getMatchById(id: string): Promise<MatchWithDetails | null>
         kast: p.kast !== null && p.kast !== undefined ? Number(p.kast) : null,
         ttd: p.ttd !== null && p.ttd !== undefined ? Number(p.ttd) : null,
         ttk: p.ttk !== null && p.ttk !== undefined ? Number(p.ttk) : null,
-        fsp: p.fsp !== null && p.fsp !== undefined ? Number(p.fsp) : null,
         metrics_json: parsedMetrics,
       };
     });
@@ -442,7 +450,6 @@ export async function getPlayerPerformance(
         ps.assists,
         ps.ttd,
         ps.ttk,
-        ps.fsp,
         ps.metrics_json,
         m.match_date,
         m.team1,
@@ -475,7 +482,6 @@ export async function getPlayerPerformance(
     let totalKast = 0;
     let ttdSamples: number[] = [];
     let ttkSamples: number[] = [];
-    let fspSamples: number[] = [];
 
     const history: PlayerPerformanceResult['history'] = [];
     const telemetry: RecentMatchTelemetry[] = [];
@@ -488,7 +494,6 @@ export async function getPlayerPerformance(
       const kast = row.kast !== null && row.kast !== undefined ? Number(row.kast) : 0;
       const ttd = row.ttd !== null && row.ttd !== undefined ? Number(row.ttd) : null;
       const ttk = row.ttk !== null && row.ttk !== undefined ? Number(row.ttk) : null;
-      const fsp = row.fsp !== null && row.fsp !== undefined ? Number(row.fsp) : null;
 
       totalRounds += Number(row.rounds_t1 || 0) + Number(row.rounds_t2 || 0);
       totalRating += rating;
@@ -498,7 +503,6 @@ export async function getPlayerPerformance(
       totalKast += kast;
       if (ttd !== null) ttdSamples.push(ttd);
       if (ttk !== null) ttkSamples.push(ttk);
-      if (fsp !== null) fspSamples.push(fsp);
 
       const isTeam1 = row.team === row.team1;
       const teamScore = isTeam1 ? Number(row.rounds_t1 ?? row.score_t1 ?? 0) : Number(row.rounds_t2 ?? row.score_t2 ?? 0);
@@ -576,7 +580,6 @@ export async function getPlayerPerformance(
         deaths,
         ttd,
         ttk,
-        fsp,
       });
 
       telemetry.push({
@@ -604,13 +607,142 @@ export async function getPlayerPerformance(
 
     const avgTtd = ttdSamples.length > 0 ? Math.round(ttdSamples.reduce((a, b) => a + b, 0) / ttdSamples.length) : null;
     const avgTtk = ttkSamples.length > 0 ? Math.round(ttkSamples.reduce((a, b) => a + b, 0) / ttkSamples.length) : null;
-    const avgFsp = fspSamples.length > 0 ? Number((fspSamples.reduce((a, b) => a + b, 0) / fspSamples.length).toFixed(2)) : null;
+
+    const ctRoles: Array<{
+      id: string;
+      side: 'ct' | 't';
+      role: string;
+      map: string;
+      hltv: number;
+      adr: number;
+      kd: number;
+      kpr: number;
+      rounds: number;
+    }> = [];
+
+    const tRoles: Array<{
+      id: string;
+      side: 'ct' | 't';
+      role: string;
+      map: string;
+      hltv: number;
+      adr: number;
+      kd: number;
+      kpr: number;
+      rounds: number;
+    }> = [];
+
+    for (const row of rows) {
+      const cleanMap = (row.map_name || 'inferno').replace('de_', '').replace(/^./, (c: string) => c.toUpperCase());
+      const parsedMetrics =
+        typeof row.metrics_json === 'string'
+          ? (() => {
+              try {
+                return JSON.parse(row.metrics_json);
+              } catch {
+                return {};
+              }
+            })()
+          : row.metrics_json || {};
+
+      const ctRoleName = parsedMetrics?.roles?.ct || `${cleanMap} B Anchor`;
+      const tRoleName = parsedMetrics?.roles?.t || `${cleanMap} Mid Lurker`;
+      const ctRounds = Number(row.rounds_t1 || Math.round(totalRounds / 2) || 12);
+      const tRounds = Number(row.rounds_t2 || Math.round(totalRounds / 2) || 12);
+
+      ctRoles.push({
+        id: `ct-${row.id || row.match_id}-${row.map_id || cleanMap}`,
+        side: 'ct',
+        role: String(ctRoleName).replace(/^de_\w+\s+/i, '').replace(/^[A-Za-z0-9]+\s+/, ''),
+        map: cleanMap,
+        hltv: Number(parsedMetrics?.hltv?.ct ?? row.rating ?? 1.0),
+        adr: Number(parsedMetrics?.adr?.ct ?? row.adr ?? 75.0),
+        kd: Number(parsedMetrics?.kd?.ct ?? (row.deaths > 0 ? Number((row.kills / row.deaths).toFixed(2)) : 1.0)),
+        kpr: Number(parsedMetrics?.kpr?.ct ?? Number((row.kills / Math.max(1, ctRounds)).toFixed(2))),
+        rounds: ctRounds,
+      });
+
+      tRoles.push({
+        id: `t-${row.id || row.match_id}-${row.map_id || cleanMap}`,
+        side: 't',
+        role: String(tRoleName).replace(/^de_\w+\s+/i, '').replace(/^[A-Za-z0-9]+\s+/, ''),
+        map: cleanMap,
+        hltv: Number(parsedMetrics?.hltv?.t ?? row.rating ?? 1.0),
+        adr: Number(parsedMetrics?.adr?.t ?? row.adr ?? 75.0),
+        kd: Number(parsedMetrics?.kd?.t ?? (row.deaths > 0 ? Number((row.kills / row.deaths).toFixed(2)) : 1.0)),
+        kpr: Number(parsedMetrics?.kpr?.t ?? Number((row.kills / Math.max(1, tRounds)).toFixed(2))),
+        rounds: tRounds,
+      });
+    }
+
+    let advancedStats: PlayerAdvancedStatsRow | null = null;
+    try {
+      const advRes = await query(
+        `SELECT * FROM player_advanced_stats WHERE steamid = $1 ORDER BY id DESC LIMIT 1`,
+        [latest.player_steamid],
+      );
+      if (advRes?.rows?.length > 0) {
+        const adv = advRes.rows[0];
+        advancedStats = {
+          match_id: adv.match_id,
+          steamid: adv.steamid,
+          hltv_rating: adv.hltv_rating != null ? Number(adv.hltv_rating) : null,
+          adr: adv.adr != null ? Number(adv.adr) : null,
+          kast: adv.kast != null ? Number(adv.kast) : null,
+          impact: adv.impact != null ? Number(adv.impact) : null,
+          hs_percent: adv.hs_percent != null ? Number(adv.hs_percent) : null,
+          hit_head_pct: adv.hit_head_pct != null ? Number(adv.hit_head_pct) : null,
+          hit_chest_pct: adv.hit_chest_pct != null ? Number(adv.hit_chest_pct) : null,
+          hit_stomach_pct: adv.hit_stomach_pct != null ? Number(adv.hit_stomach_pct) : null,
+          hit_limbs_pct: adv.hit_limbs_pct != null ? Number(adv.hit_limbs_pct) : null,
+          reaction_time_ms: adv.reaction_time_ms != null ? Number(adv.reaction_time_ms) : null,
+          headlock_offset: adv.headlock_offset != null ? Number(adv.headlock_offset) : null,
+          first_5_bullets_pct: adv.first_5_bullets_pct != null ? Number(adv.first_5_bullets_pct) : null,
+          prefire_pct: adv.prefire_pct != null ? Number(adv.prefire_pct) : null,
+          score_opening: adv.score_opening != null ? Number(adv.score_opening) : null,
+          score_trade: adv.score_trade != null ? Number(adv.score_trade) : null,
+          score_utility: adv.score_utility != null ? Number(adv.score_utility) : null,
+          score_flash: adv.score_flash != null ? Number(adv.score_flash) : null,
+          score_clutch: adv.score_clutch != null ? Number(adv.score_clutch) : null,
+          he_damage: adv.he_damage != null ? Number(adv.he_damage) : null,
+        };
+      }
+    } catch {
+      // non-fatal
+    }
+
+    const latestParsed = typeof latest.metrics_json === 'string'
+      ? (() => { try { return JSON.parse(latest.metrics_json); } catch { return {}; } })()
+      : (latest.metrics_json || {});
+    const latestCt = latestParsed?.roles?.ct || null;
+    const latestT = latestParsed?.roles?.t || null;
+
+    const KNOWN_ROLES: Record<string, string> = {
+      fallen: 'Sniper / IGL',
+      jimpphat: 'Anchor / Lurker',
+      kscerato: 'Rifler / Anchor',
+      xantares: 'Entry Fragger',
+      woxic: 'Sniper / AWPer',
+      wicadia: 'Rifler / Entry',
+      kyxsan: 'IGL / Support',
+      molodoy: 'Anchor / Rifler',
+      yekindar: 'Entry / Space Creator',
+      yuurih: 'Rifler / Trader',
+    };
+    const primaryRole =
+      KNOWN_ROLES[latest.nickname.toLowerCase()] ||
+      (latestCt && String(latestCt).toLowerCase().includes('anchor')
+        ? 'Anchor'
+        : latestT && String(latestT).toLowerCase().includes('lurk')
+          ? 'Lurker'
+          : null);
 
     return {
       steamId: latest.player_steamid,
       nickname: latest.nickname,
       team: latest.team,
       matchesCount: n,
+      totalRounds,
       currentRating: avgRating,
       adr: avgAdr,
       kd: avgKd,
@@ -619,9 +751,16 @@ export async function getPlayerPerformance(
       kastPct: avgKast,
       ttd: avgTtd,
       ttk: avgTtk,
-      fsp: avgFsp,
       history,
       telemetry,
+      roles: {
+        ct: latestCt,
+        t: latestT,
+        primary: primaryRole,
+      },
+      ctRoles,
+      tRoles,
+      advancedStats,
     };
   } catch (err) {
     console.error('[getPlayerPerformance] Database error, returning fallback:', err);
@@ -799,3 +938,235 @@ export async function getAllRegisteredPlayers(): Promise<Array<{ steamId: string
   }
 }
 
+
+function toNullableNumber(val: unknown): number | null {
+  if (val === null || val === undefined || val === '') return null;
+  const num = Number(val);
+  return Number.isFinite(num) ? num : null;
+}
+
+/**
+ * Consulta consolidada de inspeção avançada de jogador por partida:
+ * retorna player_advanced_stats e a lista filtrável de match_duels.
+ */
+export async function getPlayerMatchInspect(
+  steamid: string,
+  matchId: string,
+  filters: MatchInspectFilters = {},
+): Promise<PlayerMatchInspectPayload | null> {
+  const cleanSteamId = String(steamid ?? '').trim();
+  const cleanMatchId = String(matchId ?? '').trim();
+  if (!cleanSteamId || !cleanMatchId) {
+    return null;
+  }
+
+  const statsSql = `
+    SELECT
+      pas.match_id,
+      pas.steamid,
+      pas.hltv_rating,
+      pas.adr,
+      pas.kast,
+      pas.impact,
+      pas.hs_percent,
+      pas.hit_head_pct,
+      pas.hit_chest_pct,
+      pas.hit_stomach_pct,
+      pas.hit_limbs_pct,
+      pas.reaction_time_ms,
+      pas.headlock_offset,
+      pas.first_5_bullets_pct,
+      pas.prefire_pct,
+      pas.score_opening,
+      pas.score_trade,
+      pas.score_utility,
+      pas.score_flash,
+      pas.score_clutch,
+      pas.he_damage
+    FROM player_advanced_stats pas
+    WHERE (
+      pas.match_id::text = $1
+      OR pas.match_id = (SELECT mm.match_id FROM match_maps mm WHERE mm.id::text = $1 LIMIT 1)
+    )
+    AND (
+      pas.steamid = $2
+      OR pas.steamid = (
+        SELECT ps.player_steamid
+        FROM player_stats ps
+        WHERE LOWER(ps.nickname) = LOWER($2)
+        LIMIT 1
+      )
+    )
+    LIMIT 1;
+  `;
+
+  const statsRes = await query(statsSql, [cleanMatchId, cleanSteamId]);
+  const statsRow = statsRes?.rows?.[0];
+  if (!statsRow) {
+    return null;
+  }
+
+  const resolvedMatchId = String(statsRow.match_id);
+  const resolvedSteamId = String(statsRow.steamid);
+
+  const advancedStats: PlayerAdvancedStatsRow = {
+    match_id: resolvedMatchId,
+    steamid: resolvedSteamId,
+    hltv_rating: toNullableNumber(statsRow.hltv_rating),
+    adr: toNullableNumber(statsRow.adr),
+    kast: toNullableNumber(statsRow.kast),
+    impact: toNullableNumber(statsRow.impact),
+    hs_percent: toNullableNumber(statsRow.hs_percent),
+    hit_head_pct: toNullableNumber(statsRow.hit_head_pct),
+    hit_chest_pct: toNullableNumber(statsRow.hit_chest_pct),
+    hit_stomach_pct: toNullableNumber(statsRow.hit_stomach_pct),
+    hit_limbs_pct: toNullableNumber(statsRow.hit_limbs_pct),
+    reaction_time_ms: toNullableNumber(statsRow.reaction_time_ms),
+    headlock_offset: toNullableNumber(statsRow.headlock_offset),
+    first_5_bullets_pct: toNullableNumber(statsRow.first_5_bullets_pct),
+    prefire_pct: toNullableNumber(statsRow.prefire_pct),
+    score_opening: toNullableNumber(statsRow.score_opening),
+    score_trade: toNullableNumber(statsRow.score_trade),
+    score_utility: toNullableNumber(statsRow.score_utility),
+    score_flash: toNullableNumber(statsRow.score_flash),
+    score_clutch: toNullableNumber(statsRow.score_clutch),
+    he_damage: toNullableNumber(statsRow.he_damage) ?? 0,
+  };
+
+  const conditions: string[] = ['match_id::text = $1'];
+  const params: unknown[] = [resolvedMatchId];
+
+  if (filters.outcome === 'win') {
+    params.push(resolvedSteamId);
+    conditions.push(`winner_steamid = $${params.length}`);
+  } else if (filters.outcome === 'loss') {
+    params.push(resolvedSteamId);
+    conditions.push(`loser_steamid = $${params.length}`);
+  } else {
+    params.push(resolvedSteamId);
+    conditions.push(`(winner_steamid = $${params.length} OR loser_steamid = $${params.length})`);
+  }
+
+  if (filters.roundNumber !== undefined && filters.roundNumber !== null && Number.isFinite(filters.roundNumber)) {
+    params.push(Number(filters.roundNumber));
+    conditions.push(`round_number = $${params.length}`);
+  }
+
+  if (typeof filters.isOpening === 'boolean') {
+    params.push(filters.isOpening);
+    conditions.push(`is_opening = $${params.length}`);
+  }
+
+  if (typeof filters.isTrade === 'boolean') {
+    params.push(filters.isTrade);
+    conditions.push(`is_trade = $${params.length}`);
+  }
+
+  if (typeof filters.isClutch === 'boolean') {
+    params.push(filters.isClutch);
+    conditions.push(`is_clutch = $${params.length}`);
+  }
+
+  if (filters.mapZone) {
+    params.push(filters.mapZone.trim());
+    conditions.push(`LOWER(map_zone) = LOWER($${params.length})`);
+  }
+
+  if (filters.weapon) {
+    params.push(filters.weapon.trim());
+    conditions.push(`(LOWER(winner_weapon) = LOWER($${params.length}) OR LOWER(loser_weapon) = LOWER($${params.length}))`);
+  }
+
+  if (filters.duelTag) {
+    params.push(`%${filters.duelTag.trim()}%`);
+    conditions.push(`duel_tag ILIKE $${params.length}`);
+  }
+
+  const duelsSql = `
+    SELECT
+      id,
+      match_id,
+      round_number,
+      round_time,
+      winner_steamid,
+      loser_steamid,
+      winner_weapon,
+      loser_weapon,
+      winner_hp_remaining,
+      map_zone,
+      is_opening,
+      is_trade,
+      is_clutch,
+      duel_tag
+    FROM match_duels
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY round_number ASC, round_time ASC NULLS LAST, id ASC;
+  `;
+
+  const duelsRes = await query(duelsSql, params);
+  const rawDuels = duelsRes?.rows ?? [];
+
+  let mappedDuels: MatchDuelRow[] = rawDuels.map((d: Record<string, unknown>) => ({
+    id: String(d.id ?? ''),
+    match_id: String(d.match_id ?? resolvedMatchId),
+    round_number: Number(d.round_number ?? 1),
+    round_time: d.round_time !== null && d.round_time !== undefined ? String(d.round_time) : null,
+    winner_steamid: String(d.winner_steamid ?? ''),
+    loser_steamid: String(d.loser_steamid ?? ''),
+    winner_weapon: d.winner_weapon !== null && d.winner_weapon !== undefined ? String(d.winner_weapon) : null,
+    loser_weapon: d.loser_weapon !== null && d.loser_weapon !== undefined ? String(d.loser_weapon) : null,
+    winner_hp_remaining: toNullableNumber(d.winner_hp_remaining),
+    map_zone: d.map_zone !== null && d.map_zone !== undefined ? String(d.map_zone) : null,
+    is_opening: Boolean(d.is_opening),
+    is_trade: Boolean(d.is_trade),
+    is_clutch: Boolean(d.is_clutch),
+    duel_tag: d.duel_tag !== null && d.duel_tag !== undefined ? String(d.duel_tag) : null,
+  }));
+
+  mappedDuels = mappedDuels.filter((d) => {
+    if (filters.outcome === 'win' && d.winner_steamid !== resolvedSteamId) return false;
+    if (filters.outcome === 'loss' && d.loser_steamid !== resolvedSteamId) return false;
+    if (
+      filters.outcome !== 'win' &&
+      filters.outcome !== 'loss' &&
+      d.winner_steamid !== resolvedSteamId &&
+      d.loser_steamid !== resolvedSteamId
+    ) {
+      return false;
+    }
+    if (
+      filters.roundNumber !== undefined &&
+      filters.roundNumber !== null &&
+      Number.isFinite(filters.roundNumber) &&
+      d.round_number !== Number(filters.roundNumber)
+    ) {
+      return false;
+    }
+    if (typeof filters.isOpening === 'boolean' && d.is_opening !== filters.isOpening) return false;
+    if (typeof filters.isTrade === 'boolean' && d.is_trade !== filters.isTrade) return false;
+    if (typeof filters.isClutch === 'boolean' && d.is_clutch !== filters.isClutch) return false;
+    if (filters.mapZone && (d.map_zone ?? '').toLowerCase() !== filters.mapZone.trim().toLowerCase()) {
+      return false;
+    }
+    if (filters.weapon) {
+      const w = filters.weapon.trim().toLowerCase();
+      if ((d.winner_weapon ?? '').toLowerCase() !== w && (d.loser_weapon ?? '').toLowerCase() !== w) {
+        return false;
+      }
+    }
+    if (filters.duelTag) {
+      const t = filters.duelTag.trim().toLowerCase();
+      if (!(d.duel_tag ?? '').toLowerCase().includes(t)) return false;
+    }
+    return true;
+  });
+
+  return {
+    matchId: resolvedMatchId,
+    steamid: resolvedSteamId,
+    player_advanced_stats: advancedStats,
+    advancedStats,
+    match_duels: mappedDuels,
+    duels: mappedDuels,
+  };
+}

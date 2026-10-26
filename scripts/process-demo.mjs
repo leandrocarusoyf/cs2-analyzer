@@ -1,7 +1,8 @@
-// Pipeline automatizado de ingestão de demos (.dem -> PostgreSQL Local + .bin.gz + Limpeza Absoluta de Disco)
+// Ingestão de .dem/.rar/.zip -> PostgreSQL + replay processado; fontes são sempre destruídas.
 // Uso programático: import { processDemoFile } from './process-demo.mjs'
-// Uso via CLI: node scripts/process-demo.mjs <caminho-do-arquivo.dem>
-import { readFile, writeFile, unlink, access, mkdir, appendFile, stat, copyFile } from 'node:fs/promises';
+// Uso via CLI: node scripts/process-demo.mjs <arquivo.dem|arquivo.rar|arquivo.zip>
+import { readFile, writeFile, unlink, access, mkdir, appendFile, stat, mkdtemp, rm } from 'node:fs/promises';
+import { extractDemoArchive } from './extract-demo-archive.mjs';
 import { existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -101,6 +102,573 @@ function roundTo(val, decimals = 2) {
 /**
  * Extrai o identificador de mapa (ex: m1, m2, m3) do nome ou caminho do arquivo .dem usando Regex
  */
+const DEFAULT_WEAPONS_BY_ID = new Map([
+  [1, 'weapon_deagle'],
+  [2, 'weapon_elite'],
+  [3, 'weapon_fiveseven'],
+  [4, 'weapon_glock'],
+  [7, 'weapon_ak47'],
+  [8, 'weapon_aug'],
+  [9, 'weapon_awp'],
+  [10, 'weapon_famas'],
+  [13, 'weapon_galilar'],
+  [16, 'weapon_m4a1'],
+  [17, 'weapon_mac10'],
+  [19, 'weapon_p90'],
+  [23, 'weapon_mp5sd'],
+  [24, 'weapon_ump45'],
+  [25, 'weapon_xm1014'],
+  [27, 'weapon_mag7'],
+  [30, 'weapon_tec9'],
+  [32, 'weapon_hkp2000'],
+  [33, 'weapon_mp7'],
+  [34, 'weapon_mp9'],
+  [35, 'weapon_nova'],
+  [36, 'weapon_p250'],
+  [39, 'weapon_sg556'],
+  [40, 'weapon_ssg08'],
+  [42, 'weapon_knife'],
+  [43, 'weapon_flashbang'],
+  [44, 'weapon_hegrenade'],
+  [45, 'weapon_smokegrenade'],
+  [46, 'weapon_molotov'],
+  [47, 'weapon_decoy'],
+  [48, 'weapon_incgrenade'],
+  [49, 'weapon_c4'],
+  [60, 'weapon_m4a1_silencer'],
+  [61, 'weapon_usp_silencer'],
+  [63, 'weapon_cz75a'],
+  [64, 'weapon_revolver'],
+]);
+
+const GLOBAL_CALLOUT_TRANSLATIONS = {
+  CTSpawn: 'CT Spawn',
+  TSpawn: 'TR Spawn',
+  Banana: 'Bananinha',
+  BombsiteA: 'Bomb A',
+  BombsiteB: 'Bomb B',
+  Middle: 'Meio',
+  SecondMid: '2º Meio',
+  TopofMid: 'Topo Meio',
+  Apartments: 'Tapete / Apps',
+  Pit: 'Xuxa / Pit',
+  Arch: 'Arco',
+  Library: 'Biblioteca',
+  Graveyard: 'Cemitério',
+  Quad: 'Nip / Quad',
+  Underpass: 'Passagem Sub.',
+  Ruins: 'Igreja / Ruínas',
+  Construction: 'Construção',
+  Balcony: 'Varanda',
+  Bridge: 'Ponte',
+  Alley: 'Beco',
+  BackAlley: 'Beco Fundo',
+  Logs: 'Lenha',
+  TApps: 'Base TR Apps',
+  Upstairs: '2º Andar Apps',
+};
+
+/**
+ * Classifica o hitgroup de player_hurt:
+ * 1 = Head, 2 = Chest, 3 = Stomach, outros = Limbs
+ */
+/**
+ * Classifica o hitgroup de player_hurt:
+ * 1 = Head, 2 = Chest, 3 = Stomach, outros = Limbs
+ * @param {any} rawHitgroup
+ * @returns {'head' | 'chest' | 'stomach' | 'limbs'}
+ */
+export function classifyHitgroup(rawHitgroup) {
+  if (rawHitgroup === null || rawHitgroup === undefined) return 'limbs';
+  const s = String(rawHitgroup).trim().toLowerCase();
+  if (s === '') return 'limbs';
+  const num = Number(s);
+  if (Number.isFinite(num)) {
+    if (num === 1) return 'head';
+    if (num === 2) return 'chest';
+    if (num === 3) return 'stomach';
+    return 'limbs';
+  }
+  if (s === 'head') return 'head';
+  if (s === 'chest' || s === 'neck') return 'chest';
+  if (s === 'stomach' || s === 'pelvis' || s === 'gut') return 'stomach';
+  return 'limbs';
+}
+
+/**
+ * Calcula a zona do mapa pelas coordenadas X,Y (ou callout da engine).
+ * Retorna null caso não existam coordenadas nem placeName no evento.
+ */
+/**
+ * @param {any} mapName
+ * @param {any} rawX
+ * @param {any} rawY
+ * @param {any} [placeName]
+ * @returns {string | null}
+ */
+export function resolveMapZone(mapName, rawX, rawY, placeName = null) {
+  const cleanPlace = String(placeName ?? '').trim();
+  if (cleanPlace && GLOBAL_CALLOUT_TRANSLATIONS[cleanPlace]) {
+    return GLOBAL_CALLOUT_TRANSLATIONS[cleanPlace];
+  }
+  if (cleanPlace) return cleanPlace;
+
+  if (rawX === null || rawX === undefined || rawY === null || rawY === undefined) {
+    return null;
+  }
+  const x = Number(rawX);
+  const y = Number(rawY);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return null;
+  }
+
+  const map = String(mapName || 'de_inferno').toLowerCase();
+  if (map === 'de_inferno') {
+    if (x < -500 && y < 600) return 'TR Spawn';
+    if (x > 2000 && y > 1600) return 'CT Spawn';
+    if (x > 100 && x < 1100 && y > 2200) return 'Bomb B';
+    if (x > 100 && x < 950 && y > 1000 && y <= 2200) return 'Bananinha';
+    if (x > 1600 && y > -200 && y < 900) return 'Bomb A';
+    if (x > 1950 && y <= -200) return 'Xuxa / Pit';
+    if (x > 800 && x <= 1850 && y < 0) return 'Tapete / Apps';
+    if (x > 300 && x <= 1400 && y >= 0 && y <= 1000) return 'Meio';
+    if (x > 1200 && x <= 2100 && y >= 900 && y <= 1800) return 'Arco / Biblioteca';
+    return 'Meio';
+  }
+  if (map === 'de_mirage') {
+    if (x < -1400 && y > 0) return 'Bomb B';
+    if (x > 200 && y < -1400) return 'Bomb A';
+    if (x > -1200 && x <= 300 && y >= -1200 && y <= 200) return 'Meio';
+    if (x > 900 && y > -500) return 'TR Spawn';
+    if (x < -1500 && y < -1200) return 'CT Spawn';
+    return 'Meio';
+  }
+  if (map === 'de_dust2') {
+    if (x < -1000 && y > 1800) return 'Bomb B';
+    if (x > 600 && y > 1800) return 'Bomb A';
+    if (x >= -600 && x <= 600 && y >= 400 && y <= 2200) return 'Meio';
+    if (y < 0) return 'TR Spawn';
+    if (y > 2200 && x >= -600 && x <= 600) return 'CT Spawn';
+    return 'Meio';
+  }
+  if (map === 'de_nuke') {
+    if (x > 200 && x < 1200 && y > -1400 && y < -300) return 'Bomb A';
+    if (x < -1200) return 'TR Spawn';
+    if (x > 1800) return 'CT Spawn';
+    if (y < -1400) return 'Fora / Outside';
+    return 'Rampa / Meio';
+  }
+  if (map === 'de_ancient') {
+    if (x < -1200 && y > -600) return 'Bomb A';
+    if (x > 500 && y > -400) return 'Bomb B';
+    if (y < -1400) return 'TR Spawn';
+    if (y > 1000) return 'CT Spawn';
+    return 'Meio';
+  }
+  if (map === 'de_anubis') {
+    if (x > 400 && y > 1200) return 'Bomb A';
+    if (x < -1000 && y > 800) return 'Bomb B';
+    if (y < -600) return 'TR Spawn';
+    if (y > 2200) return 'CT Spawn';
+    return 'Meio';
+  }
+
+  if (x > 700 && y > 500) return 'Bomb A';
+  if (x < -700 && y > 500) return 'Bomb B';
+  if (y < -800) return 'TR Spawn';
+  if (y > 1800) return 'CT Spawn';
+  return 'Meio';
+}
+
+function resolveWeaponNameFromRaw(weaponOrId, weaponsManifest = []) {
+  if (weaponOrId === null || weaponOrId === undefined || weaponOrId === '') return null;
+  if (typeof weaponOrId === 'string') {
+    const trimmed = weaponOrId.trim();
+    if (!trimmed) return null;
+    if (!/^\d+$/.test(trimmed)) return trimmed;
+  }
+  const numId = Number(weaponOrId);
+  if (Number.isFinite(numId) && numId > 0) {
+    const found = (weaponsManifest || []).find((w) => Number(w.id) === numId);
+    if (found && found.name) return String(found.name);
+    if (DEFAULT_WEAPONS_BY_ID.has(numId)) return DEFAULT_WEAPONS_BY_ID.get(numId);
+  }
+  return null;
+}
+
+function formatRoundTimeMMSS(tick, startTick, tickrate) {
+  const rate = Number(tickrate) > 0 ? Number(tickrate) : 64;
+  const elapsedSec = Math.max(0, Math.floor((Number(tick) - Number(startTick)) / rate));
+  const mins = Math.floor(elapsedSec / 60);
+  const secs = elapsedSec % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function computeAngularErrorDeg(ax, ay, az, yawDeg, pitchDeg, vx, vy, vz) {
+  const degToRad = Math.PI / 180;
+  const radToDeg = 180 / Math.PI;
+  const yaw = Number(yawDeg) * degToRad;
+  const pitch = Number(pitchDeg) * degToRad;
+  const cosPitch = Math.cos(pitch);
+  const dirX = cosPitch * Math.cos(yaw);
+  const dirY = cosPitch * Math.sin(yaw);
+  const dirZ = -Math.sin(pitch);
+
+  const dx = Number(vx) - Number(ax);
+  const dy = Number(vy) - Number(ay);
+  const dz = Number(vz) - Number(az);
+  const len = Math.hypot(dx, dy, dz);
+  if (len === 0) return 0;
+  const dot = Math.max(-1, Math.min(1, dirX * (dx / len) + dirY * (dy / len) + dirZ * (dz / len)));
+  return Math.acos(dot) * radToDeg;
+}
+
+/**
+ * Gera a lista de micro-duelos (match_duels) a partir dos eventos player_death (kills) de cada round.
+ */
+/**
+ * @param {any} rawDemo
+ * @param {any} [matchId]
+ * @returns {any[]}
+ */
+export function extractMatchDuels(rawDemo, matchId = null) {
+  const players = rawDemo?.players ?? [];
+  const rounds = rawDemo?.rounds ?? [];
+  const weaponsManifest = rawDemo?.weapons ?? [];
+  const mapName = rawDemo?.map ?? 'de_inferno';
+  const tickrate = Number(rawDemo?.tickrate) > 0 ? Number(rawDemo.tickrate) : 64;
+  const msPerTick = 1000 / tickrate;
+  const tradeWindowTicks = 4 * tickrate; // 4 segundos
+
+  const playerInitialSide = new Map();
+  const idToSteam = new Map();
+  const steamToPlayerId = new Map();
+  players.forEach((p, idx) => {
+    const sId = String(p.steamId);
+    playerInitialSide.set(sId, p.team || p.initialTeam || 'CT');
+    idToSteam.set(idx + 1, sId);
+    steamToPlayerId.set(sId, idx + 1);
+  });
+
+  const matchDuels = [];
+
+  for (const round of rounds) {
+    const roundNumber = Number(round.roundNumber ?? 1);
+    const roundStartTick = Number(round.freezeEndTick ?? round.startTick ?? 0);
+    const roundDamages = Array.isArray(round.damages) ? round.damages : [];
+    const roundDuels = Array.isArray(round.duels) ? round.duels : [];
+    const roundFrames = Array.isArray(round.frames) ? round.frames : [];
+    const roundTicks = Array.isArray(round.ticks) ? round.ticks : [];
+
+    const sideBySteam = new Map();
+    const aliveBySide = { CT: new Set(), T: new Set() };
+    for (const [sId, initSide] of playerInitialSide.entries()) {
+      const currentSide = sideForRound(initSide, roundNumber);
+      sideBySteam.set(sId, currentSide);
+      if (currentSide === 'CT' || currentSide === 'T') {
+        aliveBySide[currentSide].add(sId);
+      }
+    }
+
+    const rawKills = Array.isArray(round.kills) ? [...round.kills] : [];
+    rawKills.sort((a, b) => Number(a.tick ?? a[0] ?? 0) - Number(b.tick ?? b[0] ?? 0));
+
+    const priorDeaths = [];
+
+    for (let killIdx = 0; killIdx < rawKills.length; killIdx++) {
+      const k = rawKills[killIdx];
+      if (!k || Array.isArray(k)) continue;
+      const killTick = Number(k.tick ?? 0);
+      const winnerSteamId = String(k.killerSteamId ?? k.attacker_steamid ?? k.winner_steamid ?? '').trim();
+      const loserSteamId = String(k.victimSteamId ?? k.user_steamid ?? k.loser_steamid ?? '').trim();
+      if (!winnerSteamId || !loserSteamId || winnerSteamId === loserSteamId) continue;
+
+      const winnerSide = sideBySteam.get(winnerSteamId) ?? null;
+      const loserSide = sideBySteam.get(loserSteamId) ?? (winnerSide === 'CT' ? 'T' : winnerSide === 'T' ? 'CT' : null);
+
+      const roundTime =
+        typeof (k.round_time ?? k.roundTime) === 'string'
+          ? String(k.round_time ?? k.roundTime)
+          : formatRoundTimeMMSS(killTick, roundStartTick, tickrate);
+
+      const winnerWeapon = resolveWeaponNameFromRaw(
+        k.winner_weapon ?? k.winnerWeapon ?? (k.weapon || k.weaponId),
+        weaponsManifest,
+      );
+
+      // Resolução de loser_weapon (arma da vítima no momento da morte, sem dados falsos)
+      let loserWeapon = resolveWeaponNameFromRaw(
+        k.loser_weapon ?? k.loserWeapon ?? k.victimWeapon ?? k.user_weapon ?? k.victim_weapon,
+        weaponsManifest,
+      );
+      if (!loserWeapon) {
+        // Verifica em ticks brutos do round
+        for (let ti = roundTicks.length - 1; ti >= 0; ti--) {
+          const tEntry = roundTicks[ti];
+          if (Number(tEntry.tick) <= killTick && Array.isArray(tEntry.players)) {
+            const vp = tEntry.players.find((pl) => String(pl.steamId) === loserSteamId);
+            if (vp && (vp.weapon || vp.weaponId)) {
+              loserWeapon = resolveWeaponNameFromRaw(vp.weapon || vp.weaponId, weaponsManifest);
+              if (loserWeapon) break;
+            }
+          }
+        }
+      }
+      if (!loserWeapon && roundFrames.length > 0) {
+        const victimPid = steamToPlayerId.get(loserSteamId);
+        if (victimPid) {
+          for (let fi = roundFrames.length - 1; fi >= 0; fi--) {
+            const frame = roundFrames[fi];
+            const fTick = Array.isArray(frame) ? Number(frame[0]) : Number(frame?.tick ?? 0);
+            const fPlayers = Array.isArray(frame) ? frame[1] : frame?.players;
+            if (fTick <= killTick && Array.isArray(fPlayers)) {
+              const vp = fPlayers.find((pl) => Number(Array.isArray(pl) ? pl[0] : pl.id) === victimPid);
+              if (vp) {
+                const wId = Array.isArray(vp) ? (vp.length >= 22 ? vp[13] : vp[11]) : vp.weaponId;
+                loserWeapon = resolveWeaponNameFromRaw(wId, weaponsManifest);
+                if (loserWeapon) break;
+              }
+            }
+          }
+        }
+      }
+      if (!loserWeapon) {
+        const victimDmg = roundDamages
+          .filter((d) => String(d.attackerSteamId ?? d.attacker_steamid) === loserSteamId && Number(d.tick) <= killTick)
+          .pop();
+        if (victimDmg) {
+          loserWeapon = resolveWeaponNameFromRaw(victimDmg.weapon || victimDmg.weaponId, weaponsManifest);
+        }
+      }
+
+      // Resolução de winner_hp_remaining (HP restante do vencedor no duelo)
+      let winnerHpRemaining = null;
+      const explicitHp = k.winner_hp_remaining ?? k.winnerHpRemaining ?? k.attackerHealth ?? k.attacker_health;
+      if (explicitHp !== undefined && explicitHp !== null) {
+        winnerHpRemaining = Math.max(0, Math.min(100, Math.round(Number(explicitHp))));
+      } else {
+        let foundFrameHp = null;
+        let foundFrameTick = -1;
+        const winnerPid = steamToPlayerId.get(winnerSteamId);
+        if (winnerPid && roundFrames.length > 0) {
+          for (let fi = roundFrames.length - 1; fi >= 0; fi--) {
+            const frame = roundFrames[fi];
+            const fTick = Array.isArray(frame) ? Number(frame[0]) : Number(frame?.tick ?? 0);
+            const fPlayers = Array.isArray(frame) ? frame[1] : frame?.players;
+            if (fTick <= killTick && Array.isArray(fPlayers)) {
+              const wp = fPlayers.find((pl) => Number(Array.isArray(pl) ? pl[0] : pl.id) === winnerPid);
+              if (wp) {
+                const hpVal = Array.isArray(wp) ? (wp.length >= 22 ? wp[9] : wp[5]) : wp.hp;
+                if (Number.isFinite(Number(hpVal))) {
+                  foundFrameHp = Number(hpVal);
+                  foundFrameTick = fTick;
+                  break;
+                }
+              }
+            }
+          }
+        }
+        const dmgTakenAfterFrame = roundDamages
+          .filter(
+            (d) =>
+              String(d.victimSteamId ?? d.user_steamid) === winnerSteamId &&
+              Number(d.tick) > foundFrameTick &&
+              Number(d.tick) <= killTick,
+          )
+          .reduce((acc, d) => acc + Math.max(0, Number(d.damage ?? d.dmg_health ?? 0)), 0);
+
+        const baseHp = foundFrameHp !== null ? foundFrameHp : 100;
+        winnerHpRemaining = Math.max(0, Math.min(100, Math.round(baseHp - dmgTakenAfterFrame)));
+      }
+
+      // Resolução de coordenadas X,Y e map_zone
+      let coordX = k.victimX ?? k.user_X ?? k.X ?? k.x ?? k.attackerX ?? k.attacker_X ?? null;
+      let coordY = k.victimY ?? k.user_Y ?? k.Y ?? k.y ?? k.attackerY ?? k.attacker_Y ?? null;
+      if (coordX === null || coordY === null) {
+        const matchingDmg = roundDamages
+          .filter(
+            (d) =>
+              String(d.attackerSteamId ?? d.attacker_steamid) === winnerSteamId &&
+              String(d.victimSteamId ?? d.user_steamid) === loserSteamId &&
+              Number(d.tick) <= killTick,
+          )
+          .pop();
+        if (matchingDmg) {
+          coordX = matchingDmg.victimX ?? matchingDmg.attackerX ?? null;
+          coordY = matchingDmg.victimY ?? matchingDmg.attackerY ?? null;
+        }
+      }
+      if ((coordX === null || coordY === null) && roundFrames.length > 0) {
+        const targetPid = steamToPlayerId.get(loserSteamId) ?? steamToPlayerId.get(winnerSteamId);
+        if (targetPid) {
+          for (let fi = roundFrames.length - 1; fi >= 0; fi--) {
+            const frame = roundFrames[fi];
+            const fTick = Array.isArray(frame) ? Number(frame[0]) : Number(frame?.tick ?? 0);
+            const fPlayers = Array.isArray(frame) ? frame[1] : frame?.players;
+            if (fTick <= killTick && Array.isArray(fPlayers)) {
+              const pl = fPlayers.find((item) => Number(Array.isArray(item) ? item[0] : item.id) === targetPid);
+              if (pl) {
+                coordX = Array.isArray(pl) ? pl[1] : pl.x;
+                coordY = Array.isArray(pl) ? pl[2] : pl.y;
+                break;
+              }
+            }
+          }
+        }
+      }
+      if ((coordX === null || coordY === null) && roundTicks.length > 0) {
+        for (let ti = roundTicks.length - 1; ti >= 0; ti--) {
+          const tEntry = roundTicks[ti];
+          if (Number(tEntry.tick) <= killTick && Array.isArray(tEntry.players)) {
+            const pl =
+              tEntry.players.find((item) => String(item.steamId) === loserSteamId) ||
+              tEntry.players.find((item) => String(item.steamId) === winnerSteamId);
+            if (pl && pl.x !== undefined && pl.y !== undefined) {
+              coordX = pl.x;
+              coordY = pl.y;
+              break;
+            }
+          }
+        }
+      }
+
+      const mapZone = resolveMapZone(
+        mapName,
+        coordX,
+        coordY,
+        k.map_zone ?? k.mapZone ?? k.placeName ?? k.last_place_name ?? null,
+      );
+
+      // Flags: is_opening, is_trade, is_clutch
+      const isOpening =
+        k.is_opening !== undefined
+          ? Boolean(k.is_opening)
+          : k.isOpening !== undefined
+          ? Boolean(k.isOpening)
+          : killIdx === 0;
+
+      const isTrade =
+        k.is_trade !== undefined
+          ? Boolean(k.is_trade)
+          : k.isTrade !== undefined
+          ? Boolean(k.isTrade)
+          : priorDeaths.some((prev) => {
+              const isAllyDeath =
+                prev.victimSteamId !== winnerSteamId &&
+                (prev.victimSide && winnerSide
+                  ? prev.victimSide === winnerSide
+                  : prev.killerSteamId === loserSteamId);
+              const deltaTicks = killTick - prev.tick;
+              return isAllyDeath && deltaTicks >= 0 && deltaTicks <= tradeWindowTicks;
+            });
+
+      let isClutch = false;
+      if (k.is_clutch !== undefined || k.isClutch !== undefined) {
+        isClutch = Boolean(k.is_clutch ?? k.isClutch);
+      } else if (winnerSide && aliveBySide[winnerSide]) {
+        isClutch = aliveBySide[winnerSide].size === 1;
+      }
+
+      // Atualiza estado de vivos e histórico de mortes do round após avaliar o momento do duelo
+      if (loserSide && aliveBySide[loserSide]) {
+        aliveBySide[loserSide].delete(loserSteamId);
+      }
+      priorDeaths.push({
+        tick: killTick,
+        killerSteamId: winnerSteamId,
+        victimSteamId: loserSteamId,
+        killerSide: winnerSide,
+        victimSide: loserSide,
+      });
+
+      // Tempo de reação do duelo e duel_tag
+      const matchingDuel = roundDuels.find(
+        (dl) =>
+          String(dl.attackerSteamId) === winnerSteamId &&
+          String(dl.victimSteamId) === loserSteamId &&
+          (dl.killTick === killTick || dl.killTick === null || dl.killTick === undefined),
+      );
+
+      let reactionMs = null;
+      if (matchingDuel && matchingDuel.ttdMs !== undefined && matchingDuel.ttdMs !== null) {
+        reactionMs = Number(matchingDuel.ttdMs);
+      } else if (k.reactionTimeMs !== undefined && k.reactionTimeMs !== null) {
+        reactionMs = Math.round(Number(k.reactionTimeMs));
+      } else if (
+        matchingDuel &&
+        matchingDuel.firstSightTick !== null &&
+        matchingDuel.firstSightTick !== undefined &&
+        matchingDuel.firstDamageTick !== null &&
+        matchingDuel.firstDamageTick !== undefined &&
+        Number(matchingDuel.firstDamageTick) >= Number(matchingDuel.firstSightTick)
+      ) {
+        reactionMs = Math.round((Number(matchingDuel.firstDamageTick) - Number(matchingDuel.firstSightTick)) * msPerTick);
+      } else if (
+        matchingDuel &&
+        matchingDuel.firstDamageTick !== null &&
+        matchingDuel.firstDamageTick !== undefined &&
+        matchingDuel.killTick !== null &&
+        matchingDuel.killTick !== undefined &&
+        Number(matchingDuel.killTick) > Number(matchingDuel.firstDamageTick)
+      ) {
+        reactionMs = Math.round((Number(matchingDuel.killTick) - Number(matchingDuel.firstDamageTick)) * msPerTick);
+      } else {
+        const dmgs = roundDamages
+          .filter(
+            (d) =>
+              String(d.attackerSteamId ?? d.attacker_steamid) === winnerSteamId &&
+              String(d.victimSteamId ?? d.user_steamid) === loserSteamId &&
+              Number(d.tick) <= killTick &&
+              killTick - Number(d.tick) <= Math.round(2.0 * tickrate),
+          )
+          .sort((a, b) => Number(a.tick) - Number(b.tick));
+        if (dmgs.length > 0 && Number(dmgs[0].tick) < killTick) {
+          reactionMs = Math.round((killTick - Number(dmgs[0].tick)) * msPerTick);
+        }
+      }
+
+      let duelTag = null;
+      if (k.duel_tag !== undefined || k.duelTag !== undefined) {
+        duelTag = k.duel_tag ?? k.duelTag ?? null;
+      } else if (Boolean(k.headshot)) {
+        duelTag = reactionMs !== null && reactionMs >= 0 ? `Headshot (${reactionMs}ms)` : 'Headshot';
+      } else if (Boolean(k.throughSmoke)) {
+        duelTag = reactionMs !== null && reactionMs >= 0 ? `Smoke (${reactionMs}ms)` : 'Smoke';
+      } else if (Boolean(k.penetrated)) {
+        duelTag = reactionMs !== null && reactionMs >= 0 ? `Wallbang (${reactionMs}ms)` : 'Wallbang';
+      } else if (Boolean(k.attackerBlind)) {
+        duelTag = reactionMs !== null && reactionMs >= 0 ? `Blind (${reactionMs}ms)` : 'Blind';
+      } else if (isClutch) {
+        duelTag = reactionMs !== null && reactionMs >= 0 ? `Clutch (${reactionMs}ms)` : 'Clutch';
+      } else if (isTrade) {
+        duelTag = reactionMs !== null && reactionMs >= 0 ? `Trade (${reactionMs}ms)` : 'Trade';
+      } else if (isOpening) {
+        duelTag = reactionMs !== null && reactionMs >= 0 ? `Opening (${reactionMs}ms)` : 'Opening';
+      } else if (reactionMs !== null && reactionMs >= 0) {
+        duelTag = `${reactionMs}ms`;
+      }
+
+      matchDuels.push({
+        match_id: matchId,
+        round_number: roundNumber,
+        round_time: roundTime,
+        winner_steamid: winnerSteamId,
+        loser_steamid: loserSteamId,
+        winner_weapon: winnerWeapon,
+        loser_weapon: loserWeapon,
+        winner_hp_remaining: winnerHpRemaining,
+        map_zone: mapZone,
+        is_opening: isOpening,
+        is_trade: isTrade,
+        is_clutch: isClutch,
+        duel_tag: duelTag,
+      });
+    }
+  }
+
+  return matchDuels;
+}
+
 export function extractMapIdentifier(filePathOrName) {
   if (!filePathOrName) return null;
   const base = path.parse(filePathOrName).name;
@@ -190,20 +758,32 @@ export function buildTaxonomyPath({
 }
 
 /**
- * Tenta carregar o módulo nativo demoparser2 (@laihoe/demoparser2 ou demoparser2)
- * caso esteja instalado no ambiente.
+ * Tenta carregar o módulo nativo demoparser2 caso esteja instalado no ambiente.
  */
 async function loadDemoParser2(customParser) {
   if (customParser) return customParser;
-  for (const pkg of ['@laihoe/demoparser2', 'demoparser2']) {
-    try {
-      const mod = await import(pkg);
-      return mod.default ?? mod;
-    } catch {
-      // continua para o próximo candidato
-    }
+  try {
+    const mod = await import('demoparser2');
+    return mod.default ?? mod;
+  } catch {
+    return null;
   }
-  return null;
+}
+
+export const NON_AIM_WEAPONS = Object.freeze([
+  'hegrenade',
+  'inferno',
+  'flashbang',
+  'decoy',
+  'smokegrenade',
+  'knife',
+  'taser',
+]);
+
+export function isNonAimWeapon(w) {
+  const s = String(w ?? '').toLowerCase().trim();
+  if (!s) return false;
+  return NON_AIM_WEAPONS.includes(s) || NON_AIM_WEAPONS.some((naw) => s.includes(naw));
 }
 
 /**
@@ -359,6 +939,20 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
     const roundEnds = parseEv(['round_end']);
     const killsEvents = parseEv(['player_death'], ['X', 'Y', 'Z']);
     const hurtEvents = parseEv(['player_hurt'], ['X', 'Y', 'Z']);
+    const weaponFireEvents = parseEv(['weapon_fire'], ['X', 'Y', 'Z', 'yaw', 'pitch']);
+
+    // 1. Indexar disparos por atacante
+    const firesByPlayer = new Map();
+    for (const f of weaponFireEvents) {
+      const sid = String(f.user_steamid ?? f.attacker_steamid ?? f.steamid ?? f.playerSteamId ?? '').trim();
+      const tick = Number(f.tick);
+      if (!sid || !Number.isFinite(tick)) continue;
+      if (!firesByPlayer.has(sid)) firesByPlayer.set(sid, []);
+      firesByPlayer.get(sid).push(tick);
+    }
+    for (const ticks of firesByPlayer.values()) {
+      ticks.sort((a, b) => a - b);
+    }
 
     const freezeEnds = parseEv(['round_freeze_end'])
       .map((e) => Number(e.tick))
@@ -920,55 +1514,127 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
           penetrated: Boolean(k.penetrated),
           throughSmoke: Boolean(k.thrusmoke ?? k.throughsmoke),
           attackerBlind: Boolean(k.attackerblind),
-          attackerX: k.attacker_X !== undefined ? roundTo(Number(k.attacker_X), 1) : undefined,
-          attackerY: k.attacker_Y !== undefined ? roundTo(Number(k.attacker_Y), 1) : undefined,
-          victimX: k.user_X !== undefined ? roundTo(Number(k.user_X), 1) : undefined,
-          victimY: k.user_Y !== undefined ? roundTo(Number(k.user_Y), 1) : undefined,
+
+
+          attackerX: (k.attacker_X ?? k.attackerX) !== undefined ? roundTo(Number(k.attacker_X ?? k.attackerX), 1) : undefined,
+          attackerY: (k.attacker_Y ?? k.attackerY) !== undefined ? roundTo(Number(k.attacker_Y ?? k.attackerY), 1) : undefined,
+          victimY: (k.user_Y ?? k.victimY ?? k.Y ?? k.y) !== undefined ? roundTo(Number(k.user_Y ?? k.victimY ?? k.Y ?? k.y), 1) : undefined,
+          victimX: (k.user_X ?? k.victimX ?? k.X ?? k.x) !== undefined ? roundTo(Number(k.user_X ?? k.victimX ?? k.X ?? k.x), 1) : undefined,
+          attackerHealth: k.attacker_health ?? k.attackerHealth ?? k.winner_hp_remaining ?? k.winnerHpRemaining,
+          victimWeapon: k.user_weapon ?? k.victim_weapon ?? k.loser_weapon ?? k.loserWeapon,
+          placeName: k.last_place_name ?? k.placeName ?? k.map_zone,
         }))
         .filter((k) => k.killerSteamId !== k.victimSteamId)
         .sort((a, b) => a.tick - b.tick);
 
-      // Associação de duelo para cálculo de TTK (Time to Kill) e mira:
-      // Janela deslizante <= 2.0s (preservada 100%)
-      const maxGapTicks = Math.round(2.0 * matchTickrate);
-
+      // Associação de duelo para cálculo de TTD (Time to Damage), TTK (Time to Kill) e correlação de tiros
       const roundDuels = roundKills.map((k) => {
-        const dmgs = roundDamages
-          .filter(
-            (d) =>
-              d.attackerSteamId === k.killerSteamId &&
-              d.victimSteamId === k.victimSteamId &&
-              d.tick <= k.tick,
-          )
-          .sort((a, b) => a.tick - b.tick);
+        const killer = k.killerSteamId;
+        const victim = k.victimSteamId;
+        const deathTick = k.tick;
+        const weapon = k.weapon;
 
-        let firstDamageTick = k.tick;
-        let isFirstShotHit = Boolean(k.headshot);
-
-        if (dmgs.length > 0) {
-          let burstStartIndex = dmgs.length - 1;
-          if (k.tick - dmgs[burstStartIndex].tick <= maxGapTicks) {
-            for (let i = dmgs.length - 2; i >= 0; i--) {
-              if (dmgs[i + 1].tick - dmgs[i].tick <= maxGapTicks) {
-                burstStartIndex = i;
-              } else {
-                break;
-              }
-            }
-            firstDamageTick = dmgs[burstStartIndex].tick;
-            isFirstShotHit = dmgs[burstStartIndex].damage > 0;
-          }
+        // 1. FILTRO DE ARMAS NÃO MECÂNICAS
+        if (isNonAimWeapon(weapon)) {
+          return {
+            attackerSteamId: killer,
+            victimSteamId: victim,
+            weapon,
+            engagementStartTick: null,
+            firstSightTick: null,
+            firstDamageTick: null,
+            killTick: deathTick,
+            ttdMs: null,
+            ttkMs: null,
+            validBullets: 0,
+            isAimDuel: false,
+            isOutlier: false,
+            isFirstShotHit: false,
+            isExcluded: true,
+          };
         }
 
-        const firstSightTick = null;
+        // 2. CORRELAÇÃO DE TIROS & RAJADA CONTÍNUA
+        // Danos válidos (player_hurt) causados pelo assassino na vítima nos ticks anteriores ao abate (janela de até 256 ticks)
+        const duelHurts = hurtEvents
+          .filter((h) => {
+            const att = String(h.attacker_steamid ?? h.attackerSteamId ?? '').trim();
+            const vic = String(h.user_steamid ?? h.victimSteamId ?? '').trim();
+            const t = Number(h.tick);
+            return att === killer && vic === victim && t <= deathTick && t >= deathTick - 256;
+          })
+          .sort((a, b) => Number(a.tick) - Number(b.tick));
+
+        if (duelHurts.length === 0) {
+          return {
+            attackerSteamId: killer,
+            victimSteamId: victim,
+            weapon,
+            engagementStartTick: null,
+            firstSightTick: null,
+            firstDamageTick: null,
+            killTick: deathTick,
+            ttdMs: null,
+            ttkMs: null,
+            validBullets: 0,
+            isAimDuel: false,
+            isOutlier: false,
+            isFirstShotHit: false,
+            isExcluded: true,
+          };
+        }
+
+        const firstDamageTick = Number(duelHurts[0].tick);
+        const playerFires = firesByPlayer.get(killer) || [];
+        const firesBeforeHit = playerFires.filter((t) => t <= firstDamageTick);
+
+        let engagementStartTick = null;
+        let validBullets = 0;
+        let ttdMs = null;
+
+        // Lógica de Rajada Contínua: Analisa de trás para frente (do acerto para o passado)
+        if (firesBeforeHit.length > 0) {
+          engagementStartTick = firstDamageTick;
+          let lastTickChecked = firstDamageTick;
+
+          for (let i = firesBeforeHit.length - 1; i >= 0; i--) {
+            const currentShotTick = firesBeforeHit[i];
+            const gap = lastTickChecked - currentShotTick;
+
+            // Se o intervalo entre os tiros for maior que 64 ticks (~1 segundo a 64-tickrate), interrompe a contagem
+            if (gap > 64 && validBullets > 0) {
+              break;
+            }
+
+            engagementStartTick = currentShotTick;
+            lastTickChecked = currentShotTick;
+            validBullets++;
+          }
+
+          const tickIntervalMs = 15.625; // 64-tick padrão
+          ttdMs = Math.round((firstDamageTick - engagementStartTick) * tickIntervalMs);
+        }
+
+        const tickIntervalMs = 15.625; // 64-tick padrão
+        const ttkMs = Math.round((deathTick - firstDamageTick) * tickIntervalMs);
+        const isOutlier = ttdMs !== null && ttdMs > 1200;
+        const isFirstShotHit = ttdMs === 0;
 
         return {
-          attackerSteamId: k.killerSteamId,
-          victimSteamId: k.victimSteamId,
-          firstSightTick,
+          attackerSteamId: killer,
+          victimSteamId: victim,
+          weapon,
+          engagementStartTick,
+          firstSightTick: engagementStartTick,
           firstDamageTick,
-          killTick: k.tick,
+          killTick: deathTick,
+          ttdMs,
+          ttkMs,
+          validBullets,
+          isAimDuel: true,
+          isOutlier,
           isFirstShotHit,
+          isExcluded: false,
         };
       });
 
@@ -1376,11 +2042,339 @@ export async function extractRawDemoWithParser(demFilePath, fileBuffer, demopars
 /**
  * Calcula as métricas do confronto para cada jogador da partida.
  */
+/**
+ * @param {any} rawDemo
+ * @param {any} [playerStats]
+ * @param {any} [matchDuels]
+ * @param {any} [matchId]
+ * @returns {any[]}
+ */
+export function computePlayerAdvancedStats(rawDemo, playerStats = null, matchDuels = null, matchId = null) {
+  const players = rawDemo?.players ?? [];
+  const rounds = rawDemo?.rounds ?? [];
+  const tickrate = Number(rawDemo?.tickrate) > 0 ? Number(rawDemo.tickrate) : 64;
+  const msPerTick = 1000 / tickrate;
+
+  const resolvedPlayerStats = Array.isArray(playerStats)
+    ? playerStats
+    : computeMatchPlayerMetrics(rawDemo);
+  const resolvedDuels = Array.isArray(matchDuels)
+    ? matchDuels
+    : extractMatchDuels(rawDemo, matchId);
+
+  const playerStatsBySteam = new Map();
+  for (const ps of resolvedPlayerStats) {
+    playerStatsBySteam.set(String(ps.steamId), ps);
+  }
+
+  const steamToPid = new Map();
+  players.forEach((p, idx) => {
+    steamToPid.set(String(p.steamId), idx + 1);
+  });
+
+  const accumBySteam = new Map();
+  for (const p of players) {
+    const sId = String(p.steamId);
+    accumBySteam.set(sId, {
+      steamId: sId,
+      headHits: 0,
+      chestHits: 0,
+      stomachHits: 0,
+      limbsHits: 0,
+      totalHits: 0,
+      headshotKills: 0,
+      blindKills: 0,
+      flashesThrown: 0,
+      utilityThrown: 0,
+      heDamage: 0,
+      headlockOffsets: [],
+      first5BulletsSuccess: 0,
+      prefireCount: 0,
+      validDuels: 0,
+      ttdList: [],
+    });
+  }
+
+  for (const round of rounds) {
+    const roundDamages = Array.isArray(round.damages) ? round.damages : [];
+    const roundKills = Array.isArray(round.kills) ? round.kills : [];
+    const roundUtility = Array.isArray(round.utility) ? round.utility : [];
+    const roundDuels = Array.isArray(round.duels) ? round.duels : [];
+    const roundFrames = Array.isArray(round.frames) ? round.frames : [];
+    const roundTicks = Array.isArray(round.ticks) ? round.ticks : [];
+
+    for (const d of roundDamages) {
+      if (!d || Array.isArray(d)) continue;
+      const attackerId = String(d.attackerSteamId ?? d.attacker_steamid ?? '');
+      const acc = accumBySteam.get(attackerId);
+      if (!acc) continue;
+
+      if (d.weapon === 'hegrenade') {
+        const damage = Number(d.dmg_health ?? d.damage ?? 0);
+        if (Number.isFinite(damage) && damage > 0) acc.heDamage += damage;
+      }
+
+      const cat = classifyHitgroup(d.hitgroup);
+      if (cat === 'head') acc.headHits++;
+      else if (cat === 'chest') acc.chestHits++;
+      else if (cat === 'stomach') acc.stomachHits++;
+      else acc.limbsHits++;
+      acc.totalHits++;
+
+      if (d.headlockOffset !== undefined && Number.isFinite(Number(d.headlockOffset))) {
+        acc.headlockOffsets.push(Number(d.headlockOffset));
+      }
+    }
+
+    for (const k of roundKills) {
+      if (!k || Array.isArray(k)) continue;
+      const killerId = String(k.killerSteamId ?? k.attacker_steamid ?? '');
+      const acc = accumBySteam.get(killerId);
+      if (!acc) continue;
+      if (Boolean(k.headshot)) acc.headshotKills++;
+      if (Boolean(k.attackerBlind)) acc.blindKills++;
+    }
+
+    for (const u of roundUtility) {
+      if (!u || Array.isArray(u)) continue;
+      const throwerId = String(u.throwerSteamId ?? u.user_steamid ?? '');
+      const acc = accumBySteam.get(throwerId);
+      if (!acc) continue;
+      acc.utilityThrown++;
+      if (String(u.type ?? '').toUpperCase() === 'FLASH') {
+        acc.flashesThrown++;
+      }
+    }
+
+    for (const duel of roundDuels) {
+      const attackerId = String(duel.attackerSteamId ?? '');
+      const victimId = String(duel.victimSteamId ?? '');
+      const acc = accumBySteam.get(attackerId);
+      if (!acc) continue;
+
+      if (duel.isExcluded || isNonAimWeapon(duel.weapon)) continue;
+      if (duel.isOutlier) continue;
+
+      const { firstSightTick, firstDamageTick, killTick } = duel;
+      const hasSight = firstSightTick !== null && firstSightTick !== undefined && Number.isFinite(Number(firstSightTick)) && Number(firstSightTick) >= 0;
+      const validDamage =
+        firstDamageTick === null ||
+        firstDamageTick === undefined ||
+        (Number.isFinite(Number(firstDamageTick)) && (!hasSight || Number(firstDamageTick) >= Number(firstSightTick)));
+      const validKill =
+        killTick === null ||
+        killTick === undefined ||
+        (Number.isFinite(Number(killTick)) &&
+          (firstDamageTick !== null && firstDamageTick !== undefined
+            ? Number(killTick) >= Number(firstDamageTick)
+            : !hasSight || Number(killTick) >= Number(firstSightTick)));
+
+      if (!validDamage || !validKill) continue;
+
+      acc.validDuels++;
+      let duelTtd = duel.ttdMs !== null && duel.ttdMs !== undefined ? Number(duel.ttdMs) : null;
+      if (duelTtd === null && hasSight && firstDamageTick !== null && Number(firstDamageTick) >= Number(firstSightTick)) {
+        duelTtd = Math.round((Number(firstDamageTick) - Number(firstSightTick)) * msPerTick);
+      }
+      if (duelTtd !== null && duelTtd >= 0 && duelTtd <= 1200) {
+        acc.ttdList.push(duelTtd);
+      }
+
+      const dmgsInDuel = roundDamages.filter(
+        (d) =>
+          String(d.attackerSteamId ?? d.attacker_steamid) === attackerId &&
+          String(d.victimSteamId ?? d.user_steamid) === victimId &&
+          (firstDamageTick === null || firstDamageTick === undefined || Number(d.tick) >= Number(firstDamageTick)) &&
+          (killTick === null || killTick === undefined || Number(d.tick) <= Number(killTick)),
+      );
+
+      if (Boolean(duel.isFirstShotHit) || (killTick !== null && killTick !== undefined && dmgsInDuel.length <= 5)) {
+        acc.first5BulletsSuccess++;
+      }
+
+      const isPrefire =
+        Boolean(duel.isPrefire) ||
+        (duel.ttdMs !== null && duel.ttdMs !== undefined && Number(duel.ttdMs) <= 150) ||
+        (hasSight &&
+          firstDamageTick !== null &&
+          firstDamageTick !== undefined &&
+          (Number(firstDamageTick) - Number(firstSightTick)) * msPerTick <= 150);
+      if (isPrefire) {
+        acc.prefireCount++;
+      }
+
+      if (duel.preAimErrorDegrees !== undefined && Number.isFinite(Number(duel.preAimErrorDegrees))) {
+        acc.headlockOffsets.push(Number(duel.preAimErrorDegrees));
+      } else if (duel.headlockOffset !== undefined && Number.isFinite(Number(duel.headlockOffset))) {
+        acc.headlockOffsets.push(Number(duel.headlockOffset));
+      } else {
+        const refTick = Number(firstSightTick ?? firstDamageTick ?? killTick ?? -1);
+        if (refTick >= 0) {
+          let attState = null;
+          let vicState = null;
+          if (roundTicks.length > 0) {
+            const tEntry = roundTicks.find((te) => Number(te.tick) >= refTick) || roundTicks[roundTicks.length - 1];
+            if (tEntry && Array.isArray(tEntry.players)) {
+              attState = tEntry.players.find((pl) => String(pl.steamId) === attackerId);
+              vicState = tEntry.players.find((pl) => String(pl.steamId) === victimId);
+            }
+          } else if (roundFrames.length > 0) {
+            const attPid = steamToPid.get(attackerId);
+            const vicPid = steamToPid.get(victimId);
+            const fEntry =
+              roundFrames.find((fr) => Number(Array.isArray(fr) ? fr[0] : fr.tick) >= refTick) ||
+              roundFrames[roundFrames.length - 1];
+            const fPlayers = Array.isArray(fEntry) ? fEntry[1] : fEntry?.players;
+            if (Array.isArray(fPlayers) && attPid && vicPid) {
+              const rawAtt = fPlayers.find((pl) => Number(Array.isArray(pl) ? pl[0] : pl.id) === attPid);
+              const rawVic = fPlayers.find((pl) => Number(Array.isArray(pl) ? pl[0] : pl.id) === vicPid);
+              if (Array.isArray(rawAtt) && Array.isArray(rawVic)) {
+                attState = { x: rawAtt[1], y: rawAtt[2], z: rawAtt[3], yaw: rawAtt[4], pitch: rawAtt.length >= 22 ? rawAtt[5] : 0 };
+                vicState = { x: rawVic[1], y: rawVic[2], z: rawVic[3] };
+              }
+            }
+          }
+          if (
+            attState &&
+            vicState &&
+            Number.isFinite(Number(attState.x)) &&
+            Number.isFinite(Number(attState.y)) &&
+            Number.isFinite(Number(attState.yaw)) &&
+            Number.isFinite(Number(vicState.x)) &&
+            Number.isFinite(Number(vicState.y))
+          ) {
+            const deg = computeAngularErrorDeg(
+              attState.x,
+              attState.y,
+              attState.z ?? 0,
+              attState.yaw,
+              attState.pitch ?? 0,
+              vicState.x,
+              vicState.y,
+              vicState.z ?? 0,
+            );
+            if (Number.isFinite(deg)) {
+              acc.headlockOffsets.push(deg);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const advancedStatsList = [];
+  for (const p of players) {
+    const sId = String(p.steamId);
+    const ps = playerStatsBySteam.get(sId);
+    const acc = accumBySteam.get(sId);
+    const roundsPlayed = Math.max(1, Number(ps?.roundsPlayed ?? rounds.length ?? 1));
+    const kills = Number(ps?.kills ?? 0);
+    const assists = Number(ps?.assists ?? 0);
+    const hltvRating = ps?.metrics?.hltv?.overall !== undefined ? Number(ps.metrics.hltv.overall) : null;
+    const adr = ps?.metrics?.adr?.overall !== undefined ? Number(ps.metrics.adr.overall) : null;
+    const kast = ps?.metrics?.kast?.overall !== undefined ? Number(ps.metrics.kast.overall) : null;
+    const udr = ps?.metrics?.udr?.overall !== undefined ? Number(ps.metrics.udr.overall) : 0;
+
+    const kpr = kills / roundsPlayed;
+    const apr = assists / roundsPlayed;
+    const impact = roundTo(Math.max(0, 2.13 * kpr + 0.42 * apr - 0.41), 2);
+    const hsPercent = kills > 0 ? roundTo(((acc?.headshotKills ?? 0) / kills) * 100, 2) : 0;
+
+    const totalHits = acc?.totalHits ?? 0;
+    const hitHeadPct = totalHits > 0 ? roundTo((acc.headHits / totalHits) * 100, 2) : 0;
+    const hitChestPct = totalHits > 0 ? roundTo((acc.chestHits / totalHits) * 100, 2) : 0;
+    const hitStomachPct = totalHits > 0 ? roundTo((acc.stomachHits / totalHits) * 100, 2) : 0;
+    const hitLimbsPct = totalHits > 0 ? roundTo((acc.limbsHits / totalHits) * 100, 2) : 0;
+
+    const playerTtd =
+      ps?.ttd ??
+      (acc && acc.ttdList && acc.ttdList.length > 0
+        ? Math.round(acc.ttdList.reduce((a, b) => a + b, 0) / acc.ttdList.length)
+        : null);
+    const playerTtk = ps?.ttk ?? null;
+    const reactionTimeMs =
+      playerTtd !== null && playerTtd !== undefined
+        ? Number(playerTtd)
+        : playerTtk !== null && playerTtk !== undefined && Number(playerTtk) > 0
+        ? Number(playerTtk)
+        : null;
+
+    const headlockOffset =
+      acc && acc.headlockOffsets.length > 0
+        ? roundTo(acc.headlockOffsets.reduce((a, b) => a + b, 0) / acc.headlockOffsets.length, 2)
+        : null;
+
+    const first5BulletsPct =
+      acc && acc.validDuels > 0
+        ? roundTo((acc.first5BulletsSuccess / acc.validDuels) * 100, 2)
+        : totalHits > 0
+        ? roundTo((Math.min(kills, totalHits) / totalHits) * 100, 2)
+        : 0;
+
+    const prefirePct =
+      acc && acc.validDuels > 0 ? roundTo((acc.prefireCount / acc.validDuels) * 100, 2) : 0;
+
+    const openingWins = resolvedDuels.filter((dl) => dl.winner_steamid === sId && dl.is_opening).length;
+    const openingLosses = resolvedDuels.filter((dl) => dl.loser_steamid === sId && dl.is_opening).length;
+    const openingTotal = openingWins + openingLosses;
+
+    const tradeWins = resolvedDuels.filter((dl) => dl.winner_steamid === sId && dl.is_trade).length;
+    const clutchWins = resolvedDuels.filter((dl) => dl.winner_steamid === sId && dl.is_clutch).length;
+    const clutchLosses = resolvedDuels.filter((dl) => dl.loser_steamid === sId && dl.is_clutch).length;
+    const clutchTotal = clutchWins + clutchLosses;
+
+    const scoreOpening = openingTotal > 0 ? roundTo((openingWins / openingTotal) * 100, 2) : 0;
+    const scoreTrade = kills > 0 ? roundTo(Math.min(100, (tradeWins / kills) * 100), 2) : 0;
+    const scoreUtility =
+      udr > 0
+        ? roundTo(Math.min(100, (udr / 30) * 100), 2)
+        : acc && acc.utilityThrown > 0
+        ? roundTo(Math.min(100, (acc.utilityThrown / roundsPlayed) * 50), 2)
+        : 0;
+    const scoreFlash =
+      acc && (acc.flashesThrown > 0 || acc.blindKills > 0)
+        ? roundTo(Math.min(100, ((acc.flashesThrown + acc.blindKills * 2) / roundsPlayed) * 100), 2)
+        : 0;
+    const scoreClutch = clutchTotal > 0 ? roundTo((clutchWins / clutchTotal) * 100, 2) : 0;
+
+    const row = {
+      match_id: matchId,
+      steamid: sId,
+      hltv_rating: hltvRating,
+      adr,
+      kast,
+      impact,
+      hs_percent: hsPercent,
+      hit_head_pct: hitHeadPct,
+      hit_chest_pct: hitChestPct,
+      hit_stomach_pct: hitStomachPct,
+      hit_limbs_pct: hitLimbsPct,
+      reaction_time_ms: reactionTimeMs,
+      headlock_offset: headlockOffset,
+      first_5_bullets_pct: first5BulletsPct,
+      prefire_pct: prefirePct,
+      score_opening: scoreOpening,
+      score_trade: scoreTrade,
+      score_utility: scoreUtility,
+      score_flash: scoreFlash,
+      score_clutch: scoreClutch,
+      he_damage: roundTo(acc?.heDamage ?? 0, 2),
+    };
+
+    if (ps) {
+      ps.advancedStats = row;
+    }
+    advancedStatsList.push(row);
+  }
+
+  return advancedStatsList;
+}
+
 export function computeMatchPlayerMetrics(rawDemo) {
   const players = rawDemo.players ?? [];
   const rounds = rawDemo.rounds ?? [];
   const duelTickrate = Number(rawDemo.tickrate) > 0 ? Number(rawDemo.tickrate) : 64;
-  const duelMsPerTick = 1000 / duelTickrate;
+  const tickInterval = 1 / duelTickrate;
   const avgOrNull = (arr) =>
     arr.length === 0 ? null : Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
 
@@ -1411,7 +2405,6 @@ export function computeMatchPlayerMetrics(rawDemo) {
       duelTtk: [],
       duelSeen: 0,
       duelValid: 0,
-      duelFirstShotHits: 0,
     });
   }
 
@@ -1457,29 +2450,37 @@ export function computeMatchPlayerMetrics(rawDemo) {
         if (duel.killTick !== null) attackerEntry.overall.duelsWon++;
 
         attackerEntry.duelSeen++;
-        const { firstSightTick, firstDamageTick, killTick } = duel;
-        const hasSight = firstSightTick !== null && Number.isFinite(firstSightTick) && firstSightTick >= 0;
-        const validDamage =
-          firstDamageTick === null ||
-          (Number.isFinite(firstDamageTick) && (!hasSight || firstDamageTick >= firstSightTick));
-        const validKill =
-          killTick === null ||
-          (Number.isFinite(killTick) &&
-            (firstDamageTick !== null
-              ? killTick >= firstDamageTick
-              : !hasSight || killTick >= firstSightTick));
-        const validDuel = validDamage && validKill;
 
-        if (validDuel) {
-          attackerEntry.duelValid++;
-          if (duel.isFirstShotHit) attackerEntry.duelFirstShotHits++;
-          if (firstDamageTick !== null) {
-            if (hasSight) {
-              attackerEntry.duelTtd.push((firstDamageTick - firstSightTick) * duelMsPerTick);
-            }
-            if (killTick !== null) {
-              attackerEntry.duelTtk.push((killTick - firstDamageTick) * duelMsPerTick);
-            }
+        const isExcluded = Boolean(duel.isExcluded) || isNonAimWeapon(duel.weapon);
+        let ttdVal = duel.ttdMs !== undefined && duel.ttdMs !== null ? Number(duel.ttdMs) : null;
+        if (ttdVal === null && !duel.isExcluded) {
+          const engagementStartTick =
+            duel.engagement_start_tick ?? duel.engagementStartTick ?? duel.firstSightTick ?? null;
+          const firstDamageTick = duel.first_damage_tick ?? duel.firstDamageTick ?? null;
+          if (
+            engagementStartTick !== null &&
+            firstDamageTick !== null &&
+            Number(firstDamageTick) >= Number(engagementStartTick)
+          ) {
+            ttdVal = Math.round((Number(firstDamageTick) - Number(engagementStartTick)) * tickInterval * 1000);
+          }
+        }
+        const ttkVal =
+          duel.ttkMs !== undefined && duel.ttkMs !== null
+            ? Number(duel.ttkMs)
+            : duel.killTick !== null && duel.firstDamageTick !== null
+            ? Math.round((Number(duel.killTick) - Number(duel.firstDamageTick)) * tickInterval * 1000)
+            : null;
+
+        const isOutlier = Boolean(duel.isOutlier) || (ttdVal !== null && ttdVal > 1200);
+
+        if (!isExcluded && !isOutlier) {
+          if (ttdVal !== null) {
+            attackerEntry.duelValid++;
+            attackerEntry.duelTtd.push(ttdVal);
+          }
+          if (ttkVal !== null && ttkVal >= 0) {
+            attackerEntry.duelTtk.push(ttkVal);
           }
         }
       }
@@ -1557,14 +2558,9 @@ export function computeMatchPlayerMetrics(rawDemo) {
 
     const playerTtd = avgOrNull(pStats.duelTtd);
     const playerTtk = avgOrNull(pStats.duelTtk);
-    const playerFsp =
-      pStats.duelValid === 0
-        ? null
-        : roundTo((pStats.duelFirstShotHits / pStats.duelValid) * 100, 2);
     console.log(
       `[duels] ${pStats.name} (${pStats.steamId}): recebidos=${pStats.duelSeen} válidos=${pStats.duelValid} ` +
-        `descartados=${pStats.duelSeen - pStats.duelValid} ttd=${playerTtd ?? 'null'}ms ` +
-        `ttk=${playerTtk ?? 'null'}ms fsp=${playerFsp ?? 'null'}%`,
+        `descartados=${pStats.duelSeen - pStats.duelValid} ttd=${playerTtd ?? 'null'}ms ttk=${playerTtk ?? 'null'}ms`,
     );
 
     results.push({
@@ -1579,7 +2575,6 @@ export function computeMatchPlayerMetrics(rawDemo) {
       roundsPlayed: overall.rounds,
       ttd: playerTtd,
       ttk: playerTtk,
-      fsp: playerFsp,
       duelsWon: overall.duelsWon,
       duelsTotal: overall.duelsTotal,
       metrics: {
@@ -1601,6 +2596,7 @@ export function computeMatchPlayerMetrics(rawDemo) {
     });
   }
 
+  computePlayerAdvancedStats(rawDemo, results);
   return results;
 }
 
@@ -1635,32 +2631,27 @@ export function buildMatchPackageAndRecord(rawDemo) {
 
   const ttdSamples = [];
   const ttkSamples = [];
-  let validDuels = 0;
-  let firstShotHits = 0;
-  const msPerTick = 1000 / tickrate;
+  const tickInterval = 1 / tickrate;
 
   for (const duel of allDuels) {
-    const { firstSightTick, firstDamageTick, killTick } = duel;
-    const hasSight = firstSightTick !== null && Number.isFinite(firstSightTick) && firstSightTick >= 0;
-    const validDamage =
-      firstDamageTick === null ||
-      (Number.isFinite(firstDamageTick) && (!hasSight || firstDamageTick >= firstSightTick));
-    const validKill =
-      killTick === null ||
-      (Number.isFinite(killTick) &&
-        (firstDamageTick !== null
-          ? killTick >= firstDamageTick
-          : !hasSight || killTick >= firstSightTick));
-    const ok = validDamage && validKill;
-    if (!ok) continue;
+    if (duel.isExcluded || isNonAimWeapon(duel.weapon)) continue;
 
-    validDuels++;
-    if (duel.isFirstShotHit) firstShotHits++;
-    if (firstDamageTick !== null && hasSight) {
-      ttdSamples.push((firstDamageTick - firstSightTick) * msPerTick);
+    const ttdVal = duel.ttdMs !== undefined && duel.ttdMs !== null ? Number(duel.ttdMs) : null;
+    const isOutlier = Boolean(duel.isOutlier) || (ttdVal !== null && ttdVal > 1200);
+
+    if (ttdVal !== null && !isOutlier && ttdVal >= 0) {
+      ttdSamples.push(ttdVal);
     }
-    if (killTick !== null && firstDamageTick !== null) {
-      ttkSamples.push((killTick - firstDamageTick) * msPerTick);
+
+    const ttkVal =
+      duel.ttkMs !== undefined && duel.ttkMs !== null
+        ? Number(duel.ttkMs)
+        : duel.killTick !== null && duel.firstDamageTick !== null
+        ? Math.round((Number(duel.killTick) - Number(duel.firstDamageTick)) * 15.625)
+        : null;
+
+    if (ttkVal !== null && ttkVal >= 0) {
+      ttkSamples.push(ttkVal);
     }
   }
 
@@ -1680,7 +2671,6 @@ export function buildMatchPackageAndRecord(rawDemo) {
     replay_storage_path: `${demoHash}.bin.gz`,
     global_avg_ttd_ms: avgTtd === null ? null : Math.round(avgTtd),
     global_avg_ttk_ms: avgTtk === null ? null : Math.round(avgTtk),
-    global_avg_fsp_pct: validDuels === 0 ? null : roundTo((firstShotHits / validDuels) * 100, 2),
     is_public: Boolean(rawDemo.isPublic ?? false),
     uploader_id: rawDemo.uploaderId ?? null,
   };
@@ -1871,7 +2861,8 @@ async function updateLocalStore(storeFilePath, { matchId, matchRecord, playerSta
 }
 
 /**
- * Executa o pipeline completo para um arquivo .dem:
+ * Consome um .dem, .rar ou .zip. Transfere a propriedade da fonte ao pipeline:
+ * a fonte é apagada mesmo em caso de erro, sem opção de retenção.
  */
 export async function processDemoFile(demFilePath, options = {}) {
   if (!demFilePath || typeof demFilePath !== 'string') {
@@ -1880,12 +2871,26 @@ export async function processDemoFile(demFilePath, options = {}) {
 
   const resolvedDemPath = path.resolve(demFilePath);
   let localPool = null;
-  const keepDemFile = options.keepDemFile !== false;
+  let tempDir = null;
+  let processingError;
   let transactionClient = null;
   let committed = false;
 
   try {
     await access(resolvedDemPath);
+    const extension = path.extname(resolvedDemPath).toLowerCase();
+    if (extension === '.rar' || extension === '.zip') {
+      const tempRoot = path.resolve(options.tempBaseDir || './temp/demos');
+      await mkdir(tempRoot, { recursive: true });
+      tempDir = await mkdtemp(path.join(tempRoot, 'job-'));
+      const demoPaths = await extractDemoArchive(resolvedDemPath, tempDir);
+      const results = [];
+      for (const demoPath of demoPaths) {
+        results.push(await processDemoFile(demoPath, options));
+      }
+      return { ...results[0], results, demDeleted: true };
+    }
+    if (extension !== '.dem') throw new Error('Formato inválido: utilize .dem, .rar ou .zip.');
     const fileBuffer = await readFile(resolvedDemPath);
     const demoparser = await loadDemoParser2(options.demoparser);
     const rawDemo = await extractRawDemoWithParser(resolvedDemPath, fileBuffer, demoparser);
@@ -1925,6 +2930,8 @@ export async function processDemoFile(demFilePath, options = {}) {
     packageData.id = targetMatchId;
     packageData.matchId = targetMatchId;
     const playerStats = computeMatchPlayerMetrics(rawDemo);
+    const matchDuels = extractMatchDuels(rawDemo, targetMatchId);
+    const advancedStats = computePlayerAdvancedStats(rawDemo, playerStats, matchDuels, targetMatchId);
     for (const player of playerStats) {
       const manifest = packageData.playersManifest.find(p=>p.steamId===player.steamId);
       const spatial = analyzeSpatial(packageData, manifest);
@@ -1959,20 +2966,18 @@ export async function processDemoFile(demFilePath, options = {}) {
       obsoleteFiles = previous.rows.flatMap(r=>[r.replay_path,r.demo_path]).filter(Boolean);
     }
     await writeFile(fullReplayPath, compressedReplay);
-    const demoPath = fullReplayPath.replace(/\.bin\.gz$/, '.dem');
-    if (path.resolve(demoPath) !== resolvedDemPath) await copyFile(resolvedDemPath, demoPath);
     matchRecord.replay_storage_path = taxonomy.filePath;
     if (transactionClient) {
       matchId = await persistMatch(transactionClient, {
-        matchRecord, rawDemo, playerStats, replayPath: taxonomy.filePath,
-        demoPath: path.relative(process.cwd(), demoPath), targetMatchId, mapIdentifier,
+        matchRecord, rawDemo, playerStats, advancedStats, matchDuels, replayPath: taxonomy.filePath,
+        demoPath: null, targetMatchId, mapIdentifier,
       });
       await transactionClient.query('COMMIT');
       committed = true;
       for (const oldFile of obsoleteFiles) {
         const oldPath = path.resolve(oldFile);
         const relative = path.relative(path.resolve(baseReplaysDir),oldPath);
-        if (relative && !relative.startsWith('..') && !path.isAbsolute(relative) && oldPath !== fullReplayPath && oldPath !== demoPath) {
+        if (relative && !relative.startsWith('..') && !path.isAbsolute(relative) && oldPath !== fullReplayPath) {
           await unlink(oldPath).catch(e=>{if(e.code!=='ENOENT')console.warn('Arquivo antigo pendente de limpeza:',oldPath);});
         }
       }
@@ -2044,16 +3049,19 @@ export async function processDemoFile(demFilePath, options = {}) {
       demoHash: matchRecord.demo_hash,
       matchRecord,
       playerStats,
+      advancedStats,
+      matchDuels,
       recentTelemetryEntry: {
         ...recentTelemetryEntry,
         matchId,
       },
       replayPath: taxonomy.filePath,
       assets,
-      demDeleted: !keepDemFile,
+      demDeleted: true,
       mapIdentifier,
     };
   } catch (err) {
+    processingError = err;
     if (transactionClient && !committed) await transactionClient.query('ROLLBACK').catch(() => {});
     try {
       const logDir = options.logsDir || path.resolve('./logs');
@@ -2066,34 +3074,38 @@ export async function processDemoFile(demFilePath, options = {}) {
     }
     throw err;
   } finally {
-    transactionClient?.release?.();
-    if (localPool) {
-      await localPool.end().catch(() => {});
-    }
-    if (!keepDemFile && committed) {
-      try {
-        await unlink(resolvedDemPath);
-      } catch {
-        // arquivo já unlinked ou ausente
+    try {
+      transactionClient?.release?.();
+      if (localPool) await localPool.end();
+    } finally {
+      console.log(`[STORAGE] Removendo demo processada do disco: ${path.basename(resolvedDemPath)}`);
+      const cleanup = await Promise.allSettled([
+        unlink(resolvedDemPath).catch(error => { if (error.code !== 'ENOENT') throw error; }),
+        ...(tempDir ? [rm(tempDir, { recursive: true, force: true, maxRetries: 3 })] : []),
+      ]);
+      const errors = cleanup.filter(result => result.status === 'rejected').map(result => result.reason);
+      if (errors.length) {
+        console.error('[STORAGE] Falha ao liberar espaço em disco:', errors);
+        throw new AggregateError(processingError ? [processingError, ...errors] : errors, 'Falha na limpeza dos arquivos de ingestão.');
       }
+      console.log('[STORAGE] Espaço em disco liberado com sucesso.');
     }
   }
 }
 
-// Execução direta via CLI: node scripts/process-demo.mjs <caminho-do-arquivo.dem> [--keep-dem]
+// Execução direta via CLI: node scripts/process-demo.mjs <arquivo.dem|arquivo.rar|arquivo.zip>
 const isMain =
   process.argv[1] &&
   path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 
 if (isMain) {
   const args = process.argv.slice(2);
-  const keepDemFile = args.includes('--keep-dem');
   const targetDem = args.find((a) => !a.startsWith('--'));
   if (!targetDem) {
-    console.error('Uso: node scripts/process-demo.mjs <caminho-do-arquivo.dem> [--keep-dem]');
+    console.error('Uso: node scripts/process-demo.mjs <arquivo.dem|arquivo.rar|arquivo.zip>');
     process.exit(1);
   }
-  processDemoFile(targetDem, { keepDemFile, playedAt: process.env.DEMO_PLAYED_AT, format: process.env.DEMO_FORMAT })
+  processDemoFile(targetDem, { playedAt: process.env.DEMO_PLAYED_AT, format: process.env.DEMO_FORMAT, tempBaseDir: process.env.DEMO_TEMP_DIR })
     .then((result) => {
       console.log(
         JSON.stringify(
@@ -2108,6 +3120,7 @@ if (isMain) {
             teamsSynced: result.assets.teams.length,
             playersSynced: result.assets.players.length,
             mapIdentifier: result.mapIdentifier,
+            results: result.results?.map(map => ({ matchId: map.matchId, seriesId: map.seriesId, demoHash: map.demoHash, map: map.matchRecord.map_name, demDeleted: map.demDeleted })),
           },
           null,
           2,

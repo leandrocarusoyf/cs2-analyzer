@@ -98,14 +98,12 @@ describe('processDemoTelemetry', () => {
     expect(packageData.rounds[0].events.kills).toHaveLength(1);
   });
 
-  it('agrega TTD, TTK e FSP com precisão e arredondamento corretos', () => {
+  it('agrega TTD e TTK com precisão e arredondamento corretos', () => {
     const { matchRecord } = processDemoTelemetry(buildRawDemo());
     // TTD: 16t=250ms e 24t=375ms -> média 312.5 -> 313
     expect(matchRecord.global_avg_ttd_ms).toBe(313);
     // TTK: 16t=250ms e 40t=625ms -> média 437.5 -> 438
     expect(matchRecord.global_avg_ttk_ms).toBe(438);
-    // FSP: 3 duelos válidos (1 descartado por anomalia), 1 acerto -> 33.33
-    expect(matchRecord.global_avg_fsp_pct).toBe(33.33);
   });
 
   it('monta o registo de matches com placar, hash e caminho de armazenamento', () => {
@@ -144,7 +142,7 @@ describe('processDemoTelemetry', () => {
 
   it('devolve null nos agregados quando não há duelos válidos', () => {
     const r = aggregateAimMetrics([], 64);
-    expect(r).toEqual({ avgTtdMs: null, avgTtkMs: null, fspPct: null, discardedDuels: 0 });
+    expect(r).toEqual({ avgTtdMs: null, avgTtkMs: null, discardedDuels: 0 });
   });
 });
 

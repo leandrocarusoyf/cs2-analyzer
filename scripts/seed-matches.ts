@@ -313,9 +313,9 @@ async function seed() {
       await pool.query(`
         INSERT INTO player_stats (
           match_id, map_id, player_steamid, nickname, team,
-          rating, adr, kast, kills, deaths, assists, ttd, ttk, fsp, metrics_json
+          rating, adr, kast, kills, deaths, assists, ttd, ttk, metrics_json
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14);
       `, [
         m1Id,
         map1Res.rows[0].id,
@@ -330,7 +330,6 @@ async function seed() {
         p.assists,
         aim.ttd,
         aim.ttk,
-        aim.firstBullet,
         JSON.stringify({
           general,
           aim,

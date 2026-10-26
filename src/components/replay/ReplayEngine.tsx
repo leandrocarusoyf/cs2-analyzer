@@ -39,6 +39,7 @@ import { PlaybackControls } from './PlaybackControls.tsx';
 import { TimelineScrubber } from './TimelineScrubber.tsx';
 import { RoundCarousel } from './RoundCarousel.tsx';
 import { ReplayHUD } from './ReplayHUD.tsx';
+import { PlayerMatchInspectModal } from './PlayerMatchInspectModal.tsx';
 
 export interface ReplayEngineProps {
   matchId: string;
@@ -51,6 +52,7 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
   const [replayPayload, setReplayPayload] =
     useState<TacticalReplayPayload | null>(null);
   const [activeNukeLayer, setActiveNukeLayer] = useState<NukeLayer>('upper');
+  const [inspectedPlayerSteamId, setInspectedPlayerSteamId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -485,6 +487,40 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
     );
   }, [activeRound?.combatLines, playback.currentTick]);
 
+  const playerLookup = useMemo(() => {
+    const lookup: Record<string, string> = {};
+    for (const p of playersManifest) {
+      if (p.steamId) lookup[p.steamId] = p.name;
+      lookup[String(p.id)] = p.name;
+    }
+    return lookup;
+  }, [playersManifest]);
+
+  const inspectedPlayerEntry = useMemo(() => {
+    if (!inspectedPlayerSteamId) return null;
+    return (
+      playersManifest.find(
+        (p) =>
+          p.steamId === inspectedPlayerSteamId ||
+          String(p.id) === inspectedPlayerSteamId,
+      ) ?? null
+    );
+  }, [playersManifest, inspectedPlayerSteamId]);
+
+  const inspectedPlayerInfo = useMemo(() => {
+    if (!inspectedPlayerEntry) return undefined;
+    const isCt = inspectedPlayerEntry.initialTeam === 'CT';
+    const currentTeam = isCt ? team1Name : team2Name;
+    const nickSlug = inspectedPlayerEntry.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return {
+      nickname: inspectedPlayerEntry.name,
+      team: currentTeam,
+      side: inspectedPlayerEntry.initialTeam,
+      avatarUrl: nickSlug ? `/players/${nickSlug}.png` : undefined,
+      mapName: mapName || 'DE_MIRAGE',
+    };
+  }, [inspectedPlayerEntry, team1Name, team2Name, mapName]);
+
   return (
     <section
       aria-labelledby="replayer-heading"
@@ -577,6 +613,8 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
               playerHasC4ById={playerHasC4ById}
               playerCalloutsById={playerCalloutsById}
               playerInventoryById={playerInventoryById}
+              onInspectPlayer={(steamId) => setInspectedPlayerSteamId(steamId)}
+              selectedSteamId={inspectedPlayerSteamId}
             />
           </div>
 
@@ -620,6 +658,18 @@ export function ReplayEngine({ matchId, initialMatch = null }: ReplayEngineProps
             />
           </div>
         </>
+      )}
+
+      {/* Modal de Inspeção Tática do Jogador */}
+      {inspectedPlayerSteamId && (
+        <PlayerMatchInspectModal
+          matchId={matchId}
+          steamId={inspectedPlayerSteamId}
+          isOpen={true}
+          onClose={() => setInspectedPlayerSteamId(null)}
+          playerInfo={inspectedPlayerInfo}
+          playerLookup={playerLookup}
+        />
       )}
     </section>
   );

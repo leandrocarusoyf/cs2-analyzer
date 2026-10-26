@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir, utimes } from 'node:fs/promises';
+import { writeFile, mkdir, mkdtemp, rm, utimes } from 'node:fs/promises';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -14,6 +14,7 @@ function extractMapNumber(filename: string): number {
 }
 
 export async function POST(req: NextRequest) {
+  let tempDir: string | undefined;
   try {
     const formData = await req.formData();
     const playedAtInput = formData.get('playedAt');
@@ -45,10 +46,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const invalid = filesList.find((f) => !f.name.toLowerCase().endsWith('.dem'));
+    const invalid = filesList.find((f) => !/\.(dem|rar|zip)$/i.test(f.name));
     if (invalid) {
       return NextResponse.json(
-        { error: `Formato inválido (${invalid.name}). Todos os arquivos devem possuir a extensão .dem` },
+        { error: `Formato inválido (${invalid.name}). Todos os arquivos devem possuir a extensão .dem, .rar ou .zip` },
         { status: 400 },
       );
     }
@@ -61,8 +62,9 @@ export async function POST(req: NextRequest) {
       return a.name.localeCompare(b.name);
     });
 
-    const tempDir = path.resolve(process.cwd(), 'data', 'replays');
-    await mkdir(tempDir, { recursive: true });
+    const tempRoot = path.resolve(process.cwd(), 'temp', 'demos');
+    await mkdir(tempRoot, { recursive: true });
+    tempDir = await mkdtemp(path.join(tempRoot, 'upload-'));
 
     const results: any[] = [];
     const scriptPath = path.resolve(process.cwd(), 'scripts', 'process-demo.mjs');
@@ -80,7 +82,7 @@ export async function POST(req: NextRequest) {
       await utimes(tempFilePath, new Date(playedAt), new Date(playedAt));
       const { stdout } = await execAsync(process.execPath, [scriptPath, tempFilePath], {
         maxBuffer: 10 * 1024 * 1024,
-        env: { ...process.env, DEMO_PLAYED_AT: playedAt, DEMO_FORMAT: String(formData.get('format') || (filesList.length > 3 ? 'BO5' : filesList.length > 1 ? 'BO3' : 'BO1')) },
+        env: { ...process.env, DEMO_TEMP_DIR: tempDir, DEMO_PLAYED_AT: playedAt, DEMO_FORMAT: String(formData.get('format') || (filesList.length > 3 ? 'BO5' : filesList.length > 1 ? 'BO3' : 'BO1')) },
       });
 
       let parsedResult: any = null;
@@ -96,7 +98,7 @@ export async function POST(req: NextRequest) {
         parsedResult = { stdout: stdout.slice(-500) };
       }
 
-      results.push(parsedResult);
+      results.push(...(parsedResult.results || [parsedResult]));
     }
 
     const mainResult = results[0] || null;
@@ -122,5 +124,11 @@ export async function POST(req: NextRequest) {
       },
       { status: 500 },
     );
+  } finally {
+    if (tempDir) {
+      console.log(`[STORAGE] Removendo demo processada do disco: ${path.basename(tempDir)}`);
+      await rm(tempDir, { recursive: true, force: true, maxRetries: 3 });
+      console.log('[STORAGE] Espaço em disco liberado com sucesso.');
+    }
   }
 }

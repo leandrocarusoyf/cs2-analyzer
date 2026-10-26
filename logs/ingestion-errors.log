@@ -110,3 +110,16 @@ Stack: Error: UnknownFile
     at extractRawDemoWithParser (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:283:31)
     at processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:1929:27)
 
+[2026-10-21T05:34:30.492Z] Demo: D:\Users\leand\cs2-analyzer
+Erro: EISDIR: illegal operation on a directory, read
+Stack: Error: EISDIR: illegal operation on a directory, read
+    at async readFileHandle (node:internal/fs/promises:1261:24)
+    at async processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:2765:24)
+
+[2026-10-21T18:02:52.307Z] Demo: D:\Users\leand\cs2-analyzer\furia-vs-aurora-m1-dust2.dem
+Erro: 
+Stack: AggregateError [ECONNREFUSED]: 
+    at D:\Users\leand\cs2-analyzer\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async processDemoFile (file:///D:/Users/leand/cs2-analyzer/scripts/process-demo.mjs:2939:68)
+

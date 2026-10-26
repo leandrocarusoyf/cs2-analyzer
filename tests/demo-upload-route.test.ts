@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 
 let execMockOutput: { err: any; stdout: string; stderr: string } = {
   err: null,
@@ -25,12 +26,14 @@ vi.mock('node:child_process', async (importOriginal) => {
 
 vi.mock('node:fs/promises', async (importOriginal) => {
   const actual: any = await importOriginal();
-  return {
-    ...actual,
+  const mocked = {
     utimes: vi.fn().mockResolvedValue(undefined),
     mkdir: vi.fn().mockResolvedValue(undefined),
     writeFile: vi.fn().mockResolvedValue(undefined),
+    mkdtemp: vi.fn().mockResolvedValue('temp/demos/upload-test'),
+    rm: vi.fn().mockResolvedValue(undefined),
   };
+  return { ...actual, ...mocked, default: { ...actual.default, ...mocked } };
 });
 
 // Import POST handler after mocks
@@ -49,6 +52,7 @@ function createMockUploadRequest(file: any): NextRequest {
 
 describe('Demo Upload Route Handler (POST /api/demos/upload)', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     execMockOutput = { err: null, stdout: '', stderr: '' };
   });
 
@@ -108,6 +112,7 @@ Round 1: Vitality venceu
     expect(json.result).toBeTruthy();
     expect(json.result.map).toBe('de_dust2');
     expect(json.result.demoHash).toBe('hash12345678');
+    expect(rm).toHaveBeenCalledWith('temp/demos/upload-test', expect.objectContaining({ recursive: true, force: true }));
   });
 
   it('retorna 500 com mensagem de erro quando o script de ingestão falha', async () => {
@@ -130,6 +135,23 @@ Round 1: Vitality venceu
     const json = await res.json();
     expect(json.error).toContain('Erro ao processar demo');
     expect(json.details).toBe('Stack trace details');
+    expect(rm).toHaveBeenCalledWith('temp/demos/upload-test', expect.objectContaining({ recursive: true, force: true }));
+  });
+
+  it.each(['rar', 'zip'])('aceita upload .%s e limpa a pasta temporária', async extension => {
+    execMockOutput.stdout = JSON.stringify({ matchId: 'series', results: [{ matchId: 'series', map: 'de_nuke' }, { matchId: 'series', map: 'de_mirage' }] });
+    const res = await POST(createMockUploadRequest({ name: `match.${extension}`, arrayBuffer: async () => new ArrayBuffer(8) }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).results).toHaveLength(2);
+    expect(rm).toHaveBeenCalledOnce();
+  });
+
+  it('limpa arquivos parciais quando a gravação do upload falha', async () => {
+    vi.mocked(writeFile).mockRejectedValueOnce(new Error('disk full'));
+    const res = await POST(createMockUploadRequest({ name: 'match.dem', arrayBuffer: async () => new ArrayBuffer(8) }));
+    expect(res.status).toBe(500);
+    expect(mkdtemp).toHaveBeenCalledOnce();
+    expect(rm).toHaveBeenCalledOnce();
   });
 
   it('processa múltiplos arquivos da série ordenando m1 antes de m2 e retornando seriesId e results', async () => {
