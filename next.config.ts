@@ -2,6 +2,14 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
+  serverExternalPackages: [
+    'hltv',
+    'got-scraping',
+    'header-generator',
+    '@laihoe/demoparser2',
+    'demoparser2',
+    'pg',
+  ],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'liquipedia.net', pathname: '/**' },
@@ -13,4 +21,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

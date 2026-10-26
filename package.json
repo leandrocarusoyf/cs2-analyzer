@@ -12,12 +12,18 @@
   "dependencies": {
     "@laihoe/demoparser2": "^0.42.0",
     "@types/pako": "^2.0.4",
+    "7zip-bin": "^5.2.0",
+    "cheerio": "^1.2.0",
     "demoparser2": "^0.15.0",
+    "hltv": "^3.5.0",
     "next": "^15.2.0",
+    "node-unrar-js": "^2.0.2",
     "pako": "^3.0.2",
     "pg": "^8.23.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "rss-parser": "^3.13.0",
+    "undici": "^7.30.1",
     "zod": "^4.0.0"
   },
   "devDependencies": {
